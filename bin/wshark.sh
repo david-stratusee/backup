@@ -10,9 +10,9 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-if [ $# -gt 0 ] && [ "$1" == "-h" ]; then
+if [ $# -eq 0 ] || [ "$1" == "-h" ]; then
     echo "for icap: wshark.sh \"tcp port 1344\" -i lo"
-    echo "for http: wshark.sh \"tcp port 3127\" -i enp0s3"
+    echo "for http: wshark.sh \"tcp port 3128\" -i enp0s3"
     exit 0
 fi
 
