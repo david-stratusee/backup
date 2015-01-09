@@ -1,0 +1,6 @@
+
+function diff_r()
+{
+	diff $@ | less -RF
+}
+
