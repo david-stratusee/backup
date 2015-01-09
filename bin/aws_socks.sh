@@ -17,8 +17,8 @@ set -o nounset                              # Treat unset variables as an error
 #-------------------------------------------------------------------------------
 username=david
 
-host_port="dev-aie.stratusee.com:22"
-#host_port="54.174.130.103:22"
+#host_port="dev-aie.stratusee.com:22"
+host_port="54.174.130.103:22"
 #host_port="us.stratusee.com:2221"
 
 ETH="Wi-Fi"
@@ -71,33 +71,39 @@ function kill_process()
     fi
 }
 
-if [ $# -eq 0 ]; then
-    echo "need args"
+if [ $# -gt 0 ] && [ "$1" == "-h" ]; then
     echo "-c for clear socks proxy"
     echo "-l for  show socks proxy"
-    echo "ip for   set socks proxy"
+    echo "ip for   set socks proxy and http proxy"
+    echo "no args for set socks proxy and DIRECT"
     exit 0
-fi
-
-if [ $# -gt 0 ] && [ "$1" == "-c" ]; then
+elif [ $# -gt 0 ] && [ "$1" == "-c" ]; then
     kill_process "watch_socks"
     kill_process "ssh -D"
 
-    sudo apachectl graceful-stop
+    if [ -f "/System/Library/LaunchDaemons/org.apache.httpd.plist" ]; then
+        sudo apachectl graceful-stop
+    fi
     sudo networksetup -setautoproxystate ${ETH} off
 elif [ $# -gt 0 ] && [ "$1" == "-l" ]; then
     show_proxy
     exit 0
 else
-    sudo cp -f /Library/WebServer/Documents/proxy.pac /Library/WebServer/Documents/proxy_aie.pac
-    sudo sed -i -e "s/'DIRECT'/'PROXY $1:3128'/g" /Library/WebServer/Documents/proxy_aie.pac
+    if [ $# -gt 0 ]; then
+        sudo cp -f /Library/WebServer/Documents/proxy.pac /Library/WebServer/Documents/proxy_aie.pac
+        sudo sed -i -e "s/'DIRECT'/'PROXY $1:3128'/g" /Library/WebServer/Documents/proxy_aie.pac
+    fi
 
     echo start socks
     fill_and_run_proxy
 
-    sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
+    if [ $# -gt 0 ]; then
+        sudo apachectl start
+        sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
+    else
+        sudo networksetup -setautoproxyurl ${ETH} "https://david-stratusee.github.io/proxy.pac"
+    fi
     sudo networksetup -setautoproxystate ${ETH} on
-    sudo apachectl start
 fi
 
 show_proxy
