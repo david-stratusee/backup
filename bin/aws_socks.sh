@@ -81,7 +81,8 @@ elif [ $# -gt 0 ] && [ "$1" == "-c" ]; then
     kill_process "watch_socks"
     kill_process "ssh -D"
 
-    if [ -f "/System/Library/LaunchDaemons/org.apache.httpd.plist" ]; then
+    httpd_count=`ps -ef | grep -v grep | grep -c httpd`
+    if [ ${httpd_count} -gt 0 ]; then
         sudo apachectl graceful-stop
     fi
     sudo networksetup -setautoproxystate ${ETH} off
@@ -89,20 +90,19 @@ elif [ $# -gt 0 ] && [ "$1" == "-l" ]; then
     show_proxy
     exit 0
 else
+    sudo networksetup -setautoproxystate ${ETH} off
     if [ $# -gt 0 ]; then
         sudo cp -f /Library/WebServer/Documents/proxy.pac /Library/WebServer/Documents/proxy_aie.pac
         sudo sed -i -e "s/'DIRECT'/'PROXY $1:3128'/g" /Library/WebServer/Documents/proxy_aie.pac
+        sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
+        sudo apachectl start
+    else
+        sudo networksetup -setautoproxyurl ${ETH} "https://david-stratusee.github.io/proxy.pac"
     fi
 
     echo start socks
     fill_and_run_proxy
 
-    if [ $# -gt 0 ]; then
-        sudo apachectl start
-        sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
-    else
-        sudo networksetup -setautoproxyurl ${ETH} "https://david-stratusee.github.io/proxy.pac"
-    fi
     sudo networksetup -setautoproxystate ${ETH} on
 fi
 
