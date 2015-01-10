@@ -15,6 +15,8 @@ is_mac=$?
 
 if [ $# -gt 0 ] && [ "$1" == "-h" ]; then
     echo "default is set dns, -c means clear dns, -l means list dns."
+    echo "for opendns: 208.67.222.222 208.67.220.220"
+    echo "for GOOGLE: 8.8.8.8 8.8.4.4"
     if [ ${is_mac} -ne 0 ]; then
         echo "All for Wi-Fi"
     fi
