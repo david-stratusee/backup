@@ -1,10 +1,10 @@
 #!/bin/bash -
 #===============================================================================
-#          FILE: set_dns.sh
-#         USAGE: ./set_dns.sh
+#          FILE: setdns.sh
+#         USAGE: ./setdns.sh
 #   DESCRIPTION:
 #        AUTHOR: dengwei
-#       CREATED: 12/22/2014 13:55
+#       CREATED: 2014/12/14 11:37
 #      REVISION:  ---
 #===============================================================================
 
@@ -12,20 +12,26 @@ set -o nounset                              # Treat unset variables as an error
 
 if [ $# -gt 0 ] && [ "$1" == "-h" ]; then
     echo "default is set dns, -c means clear dns, -l means list dns."
+    echo "All for Wi-Fi"
     exit 0
 fi
 
 if [ $# -gt 0 ] && [ "$1" == "-c" ]; then
-    #sudo sed -i -e 's/nameserver .*$//g' /etc/resolvconf/resolv.conf.d/head
-    sudo sed -i '/^nameserver .*$/d' /etc/resolvconf/resolv.conf.d/head
-    sudo resolvconf -u
+    sudo networksetup -setdnsservers Wi-Fi empty
+    sudo dscacheutil -flushcache
     exit 0
 fi
 
 if [ $# -gt 0 ] && [ "$1" == "-l" ]; then
-    grep -v "^# " /etc/resolv.conf
+    networksetup -getdnsservers Wi-Fi
     exit 0
 fi
 
-sudo bash -c "echo nameserver 10.0.0.2 >> /etc/resolvconf/resolv.conf.d/head"
-sudo resolvconf -u
+setdns="10.0.0.2"
+if [ $# -gt 0 ]; then
+    setdns=$@
+fi
+
+sudo networksetup -setdnsservers Wi-Fi ${setdns}
+sudo dscacheutil -flushcache
+$0 -l
