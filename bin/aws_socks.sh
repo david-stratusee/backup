@@ -74,7 +74,7 @@ function print_avail_host()
 {
     echo "available socks host:port is:"
     for node in ${available_host_port[*]}; do
-        echo "* $node"
+        echo " * $node"
     done
 }
 
