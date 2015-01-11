@@ -1,0 +1,22 @@
+:l    change macro text to lowercase
+:u    change macro text to uppercase
+:c    capitalize macro text
+:L    legalize name
+
+*|AUTHOR|*          ""
+*|AUTHORREF|*       ""
+*|EMAIL|*           ""
+*|COMPANY|*         ""
+*|PROJECT|*         ""
+*|COPYRIGHTHOLDER|* ""
+*|STYLE|*           ""
+*|includefile|*     ""
+
+*|BASENAME|*        filename without path and suffix
+*|DATE|*            the preferred date representation for the current locale without the time
+*|FILENAME|*        filename without path
+*|PATH|*            path without filename
+*|SUFFIX|*          filename suffix
+*|TIME|*            the preferred time representation for the current locale without the date and the time zone or name or abbreviation
+*|YEAR|*            the year as a decimal number including the century
+
