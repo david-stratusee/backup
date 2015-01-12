@@ -163,7 +163,7 @@ static int tcp_query(response *buffer)
 
     if (connect(sock, (struct sockaddr *)&socks_server, sizeof(socks_server)) < 0) {
         if (LOG_FILE) {
-            fprintf(LOG_FILE, "[!] Error connecting to proxy");
+            fprintf(LOG_FILE, "[!] Error connecting to proxy\n");
         }
         return -1;
     }
@@ -225,7 +225,7 @@ int tcp_query_pure(response *buffer)
 
     if (connect(sock, (struct sockaddr *)&socks_server, sizeof(socks_server)) < 0) {
         if (LOG_FILE) {
-            fprintf(LOG_FILE, "[!] Error connecting to proxy");
+            fprintf(LOG_FILE, "[!] Error connecting to proxy\n");
         }
         return -1;
     }
@@ -258,14 +258,20 @@ static int udp_query_pure(response *buffer)
     socks_server.sin_family = AF_INET;
     socks_server.sin_port = htons(53);
 
-    srand(time(NULL));
-    in_addr_t dns_server = udp_dns_servers[rand() % (NUM_UDP_DNS - 1)];
+    in_addr_t dns_server;
+    if (NUM_UDP_DNS > 1) {
+        srand(time(NULL));
+        dns_server = udp_dns_servers[rand() % (NUM_UDP_DNS - 1)];
+    } else {
+        dns_server = udp_dns_servers[0];
+    }
     socks_server.sin_addr.s_addr = dns_server;
 
     sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
         if (LOG_FILE) {
             fprintf(LOG_FILE, "[!] Error creating UDP socket");
+            fflush(LOG_FILE);
         }
         printf("[!] Error creating UDP socket");
         return -1;
@@ -282,6 +288,7 @@ static int udp_query_pure(response *buffer)
         fprintf(LOG_FILE, "UDP: Using DNS server: %s, send %d, and resv %u, time: tick(%lu)-ns(%lu)-ms(%lu)\n",
                 inet_ntoa(*(struct in_addr *)&dns_server), send_len, buffer->length,
                 udp_cputicks, TS_NSDIFF_TICK(udp_cputicks), TS_MSDIFF_TICK(udp_cputicks));
+        fflush(LOG_FILE);
     }
 
     DUMP("Using DNS server: %s, send %d, and resv %u\n", inet_ntoa(*(struct in_addr *)&dns_server), send_len, buffer->length);
@@ -600,7 +607,7 @@ void create_socket_tosock()
     }
 
     if (connect(sock, (struct sockaddr *)&socks_server, sizeof(socks_server)) < 0) {
-        error("[!] Error connecting to proxy");
+        error("[!] Error connecting to proxy\n");
     }
 }
 #endif
