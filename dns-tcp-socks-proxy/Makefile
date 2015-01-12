@@ -19,9 +19,9 @@ clean :
 install:
 	@cp -f dns_proxy dns_proxy.sh ~/bin/
 	@cp -f dns_proxy.conf ~/.dns_proxy.conf
-	@cp -f ./resolv_new.conf /usr/local/etc/.resolv.conf
+	@cp -f ./resolv_new.conf /usr/local/etc/dns_proxy_resolv.conf
 	@echo install OK
 
 uninstall:
-	@rm -f ~/bin/dns_proxy ~/bin/dns_proxy.sh ~/.dns_proxy.conf ~/.resolv.conf
+	@rm -f ~/bin/dns_proxy ~/bin/dns_proxy.sh ~/.dns_proxy.conf /usr/local/etc/dns_proxy_resolv.conf
 	@echo uninstall OK

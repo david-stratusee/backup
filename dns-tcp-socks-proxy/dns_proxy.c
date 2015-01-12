@@ -96,7 +96,8 @@ char *LISTEN_ADDR = { "0.0.0.0" };
 int   WORK_THREAD_NUM = 8;
 
 FILE *LOG_FILE = NULL;
-char *RESOLVCONF = "/usr/local/etc/.resolv.conf";
+char *SYS_RESOLVCONF = "/tmp/resolv.conf";
+char *RESOLVCONF = "/usr/local/etc/dns_proxy_resolv.conf";
 char *PROXY_LIST = "proxy.list";
 char *LOGFILE = "/dev/null";
 int NUM_DNS = 0;
@@ -321,7 +322,6 @@ static void *dns_thread_process(void *arg)
 #ifdef DEBUG
         print_buf(response_list[GET_LOG_OFFSET(this_reader)].buffer, response_list[GET_LOG_OFFSET(this_reader)].length, "buffer");
 #endif
-
         mutex_unlock(mxlock);
 
         work_node = &(response_list[GET_LOG_OFFSET(this_reader)]);
@@ -338,6 +338,7 @@ static void *dns_thread_process(void *arg)
             // the tcp query requires the length to precede the packet, so we put the length there
             // forward the packet to the tcp dns server
             int result_num = acbm_search(proxy_list_tree, (unsigned char *)(work_node->buffer + 2), work_node->length, match_result, 1);
+            result_num = 0;
             if (result_num > 0) {
                 tcp_query(work_node);
             } else {
@@ -448,6 +449,8 @@ void parse_config(char *file)
             WORK_THREAD_NUM = strtol(get_value(line), NULL, 10);
         } else if (strstr(line, "resolv_conf") != NULL) {
             RESOLVCONF = string_value(get_value(line));
+        } else if (strstr(line, "sys_resolv_conf") != NULL) {
+            SYS_RESOLVCONF = string_value(get_value(line));
         } else if (strstr(line, "log_file") != NULL) {
             LOGFILE = string_value(get_value(line));
         } else if (strstr(line, "proxy_list") != NULL) {
@@ -464,7 +467,7 @@ static int parse_etc_resolv_conf(void)
 {
 #define LINE_LEN 1024
     FILE *fp_resolv = NULL;            /* input-file pointer */
-    char *resolv_filename = "/etc/resolv.conf";    /* input-file name    */
+    char *resolv_filename = SYS_RESOLVCONF;    /* input-file name    */
     char readline[LINE_LEN] = {0};
     char *pline = readline;
     char *pline_end = NULL;

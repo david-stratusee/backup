@@ -30,7 +30,7 @@ while getopts 'hcl' opt; do
 done
 $0 -c
 
-ulimit -c unlimited
+#ulimit -c unlimited
 
 wget https://david-stratusee.github.io/proxy.pac
 if [ $? -ne 0 ]; then
@@ -40,6 +40,8 @@ fi
 
 grep "\":[ ]1[,]$" proxy.pac | awk -F"\"" '{print $2}' >/tmp/proxy.list
 rm -f proxy.pac
+
+cp -f /etc/resolv.conf /tmp/resolv.conf
 
 homedir=${HOME}
 sudo ${homedir}/bin/dns_proxy ${homedir}/.dns_proxy.conf
