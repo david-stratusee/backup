@@ -708,7 +708,7 @@ int udp_listener(void)
     setsignal(SIGTERM, _sig_int);
 
 #if 1
-    int32_t daemon_ret = daemon(1, 1);
+    int32_t daemon_ret = daemon(0, 0);
     if (daemon_ret < 0) {
         error("daemon error\n");
     }
