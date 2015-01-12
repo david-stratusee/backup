@@ -174,8 +174,13 @@ static int tcp_query(response *buffer)
     recv(sock, tmp, sizeof(tmp), 0);
 
     // select random dns server
-    srand(time(NULL));
-    in_addr_t remote_dns = dns_servers[rand() % (NUM_DNS - 1)];
+    in_addr_t remote_dns;
+    if (NUM_DNS > 1) {
+        srand(time(NULL));
+        remote_dns = dns_servers[rand() % (NUM_DNS - 1)];
+    } else {
+        remote_dns = dns_servers[0];
+    }
     memcpy(tmp, "\x05\x01\x00\x01", 4);
     /* ip */
     memcpy(tmp + 4, &remote_dns, 4);
