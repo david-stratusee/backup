@@ -17,7 +17,6 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-#define USE_THREAD_LOCK
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -40,17 +39,36 @@
 #include "common/misc.h"
 #include "common/cmlib_lock.h"
 #include "adt/ac_bm.h"
+#include "adt/hash.h"
 #include "common/string_s.h"
 #include "common/timestamp.h"
 #include "adt/pool_list.h"
+#include "adt/hash_index_func.h"
 
 #include <pthread.h>
 
 #ifdef DEBUG
-#define DUMP printf
+#define DUMP(fmt, args...) \
+do {    \
+    if (LOG_FILE) { \
+        fprintf(LOG_FILE, "[%s:%u]"fmt, __func__, __LINE__, ##args);    \
+        fflush(LOG_FILE);   \
+    }   \
+} while (0)
 #else
 #define DUMP(...)
 #endif
+
+#define LOG(fmt, args...) \
+do {    \
+    if (LOG_FILE) { \
+        fprintf(LOG_FILE, "[%s:%u]"fmt, __func__, __LINE__, ##args);    \
+        fflush(LOG_FILE);   \
+    }   \
+} while (0)
+
+
+//DUMP("go here\n")
 
 /********************************************
  * signal
@@ -105,6 +123,15 @@ in_addr_t *dns_servers;
 in_addr_t *udp_dns_servers;
 int NUM_UDP_DNS = 0;
 acbm_pattern_tree *proxy_list_tree = NULL;
+hash_t *cache_hash = NULL;
+#define MAX_CACHE_NUM 1024
+
+typedef struct _cache_item_t {
+     uint32_t len;
+     uint32_t insert_time;
+     char data[0];
+} cache_item_t;   /* -- end of cache_item_t -- */
+time_t OVERTIME = 3600;    /* 1 hour */
 
 #define BUFFER_SIZE 1024
 typedef struct {
@@ -119,7 +146,7 @@ typedef struct {
 #define RESPONSE_LIST_NUM 128
 static response response_list[RESPONSE_LIST_NUM];
 int udp_sock;
-unsigned short reader     = 0,
+unsigned int   reader     = 0,
                pre_reader = 0,
                writer     = 0;
 bool do_exit = false;
@@ -132,6 +159,8 @@ typedef struct _thread_info_t {
     pthread_t handle;
     response *resp_info;
     int idx;
+    unsigned short cur_udp_dns;
+    unsigned short cur_sock_dns;
 } thread_info_t;   /* -- end of thread_info_t -- */
 thread_info_t *thread_list = NULL;
 
@@ -141,7 +170,14 @@ void error(char *e)
     exit(1);
 }
 
-static int tcp_query(response *buffer)
+static inline void set_timeout(int sock, int timeout_sec)
+{
+    struct timeval timeout={timeout_sec, 0};
+    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+}
+
+static int tcp_query(response *buffer, thread_info_t *thread_info)
 {
     int sock;
     struct sockaddr_in socks_server;
@@ -156,32 +192,27 @@ static int tcp_query(response *buffer)
 
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
-        if (LOG_FILE) {
-            fprintf(LOG_FILE, "[!] Error creating TCP socket");
-        }
+        LOG("[!] Error creating TCP socket");
         return -1;
     }
 
     if (connect(sock, (struct sockaddr *)&socks_server, sizeof(socks_server)) < 0) {
-        if (LOG_FILE) {
-            fprintf(LOG_FILE, "[!] Error connecting to proxy\n");
-        }
+        LOG("[!] Error connecting to proxy\n");
         return -1;
     }
+
+    set_timeout(sock, 3);
 
     // socks handshake
     // see "http://en.wikipedia.org/wiki/SOCKS"
     send(sock, "\x05\x01\x00", 3, 0);
     recv(sock, tmp, sizeof(tmp), 0);
 
-    // select random dns server
-    in_addr_t remote_dns;
-    if (NUM_DNS > 1) {
-        srand(time(NULL));
-        remote_dns = dns_servers[rand() % (NUM_DNS - 1)];
-    } else {
-        remote_dns = dns_servers[0];
+    in_addr_t remote_dns = dns_servers[thread_info->cur_sock_dns++];
+    if (thread_info->cur_sock_dns == NUM_DNS) {
+        thread_info->cur_sock_dns = 0;
     }
+
     memcpy(tmp, "\x05\x01\x00\x01", 4);
     /* ip */
     memcpy(tmp + 4, &remote_dns, 4);
@@ -200,16 +231,22 @@ static int tcp_query(response *buffer)
     TS_END(sock);
 
     if (LOG_FILE) {
+        fprintf(LOG_FILE, "SOCKS: Using DNS server: %s\n", inet_ntoa(*(struct in_addr *)&remote_dns));
+
+#ifdef DEBUG
         unsigned long sock_cputicks = TS_DIFF(sock);
-        fprintf(LOG_FILE, "SOCKS: Using DNS server: %s, time: tick(%lu)-ns(%lu)-ms(%lu)\n",
+        DUMP("Using DNS server: %s, time: tick(%lu)-ns(%lu)-ms(%lu)\n",
                 inet_ntoa(*(struct in_addr *)&remote_dns),
                 sock_cputicks, TS_NSDIFF_TICK(sock_cputicks), TS_MSDIFF_TICK(sock_cputicks));
+#endif
+        fflush(LOG_FILE);
     }
 
     close(sock);
     return 0;
 }
 
+#if 0
 int tcp_query_pure(response *buffer)
 {
     int sock;
@@ -251,8 +288,9 @@ int tcp_query_pure(response *buffer)
     close(sock);
     return 0;
 }
+#endif
 
-static int udp_query_pure(response *buffer)
+static int udp_query_pure(response *buffer, thread_info_t *thread_info)
 {
     int sock;
 
@@ -264,24 +302,19 @@ static int udp_query_pure(response *buffer)
     socks_server.sin_family = AF_INET;
     socks_server.sin_port = htons(53);
 
-    in_addr_t dns_server;
-    if (NUM_UDP_DNS > 1) {
-        srand(time(NULL));
-        dns_server = udp_dns_servers[rand() % (NUM_UDP_DNS - 1)];
-    } else {
-        dns_server = udp_dns_servers[0];
+    in_addr_t dns_server = udp_dns_servers[thread_info->cur_udp_dns++];
+    if (thread_info->cur_udp_dns == NUM_UDP_DNS) {
+        thread_info->cur_udp_dns = 0;
     }
+
     socks_server.sin_addr.s_addr = dns_server;
 
     sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sock < 0) {
-        if (LOG_FILE) {
-            fprintf(LOG_FILE, "[!] Error creating UDP socket");
-            fflush(LOG_FILE);
-        }
-        printf("[!] Error creating UDP socket");
+        LOG("[!] Error creating UDP socket");
         return -1;
     }
+    set_timeout(sock, 3);
 
     // forward dns query
     socklen_t fromsize = sizeof(socks_server);
@@ -289,16 +322,35 @@ static int udp_query_pure(response *buffer)
     buffer->length = recvfrom(sock, buffer->buffer + 2, sizeof(buffer->buffer) - 2, 0, (struct sockaddr *)&socks_server, &fromsize);
     TS_END(udp);
 
+#if 0
     if (LOG_FILE) {
+        fprintf(LOG_FILE, "UDP: Using DNS server: %s\n", inet_ntoa(*(struct in_addr *)&dns_server));
+
+#ifdef DEBUG
         unsigned long udp_cputicks = TS_DIFF(udp);
-        fprintf(LOG_FILE, "UDP: Using DNS server: %s, send %d, and resv %u, time: tick(%lu)-ns(%lu)-ms(%lu)\n",
+        DUMP("Using DNS server: %s, send %d, and resv %u, time: tick(%lu)-ns(%lu)-ms(%lu)\n",
                 inet_ntoa(*(struct in_addr *)&dns_server), send_len, buffer->length,
                 udp_cputicks, TS_NSDIFF_TICK(udp_cputicks), TS_MSDIFF_TICK(udp_cputicks));
+#endif
         fflush(LOG_FILE);
     }
+#endif
 
-    DUMP("Using DNS server: %s, send %d, and resv %u\n", inet_ntoa(*(struct in_addr *)&dns_server), send_len, buffer->length);
     close(sock);
+    return 0;
+}
+
+int check_overtime(hkey_t key, void *data, void *arg)
+{
+    time_t now_time = *(time_t *)arg;
+    cache_item_t *item = (cache_item_t *)data;
+
+    if (item && now_time - (time_t)(item->insert_time) >= OVERTIME) {
+        return 1;
+    }
+
+    LOG("key %x is removed\n", key);
+
     return 0;
 }
 
@@ -318,10 +370,6 @@ static void *dns_thread_process(void *arg)
 
         this_reader = pre_reader++;
         DUMP("thread %u deal with reader %u, pre_reader: %u, writer: %u, reader: %u\n", thread_info->idx, this_reader, pre_reader, writer, reader);
-
-#ifdef DEBUG
-        print_buf(response_list[GET_LOG_OFFSET(this_reader)].buffer, response_list[GET_LOG_OFFSET(this_reader)].length, "buffer");
-#endif
         mutex_unlock(mxlock);
 
         work_node = &(response_list[GET_LOG_OFFSET(this_reader)]);
@@ -331,18 +379,53 @@ static void *dns_thread_process(void *arg)
         }
 
         if (work_node->status == WNSE_PREPARE) {
-            work_node->buffer[0] = 0;
-            work_node->buffer[1] = work_node->length;
+            hkey_t key = super_fast_hash(work_node->buffer + 4, work_node->length - 2);
 
-            int match_result[1] = {0};
-            // the tcp query requires the length to precede the packet, so we put the length there
-            // forward the packet to the tcp dns server
-            int result_num = acbm_search(proxy_list_tree, (unsigned char *)(work_node->buffer + 2), work_node->length, match_result, 1);
-            result_num = 0;
-            if (result_num > 0) {
-                tcp_query(work_node);
+            cache_item_t *item = hash_get(cache_hash, key, NULL, NULL);
+            time_t now_time = time(NULL);
+            if (item && now_time - (time_t)(item->insert_time) < OVERTIME) {
+                //print_buf_tofile(LOG_FILE, work_node->buffer + 2, work_node->length, "get hash from key: %x, hashsize: %u\n", key, hash_count(cache_hash));
+
+                work_node->length = strncpy_s(work_node->buffer + 4, BUFFER_SIZE - 4, item->data, item->len);
+                work_node->length += 2;
+
+                LOG("get hash from key: %x, hashsize: %u\n", key, hash_count(cache_hash));
             } else {
-                udp_query_pure(work_node);
+                if (item) {
+                    hash_remove(cache_hash, key, NULL, NULL);
+                    ufree_setnull(item);
+                }
+                //print_buf_tofile(LOG_FILE, work_node->buffer + 2, work_node->length, "not get hash from key: %x, hashsize: %u\n", key, hash_count(cache_hash));
+
+                work_node->buffer[0] = 0;
+                work_node->buffer[1] = work_node->length;
+
+                int match_result[1] = {0};
+                // the tcp query requires the length to precede the packet, so we put the length there
+                // forward the packet to the tcp dns server
+                int result_num = acbm_search(proxy_list_tree, (unsigned char *)(work_node->buffer + 4), work_node->length - 2, match_result, 1);
+                if (result_num > 0) {
+                    tcp_query(work_node, thread_info);
+                } else {
+                    udp_query_pure(work_node, thread_info);
+                }
+
+                item = umalloc(sizeof(cache_item_t) + work_node->length - 2);
+                if (item) {
+                    time_t now_time = time(NULL);
+                    item->insert_time = now_time;
+                    item->len = work_node->length - 2;
+                    memcpy(item->data, work_node->buffer + 4, work_node->length - 2);
+
+                    if (hash_getput(cache_hash, key, NULL, item) < 0) {
+                        ufree(item);
+
+                        hash_used_iterate_remove(cache_hash, &check_overtime, &now_time, 5);
+                    } else {
+                        //print_buf_tofile(LOG_FILE, work_node->buffer + 2, work_node->length, "insert hash from key: %x, hashsize: %u\n", key, hash_count(cache_hash));
+                        LOG("insert hash from key: %x, hashsize: %u\n", key, hash_count(cache_hash));
+                    }
+                }
             }
 
             // send the reply back to the client (minus the length at the beginning)
@@ -423,6 +506,7 @@ char *string_value(char *value)
     return value;
 }
 
+#define fix_prefix_fix(__s, __n)    (fix_prefix(__s, strlen(__s), __n) ? __s : NULL)
 void parse_config(char *file)
 {
     char line[80];
@@ -437,23 +521,23 @@ void parse_config(char *file)
             continue;
         }
 
-        if (strstr(line, "socks_port") != NULL) {
+        if (fix_prefix_fix(line, "socks_port") != NULL) {
             SOCKS_PORT = strtol(get_value(line), NULL, 10);
-        } else if (strstr(line, "socks_addr") != NULL) {
+        } else if (fix_prefix_fix(line, "socks_addr") != NULL) {
             SOCKS_ADDR = string_value(get_value(line));
-        } else if (strstr(line, "listen_addr") != NULL) {
+        } else if (fix_prefix_fix(line, "listen_addr") != NULL) {
             LISTEN_ADDR = string_value(get_value(line));
-        } else if (strstr(line, "listen_port") != NULL) {
+        } else if (fix_prefix_fix(line, "listen_port") != NULL) {
             LISTEN_PORT = strtol(get_value(line), NULL, 10);
-        } else if (strstr(line, "thread_num") != NULL) {
+        } else if (fix_prefix_fix(line, "thread_num") != NULL) {
             WORK_THREAD_NUM = strtol(get_value(line), NULL, 10);
-        } else if (strstr(line, "resolv_conf") != NULL) {
+        } else if (fix_prefix_fix(line, "resolv_conf") != NULL) {
             RESOLVCONF = string_value(get_value(line));
-        } else if (strstr(line, "sys_resolv_conf") != NULL) {
+        } else if (fix_prefix_fix(line, "sys_resolv_conf") != NULL) {
             SYS_RESOLVCONF = string_value(get_value(line));
-        } else if (strstr(line, "log_file") != NULL) {
+        } else if (fix_prefix_fix(line, "log_file") != NULL) {
             LOGFILE = string_value(get_value(line));
-        } else if (strstr(line, "proxy_list") != NULL) {
+        } else if (fix_prefix_fix(line, "proxy_list") != NULL) {
             PROXY_LIST = string_value(get_value(line));
         }
     }
@@ -513,7 +597,7 @@ static int parse_etc_resolv_conf(void)
             if (strncasecmp(ip_addr, LISTEN_ADDR, strlen(LISTEN_ADDR)) != 0 && strncasecmp(ip_addr, "127.0.0.1", strlen("127.0.0.1")) != 0) {
                 udp_dns_servers[NUM_UDP_DNS] = inet_addr(ip_addr);
                 if (INADDR_NONE != udp_dns_servers[NUM_UDP_DNS]) {
-                    printf("get local dns: %s\n", ip_addr);
+                    printf("[%u]get local dns: %s\n", NUM_UDP_DNS, ip_addr);
                     NUM_UDP_DNS++;
                 }
             }
@@ -579,6 +663,7 @@ void parse_resolv_conf()
         dns_servers[i] = inet_addr(ns);
 
         if (INADDR_NONE != dns_servers[i]) {
+            printf("[%u] get resv: %s\n", i, ns);
             i++;
         }
     }
@@ -587,6 +672,8 @@ void parse_resolv_conf()
     if (fclose(f)) {
         error("[!] Error closing resolv.conf");
     }
+
+    //printf("get %u address from file %s\n", NUM_DNS, RESOLVCONF);
 }
 
 #if 0
@@ -649,18 +736,27 @@ int32_t post_consume_logs(uint32_t offset, uint32_t work_num)
 {
     uint32_t idx = 0;
     response *work_node = NULL;
+    int max_idx = -1;
 
     for (idx = 0; idx < work_num; ++idx) {
         work_node = response_list + GET_LOG_OFFSET(offset + idx);
-        if (work_node->status == WNSE_DEAL) {
-            sendto(udp_sock, work_node->buffer + 2, work_node->length, 0, (struct sockaddr *)&(work_node->dns_client), work_node->client_socklen);
-            work_node->status = WNSE_NOTHING;
-        } else {
-            break;
+
+        switch (work_node->status) {
+            case WNSE_DEAL:
+                sendto(udp_sock, work_node->buffer + 2, work_node->length, 0, (struct sockaddr *)&(work_node->dns_client), work_node->client_socklen);
+                work_node->status = WNSE_NOTHING;
+                break;
+            case WNSE_NOTHING:
+                break;
+            default:
+                if (max_idx == -1) {
+                    max_idx = idx;
+                }
+                break;
         }
     }
 
-    return idx;
+    return max_idx;
 }
 
 static void _sig_int(int signum ARG_UNUSED, siginfo_t *info ARG_UNUSED, void *ptr ARG_UNUSED)
@@ -698,15 +794,6 @@ int udp_listener(void)
         error("[!] Error binding on dns proxy");
     }
 
-#if 0
-    FILE *resolv = fopen("/etc/resolv.conf", "w");
-    if (!resolv) {
-        error("[!] Error opening /etc/resolv.conf");
-    }
-    fprintf(resolv, "nameserver %s\n", LISTEN_ADDR);
-    fclose(resolv);
-#endif
-
     if (strcmp(LOGFILE, "/dev/null") != 0) {
         LOG_FILE = fopen(LOGFILE, "w");
         if (!LOG_FILE) {
@@ -728,6 +815,11 @@ int udp_listener(void)
         error("daemon error\n");
     }
 #endif
+
+    cache_hash = hash_init(MAX_CACHE_NUM, true);
+    if (cache_hash == NULL) {
+        printf("error when create dns cache\n");
+    }
 
     if (create_thread_list() < 0) {
         printf("error when create_thread_list\n");
@@ -919,12 +1011,13 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    TS_INIT();
+
     if (strcmp(LOGFILE, "/dev/null") != 0) {
         printf("[*] Log saved to %s.\n", LOGFILE);
     }
     printf("[*] Loaded %d DNS servers from %s.\n\n", NUM_DNS, RESOLVCONF);
 
-    TS_INIT();
     // start the dns proxy
     udp_listener();
 

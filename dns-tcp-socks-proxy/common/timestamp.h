@@ -10,6 +10,7 @@
 CPLUS_BEGIN
 
 #include "common/types.h"
+#include <sys/time.h>
 
 int get_cpukhz(void);
 
@@ -41,7 +42,7 @@ do { \
 unsigned long cputick2ms(unsigned long diff_track);
 unsigned long cputick2ns(unsigned long diff_track);
 
-#define CHECKTIME_DEBUG
+//#define CHECKTIME_DEBUG
 
 #ifdef CHECKTIME_DEBUG
 #define TS_INIT() get_cpukhz()     // alias
@@ -50,25 +51,32 @@ unsigned long cputick2ns(unsigned long diff_track);
     unsigned long MNAME##_time_begin = 0, MNAME##_time_end = 0
 
 #define TS_BEGIN(MNAME) \
-    get_cputick(MNAME##_time_begin)
+do {  \
+    struct timeval MNAME##_tm_begin;    \
+    gettimeofday(&MNAME##_tm_begin, NULL);    \
+    MNAME##_time_begin = MNAME##_tm_begin.tv_sec * 1000000 + MNAME##_tm_begin.tv_usec; \
+} while (0)
 
 #define TS_END(MNAME) \
-    get_cputick(MNAME##_time_end)
+do {  \
+    struct timeval MNAME##_tm_end;    \
+    gettimeofday(&MNAME##_tm_end, NULL);    \
+    MNAME##_time_end = MNAME##_tm_end.tv_sec * 1000000 + MNAME##_tm_end.tv_usec; \
+} while (0)
 
 #define TS_DIFF(MNAME)    \
     ((unsigned long)(MNAME##_time_end - MNAME##_time_begin))
 
-#define TS_NSDIFF_TICK(ticks)    \
-    ((unsigned long)(cputick2ns(ticks)))
+#define TS_NSDIFF_TICK(ticks)    (ticks)
 
 #define TS_NSDIFF(MNAME)    \
-    ((unsigned long)(cputick2ns(TS_DIFF(MNAME))))
+    ((unsigned long)(TS_DIFF(MNAME)))
 
 #define TS_MSDIFF_TICK(ticks)    \
-    ((unsigned long)(cputick2ms(ticks)))
+    ((unsigned long)(TS_NSDIFF_TICK(ticks) / 1000))
 
 #define TS_MSDIFF(MNAME)    \
-    ((unsigned long)(cputick2ms(TS_DIFF(MNAME))))
+    ((unsigned long)(TS_DIFF(MNAME) / 1000))
 
 #define TS_PRINT(MNAME)                                                                            \
 do {                                                                                               \
@@ -90,11 +98,11 @@ do {                                                                            
 #define TS_DECLARE(MNAME)   EMPTY_STATE
 #define TS_BEGIN(MNAME)     EMPTY_STATE
 #define TS_END(MNAME)       EMPTY_STATE
-#define TS_DIFF(MNAME)      0
-#define TS_NSDIFF(MNAME)    0
-#define TS_MSDIFF(MNAME)    0
-#define TS_NSDIFF_TICK(ticks)    0
-#define TS_MSDIFF_TICK(ticks)    0
+#define TS_DIFF(MNAME)      0L
+#define TS_NSDIFF(MNAME)    0L
+#define TS_MSDIFF(MNAME)    0L
+#define TS_NSDIFF_TICK(ticks)    0L
+#define TS_MSDIFF_TICK(ticks)    0L
 #define TS_PRINT(MNAME)     EMPTY_STATE
 
 #endif

@@ -32,14 +32,20 @@ $0 -c
 
 #ulimit -c unlimited
 
-wget https://david-stratusee.github.io/proxy.pac
-if [ $? -ne 0 ]; then
-    echo "download file failed, check the network"
-    exit 1
-fi
+if [ ! -f /tmp/proxy.list ]; then
+    wget https://david-stratusee.github.io/proxy.pac -P /tmp/
+    if [ $? -ne 0 ]; then
+        echo "download file failed, check the network"
+        exit 1
+    fi
 
-grep "\":[ ]1[,]$" proxy.pac | awk -F"\"" '{print $2}' >/tmp/proxy.list
-rm -f proxy.pac
+    grep "\":[ ]1[,]$" /tmp/proxy.pac | awk -F"\"" '{print $2}' >/tmp/proxy.list
+    extra_list="wikipedia.org ggpht.com google"
+    for node in ${extra_list}; do
+        echo $node >> /tmp/proxy.list
+    done
+    rm -f proxy.pac
+fi
 
 cp -f /etc/resolv.conf /tmp/resolv.conf
 
