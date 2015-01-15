@@ -99,8 +99,8 @@ function update_pac()
 
 IP=""
 MODE="normal"
-use_local_web=1
-while getopts 'e:p:i:hclF' opt; do
+use_local_web=0
+while getopts 'e:p:i:hclw' opt; do
     case $opt in
         e) 
             ETH=$OPTARG
@@ -113,8 +113,8 @@ while getopts 'e:p:i:hclF' opt; do
                 exit 1
             fi
             ;;
-        F)
-            use_local_web=0
+        w)
+            use_local_web=1
             ;;
         c)
             if [ "${MODE}" == "normal" ]; then
@@ -144,7 +144,7 @@ while getopts 'e:p:i:hclF' opt; do
             echo "Help Usage: "
             echo "-c for clear socks proxy"
             echo "-l for query socks proxy"
-            echo "-F for local file for pac"
+            echo "-w for local web for pac"
             echo "-i ip for set socks proxy and http proxy"
             echo "-p to set socks proxy's host_port, format: proxy:port"
             print_avail_host
@@ -154,7 +154,6 @@ while getopts 'e:p:i:hclF' opt; do
     esac
 done
 
-use_local_web=1
 if [ ${use_local_web} -gt 0 ]; then
     local_proxydir="/Library/WebServer/Documents/"
 else
@@ -198,7 +197,7 @@ elif [ "${MODE}" == "normal" ]; then
         fi
 
         sudo cp -f ${local_proxydir}/proxy.pac ${local_proxydir}/proxy_aie.pac
-        sudo sed -i "" -e "s/'DIRECT;/'PROXY ${IP}:3128;/g" ${local_proxydir}/proxy_aie.pac
+        sudo sed -i "" -e "s/'DIRECT'/'PROXY ${IP}:3128'/g" ${local_proxydir}/proxy_aie.pac
         if [ ${use_local_web} -gt 0 ]; then
             sudo apachectl start
             sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
