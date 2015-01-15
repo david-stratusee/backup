@@ -78,9 +78,29 @@ function print_avail_host()
     done
 }
 
+function update_pac()
+{
+    has_wget=$1
+    if [ $has_wget -eq 0 ]; then
+        rm -f /tmp/proxy.pac
+        wget https://david-stratusee.github.io/proxy.pac -P /tmp/
+        if [ $? -eq 0 ]; then
+            sudo mv /tmp/proxy.pac ${local_proxydir}/
+        elif [ ! -f ${local_proxydir}/proxy.pac ]; then
+            echo "can not get proxy.pac, exit..."
+            return 1
+        else
+            echo "can not get proxy.pac from github, so just use old one"
+        fi
+    fi
+
+    return 0
+}
+
 IP=""
 MODE="normal"
-while getopts 'e:p:i:hcl' opt; do
+use_local_web=1
+while getopts 'e:p:i:hclF' opt; do
     case $opt in
         e) 
             ETH=$OPTARG
@@ -92,6 +112,9 @@ while getopts 'e:p:i:hcl' opt; do
                 echo "${IP} is unreachable"
                 exit 1
             fi
+            ;;
+        F)
+            use_local_web=0
             ;;
         c)
             if [ "${MODE}" == "normal" ]; then
@@ -121,6 +144,7 @@ while getopts 'e:p:i:hcl' opt; do
             echo "Help Usage: "
             echo "-c for clear socks proxy"
             echo "-l for query socks proxy"
+            echo "-F for local file for pac"
             echo "-i ip for set socks proxy and http proxy"
             echo "-p to set socks proxy's host_port, format: proxy:port"
             print_avail_host
@@ -129,6 +153,13 @@ while getopts 'e:p:i:hcl' opt; do
             exit 0
     esac
 done
+
+use_local_web=1
+if [ ${use_local_web} -gt 0 ]; then
+    local_proxydir="/Library/WebServer/Documents/"
+else
+    local_proxydir="/Applications/Safari.app/Contents/Resources"
+fi
 
 if [ "${MODE}" == "clear" ]; then
     kill_process "watch_socks"
@@ -140,14 +171,40 @@ if [ "${MODE}" == "clear" ]; then
     fi
     sudo networksetup -setautoproxystate ${ETH} off
 elif [ "${MODE}" == "normal" ]; then
+    which wget >/dev/null
+    has_wget=$?
+
     sudo networksetup -setautoproxystate ${ETH} off
     if [ "${IP}" == "" ]; then
-        sudo networksetup -setautoproxyurl ${ETH} "https://david-stratusee.github.io/proxy.pac"
+        update_pac $has_wget
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+
+        if [ ! -f ${local_proxydir}/proxy.pac ]; then
+            sudo networksetup -setautoproxyurl ${ETH} "https://david-stratusee.github.io/proxy.pac"
+        else
+            if [ ${use_local_web} -gt 0 ]; then
+                sudo apachectl start
+                sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy.pac"
+            else
+                sudo networksetup -setautoproxyurl ${ETH} "file://localhost${local_proxydir}/proxy.pac"
+            fi
+        fi
     else
-        sudo cp -f /Library/WebServer/Documents/proxy.pac /Library/WebServer/Documents/proxy_aie.pac
-        sudo sed -i "" -e "s/'DIRECT'/'PROXY ${IP}:3128'/g" /Library/WebServer/Documents/proxy_aie.pac
-        sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
-        sudo apachectl start
+        update_pac $has_wget
+        if [ $? -ne 0 ]; then
+            exit 1
+        fi
+
+        sudo cp -f ${local_proxydir}/proxy.pac ${local_proxydir}/proxy_aie.pac
+        sudo sed -i "" -e "s/'DIRECT;/'PROXY ${IP}:3128;/g" ${local_proxydir}/proxy_aie.pac
+        if [ ${use_local_web} -gt 0 ]; then
+            sudo apachectl start
+            sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
+        else
+            sudo networksetup -setautoproxyurl ${ETH} "file://localhost${local_proxydir}/proxy_aie.pac"
+        fi
     fi
 
     echo start socks
