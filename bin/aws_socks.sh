@@ -72,9 +72,13 @@ function kill_process()
 
 function print_avail_host()
 {
-    echo "available socks host:port is: (now is use ${host_port})"
+    echo "available socks host:port is:"
     for node in ${available_host_port[*]}; do
-        echo " * $node"
+        if [ "${host_port}" == "${node}" ]; then
+            echo " * $node [***]"
+        else
+            echo " * $node"
+        fi
     done
 }
 
