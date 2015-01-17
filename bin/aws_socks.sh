@@ -103,8 +103,8 @@ function update_pac()
 
 IP=""
 MODE="normal"
-use_local_web=0
-while getopts 'e:p:i:hclw' opt; do
+use_local_web=1
+while getopts 'e:p:i:hclf' opt; do
     case $opt in
         e) 
             ETH=$OPTARG
@@ -117,8 +117,8 @@ while getopts 'e:p:i:hclw' opt; do
                 exit 1
             fi
             ;;
-        w)
-            use_local_web=1
+        f)
+            use_local_web=0
             ;;
         c)
             if [ "${MODE}" == "normal" ]; then
@@ -148,7 +148,7 @@ while getopts 'e:p:i:hclw' opt; do
             echo "Help Usage: "
             echo "-c for clear socks proxy"
             echo "-l for query socks proxy"
-            echo "-w for local web for pac"
+            echo "-f for local file for pac, only for Safari"
             echo "-i ip for set socks proxy and http proxy"
             echo "-p to set socks proxy's host_port, format: proxy:port"
             print_avail_host
