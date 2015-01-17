@@ -40,24 +40,8 @@ function fill_and_run_proxy()
 {
     remote_host=`echo ${host_port} | awk -F":" '{print $1}'`
     remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
-    if [ "${remote_port}" == "22" ]; then
-        remote_port=""
-    else
-        remote_port=" -p ${remote_port}"
-    fi
 
-    echo "#!/bin/bash -"    >/tmp/watch_socks.sh
-    echo "while [ 1 -eq 1 ]; do" >>/tmp/watch_socks.sh
-    echo "    pidcount=\`ps -ef | grep -v grep | grep -c \"ssh -D\"\`" >>/tmp/watch_socks.sh
-    echo "    if [ \$pidcount -eq 0 ]; then" >>/tmp/watch_socks.sh
-    echo "        echo -e \" [\"\`date +'%H:%M:%S'\`\"] ssh -D 8099 -fqCnN ${username}@${remote_host}${remote_port}\"" >>/tmp/watch_socks.sh
-    echo "        ssh -D 8099 -fqCnN ${username}@${remote_host}${remote_port}" >>/tmp/watch_socks.sh
-    echo "    fi" >>/tmp/watch_socks.sh
-    echo "    sleep 1" >>/tmp/watch_socks.sh
-    echo "done" >>/tmp/watch_socks.sh
-    chmod +x /tmp/watch_socks.sh
-
-    /tmp/watch_socks.sh >>/tmp/watch_socks.log 2>&1 &
+    ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} >>/tmp/watch_socks.log 2>&1 &
 }
 
 function kill_process()
