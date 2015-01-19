@@ -1,10 +1,15 @@
 #!/bin/bash -
 
+port=""
+if [ $3 -ne 22 ]; then
+    port=" -p $3"
+fi
+
 while [ 1 -eq 1 ]; do
     pidcount=`ps -ef | grep -v grep | grep -c "ssh -D"`
     if [ $pidcount -eq 0 ]; then
-        echo -e " ["`date +'%H:%M:%S'`"] ssh -D 8099 -fqCnN $1@$2 -p $3"
-        ssh -D 8099 -fqCnN $1@$2 -p $3
+        echo -e " ["`date +'%H:%M:%S'`"] ssh -D 8099 -fqCnN $1@$2${port}"
+        ssh -D 8099 -fqCnN $1@$2${port}
     else
         check_proxy=`${HOME}/bin/check_proxy.py "127.0.0.1:8099"`
         if [ ${check_proxy} -ne 1 ]; then
