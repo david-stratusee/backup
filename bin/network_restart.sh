@@ -12,3 +12,5 @@ set -o nounset                              # Treat unset variables as an error
 
 sudo ifdown enp0s3 && sudo ifup enp0s3
 sudo /usr/local/squid/sbin/squid -k kill
+
+ifconfig
