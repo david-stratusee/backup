@@ -32,3 +32,5 @@ COOKIES_ENABLED = True
 HTTP_DEBUG = False  # only useful when combined with blocking mode  
 BLOCKING = False  # stdout blocked until test finishes, then result is returned as XML
 GUI = False
+
+RANDOM_PARAM = False

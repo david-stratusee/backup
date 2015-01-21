@@ -14,4 +14,4 @@ ulimit -n 19999
 echo 1 > /proc/sys/net/ipv4/tcp_tw_recycle
 echo 1 > /proc/sys/net/ipv4/tcp_tw_reuse
 #python run.py -r 10 -a 80 -x cms.xml
-python run.py -r 0 -a 100 -x cms.xml
+python run.py -r 0 -a 200 -x $@

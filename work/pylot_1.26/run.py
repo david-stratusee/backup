@@ -22,11 +22,12 @@
   -i, --interval=INTERVAL     :  interval in milliseconds
   -x, --xmlfile=TEST_CASE_XML :  test case xml file
   -o, --output_dir=PATH       :  output directory
-  -n, --name=TESTNAME	      :  name of test
+  -n, --name=TESTNAME         :  name of test
   -l, --log_msgs              :  log messages
   -b, --blocking              :  blocking mode
   -g, --gui                   :  start GUI
   -p, --port=PORT             :  xml-rpc listening port  
+  -m, --random                :  add random param
 """
 
 
@@ -81,6 +82,8 @@ try:
         gui = True
     if opt.port:
         port = int(opt.port)
+    if opt.random:
+        config.RANDOM_PARAM = True
 except Exception, e:
    print 'Invalid Argument'
    sys.exit(1)
@@ -134,5 +137,3 @@ else:  # console/shell mode
     except KeyboardInterrupt:
         print '\nInterrupt'
         sys.exit(1)
-    
-    

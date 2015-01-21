@@ -281,11 +281,15 @@ class LoadAgent(Thread):  # each Agent/VU runs in its own thread
         else:
             opener = urllib2.build_opener()
 
-        if '?' not in req.url:
-            split_char = '?'
+        if not config.RANDOM_PARAM:
+            request_url = req.url
         else:
-            split_char = '&'
-        request_url = req.url + split_char + "id=" + repr(random.randrange(1,1000000))
+            if '?' not in req.url:
+                split_char = '?'
+            else:
+                split_char = '&'
+            request_url = req.url + split_char + "id=" + repr(random.randrange(1,1000000))
+
         if req.method.upper() == 'POST':
             request = urllib2.Request(request_url, req.body, req.headers)
         else:  

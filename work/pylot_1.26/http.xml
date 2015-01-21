@@ -2,8 +2,9 @@
     <!-- SAMPLE TEST CASE -->
     <case>
         <url>http://192.168.101.102:8080/static/code.py</url>
+        <add_header>Cache-control: no-cache</add_header>
     </case>
-    
+
     <!-- SAMPLE TEST CASE -->
     <!--
     <case>
