@@ -285,7 +285,7 @@ class LoadAgent(Thread):  # each Agent/VU runs in its own thread
             split_char = '?'
         else:
             split_char = '&'
-        request_url = req.url + split_char + "id=" % repr(random.randrange(1,1000000))
+        request_url = req.url + split_char + "id=" + repr(random.randrange(1,1000000))
         if req.method.upper() == 'POST':
             request = urllib2.Request(request_url, req.body, req.headers)
         else:  
