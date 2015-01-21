@@ -1,8 +1,8 @@
 alias diff='colordiff -E -b -w -B -u -p'
 alias diffy='colordiff -y -E -b -w -W 200'
 alias hexdump='hexdump -C'
-alias psm='ps auxf | /bin/grep -v egrep | /bin/egrep --color=auto "(squid|resmgr|icap|startup|http|redis|logstash|LogDaemon|_watchdog\b|COMMAND)"'
-alias pst='pidstat -t | /bin/egrep --color=auto "(squid|resmgr|icap|startup|http|redis|logstash|LogDaemon|_watchdog\b|CPU)"'
+alias psm='ps auxf | /bin/grep -v egrep | /bin/egrep --color=auto "(squid|resmgr|icap|startup|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|COMMAND)"'
+alias pst='pidstat -t | /bin/egrep --color=auto "(squid|resmgr|icap|startup|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|CPU)"'
 
 alias echo='echo -e'
 alias yacc='yacc -d -l'
@@ -19,6 +19,7 @@ alias negrep='egrep -n --color=auto --text'      # show differences in colour
 alias egrep='egrep --color=auto --text' # show differences in colour
 alias nfgrep='fgrep -n --color=auto --text' # show differences in colour
 alias fgrep='fgrep --color=auto --text' # show differences in colour
+alias route='route -nee'
 #
 # Some shortcuts for different directory listings
 alias ls='ls -hF --color=auto --show-control-chars' # classify files in colour
