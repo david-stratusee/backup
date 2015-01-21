@@ -1,0 +1,6 @@
+<testcases>
+    <!-- SAMPLE TEST CASE -->
+    <case>
+        <url>https://192.168.10.31:3000/assets/jquery.flot.js</url>
+    </case>
+</testcases>
