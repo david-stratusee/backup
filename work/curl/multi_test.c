@@ -14,6 +14,8 @@
 #include "common/setsignal.h"
 #include "common/atomic_def.h"
 #include "common/ssl_lock.h"
+#include "common/optimize.h"
+#include "common/string_s.h"
 #include "data_struct.h"
 #include "util.h"
 
@@ -184,6 +186,14 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
         if (CURLMSG_DONE == msg->msg) {
             easy_handle = msg->easy_handle;
             DUMP("easy_handle %p is done, code: %u-%s\n", easy_handle, msg->data.result, curl_easy_strerror(msg->data.result));
+
+            if (unlikely(msg->data.result != CURLE_OK)) {
+                global_info->error_num++;
+                if (unlikely(global_info->sample_error[0] == '\0')) {
+                    fix_strcpy_s(global_info->sample_error, curl_easy_strerror(msg->data.result));
+                }
+            }
+
             curl_multi_remove_handle(multi_handle, easy_handle);
             work_info = get_one_work(global_info, thread_info);
             if (work_info) {
@@ -298,8 +308,17 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
     }
 
     free(global_info->work_list);
-    printf("RATE: worknum:%u total_length:%lu total_ms_diff:%lu, %.1fK/s\n",
-            global_info->work_num, total_length, msdiff, (double)(total_length) / (double)(msdiff));
+    printf("----------------------\n");
+    printf("RESULT:\n");
+    printf("%16s : %u\n", "work num", global_info->work_num);
+    printf("%16s : %u\n", "error num", global_info->error_num);
+    if (global_info->error_num > 0) {
+        printf("%16s : %s\n", "sample error", global_info->sample_error);
+    }
+    printf("%16s : %lu\n", "total length", total_length);
+    printf("%16s : %lu\n", "total time(ms)", msdiff);
+    printf("%16s : %lu\n", "throughput", (total_length) / (msdiff));
+    printf("----------------------\n");
 }
 
 /************************************************

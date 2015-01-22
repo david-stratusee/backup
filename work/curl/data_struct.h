@@ -42,6 +42,7 @@ typedef struct _global_info_t {
     int handle_num_per_thread;
     int cpu_num;
     unsigned int error_num;
+    char sample_error[256];
     bool do_exit;
     bool is_https;
 } global_info_t;   /* -- end of global_info_t -- */
