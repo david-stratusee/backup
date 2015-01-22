@@ -9,13 +9,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include "types.h"
-#include "timestamp.h"
+#include "common/types.h"
+#include "common/timestamp.h"
+#include "common/setsignal.h"
+#include "common/atomic_def.h"
+#include "common/ssl_lock.h"
 #include "data_struct.h"
 #include "util.h"
-#include "setsignal.h"
-#include "atomic_def.h"
-#include "ssl_lock.h"
 
 global_info_t global_info;
 #ifdef DEBUG
@@ -63,7 +63,7 @@ static CURL *curl_handle_init(global_info_t *global_info)
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)CONN_TIMEOUT);
 
-    if ((uintptr_t)(global_info->url) == (uintptr_t)(HTTPS_URL)) {
+    if (global_info->is_https) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
@@ -156,10 +156,8 @@ static inline int32_t global_info_init(global_info_t *global_info)
     }
 
     memset(global_info, 0, sizeof(global_info_t));
-    //mutexlock_init(global_info->rmtx);
-    global_info->url = HTTP_URL;
     global_info->cpu_num = cpu_num;
-    global_info->thread_num = cpu_num * 2;
+    global_info->thread_num = cpu_num * THREADNUM_PER_CPU;
     return 0;
 }
 

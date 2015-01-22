@@ -27,11 +27,13 @@ typedef struct _work_info_t {
     int data_len;
 } work_info_t;   /* -- end of work_info_t -- */
 
+#define MAX_URL_LEN 256
 /* Description: global info */
 typedef struct _global_info_t {
     pthread_mutex_t rmtx;
     work_info_t *work_list;
-    char *url;
+    char http_url[MAX_URL_LEN];
+    char https_url[MAX_URL_LEN];
     int read_work_idx;
     int write_work_idx;
     int work_num;
@@ -41,6 +43,7 @@ typedef struct _global_info_t {
     int cpu_num;
     unsigned int error_num;
     bool do_exit;
+    bool is_https;
 } global_info_t;   /* -- end of global_info_t -- */
 
 /* Description: thread info */
@@ -52,11 +55,7 @@ typedef struct _thread_info_t {
     int idx;
 } thread_info_t;   /* -- end of thread_info_t -- */
 
-//#define HTTP_URL "http://192.168.101.102:8080/static/code.py"
-#define HTTP_URL "http://192.168.101.102:8080/images/sample1.jpg"
-//#define HTTP_URL "http://192.168.10.31/assets/jquery.flot.js"
-#define HTTPS_URL "https://192.168.10.31:3000/assets/jquery.flot.js"
-
 #define CONN_TIMEOUT 10     /* second */
+#define THREADNUM_PER_CPU 4
 
 #endif   /* -- #ifndef _DATA_STRUCT_H -- */

@@ -1,18 +1,19 @@
-allobj=simple multithread multi-single multi_test
+#allobj=simple multithread multi-single multi_test
+allobj=multi_test
 all: $(allobj)
 CC=gcc
-CFLAGS=-O2 -Wall -Werror 
+CFLAGS=-O2 -Wall -Werror -I. -I./common
 #-DDEBUG
 LDFLAGS=-lcurl -lpthread -lcrypto
-COMMON_OBJS=setsignal.o  ssl_lock.o  timestamp.o  util.o
+COMMON_OBJS=common/setsignal.o  common/ssl_lock.o  common/timestamp.o  util.o common/cfg_parse.o common/string_s.o common/misc.o
 
-simple: simple.o
+#simple: simple.o
 
-multithread: multithread.o timestamp.o setsignal.o ssl_lock.o
+#multithread: multithread.o timestamp.o setsignal.o ssl_lock.o
 
-multi-single: multi-single.o
+#multi-single: multi-single.o
 
 multi_test: multi_test.o $(COMMON_OBJS)
 
 clean:
-	rm -f $(allobj) *.o
+	rm -f $(allobj) *.o common/*.o
