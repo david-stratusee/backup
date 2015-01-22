@@ -370,15 +370,16 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
         if (fp) {
             if (!file_exist) {
                 fprintf(fp,
-                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
-                        "desc", "request num", "error num", "succ num", "sample error", "total length", "total time(ms)", "throughput-K", "throughput-M",
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
+                        "desc", "request_url", "request num", "error num", "succ num", "sample error", "total length", "total time(ms)", "throughput-K", "throughput-M",
                         "request rate", "latency-avg", "latency-max"
                 );
             }
 
             fprintf(fp,
-                    "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%s\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"\n",
-                    global_info->desc, global_info->work_num, global_info->error_num, suc_num, global_info->sample_error,
+                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%s\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"\n",
+                    global_info->desc, global_info->url[global_info->is_https], global_info->work_num,
+                    global_info->error_num, suc_num, global_info->sample_error,
                     total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),
                     (global_info->work_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0), max_latency
                    );

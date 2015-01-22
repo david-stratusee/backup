@@ -57,14 +57,14 @@ char *https_url = "https://192.168.10.31:3000/assets/jquery.flot.js";
 
 static void set_share_handle(CURL *curl_handle)
 {
-	static CURLSH* share_handle = NULL;
-	if (!share_handle)
-	{
-		share_handle = curl_share_init();
-		curl_share_setopt(share_handle, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
-	}
-	curl_easy_setopt(curl_handle, CURLOPT_SHARE, share_handle);
-	curl_easy_setopt(curl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
+    static CURLSH* share_handle = NULL;
+    if (!share_handle)
+    {
+        share_handle = curl_share_init();
+        curl_share_setopt(share_handle, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+    }
+    curl_easy_setopt(curl_handle, CURLOPT_SHARE, share_handle);
+    curl_easy_setopt(curl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
 }
 
 size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
@@ -108,14 +108,14 @@ static void *pull_one_url(void *arg)
         curl_easy_setopt(thread_info->curl, CURLOPT_WRITEDATA, work_info);
         curl_easy_setopt(thread_info->curl, CURLOPT_URL, work_info->url);
 
-	for (idx = 0; idx < global_info->round; ++idx) {
-		res = curl_easy_perform(thread_info->curl);
-		if (res != CURLE_OK) {
-			global_info->error_num++;
-			DUMP("[%u:%lu:%u:%u]curl_easy_perform() failed: %s\n", 
-					thread_info->idx, time(NULL), work_info->idx, idx, curl_easy_strerror(res));
-		}
-	}
+        for (idx = 0; idx < global_info->round; ++idx) {
+            res = curl_easy_perform(thread_info->curl);
+            if (res != CURLE_OK) {
+                global_info->error_num++;
+                DUMP("[%u:%lu:%u:%u]curl_easy_perform() failed: %s\n", 
+                        thread_info->idx, time(NULL), work_info->idx, idx, curl_easy_strerror(res));
+            }
+        }
         DUMP("[%u:%lu]done %u, write_work_idx: %u\n", thread_info->idx, time(NULL), work_info->idx, global_info->write_work_idx);
 
         work_info->status = STAT_DONE;
@@ -138,7 +138,7 @@ static void _sig_int(int signum, siginfo_t *info, void *ptr)
 
 static void show_help(void)
 {
-	printf("USAGE: \n\t-w for work_num\n\t-t for thread num\n\t-r for round\n\t-s for https test\n");
+    printf("USAGE: \n\t-w for work_num\n\t-t for thread num\n\t-r for round\n\t-s for https test\n");
 }
 
 int main(int argc, char **argv)
@@ -149,29 +149,29 @@ int main(int argc, char **argv)
     int opt;
     global_info.round = 1;
     while ((opt = getopt(argc, argv, "w:t:r:hs")) != -1) {
-            switch (opt) {
-                    case 'w':
-                            global_info.work_num = atoi(optarg);
-                            break;
-                    case 't':
-                            global_info.thread_num = atoi(optarg);
-                            break;
-                    case 'r':
-                            global_info.round = atoi(optarg);
-                            break;
-		    case 's':
-			    url = https_url;
-			    break;
-                    case 'h':
-                    default:
-			    show_help();
-                            return EXIT_SUCCESS;
-            }
+        switch (opt) {
+            case 'w':
+                global_info.work_num = atoi(optarg);
+                break;
+            case 't':
+                global_info.thread_num = atoi(optarg);
+                break;
+            case 'r':
+                global_info.round = atoi(optarg);
+                break;
+            case 's':
+                url = https_url;
+                break;
+            case 'h':
+            default:
+                show_help();
+                return EXIT_SUCCESS;
+        }
     }
 
     if (global_info.work_num == 0 || global_info.thread_num == 0) {
-	    show_help();
-	    return EXIT_FAILURE;
+        show_help();
+        return EXIT_FAILURE;
     }
 
     setsignal(SIGINT, _sig_int);
@@ -218,21 +218,21 @@ int main(int argc, char **argv)
         }
         //curl_easy_setopt(thread_list[idx].curl, CURLOPT_FORBID_REUSE, 1L);
         curl_easy_setopt(thread_list[idx].curl, CURLOPT_NOSIGNAL, 1L);
-	if (url == https_url) {
-		curl_easy_setopt(thread_list[idx].curl, CURLOPT_SSL_VERIFYPEER, 0L);
-		curl_easy_setopt(thread_list[idx].curl, CURLOPT_SSL_VERIFYHOST, 0L);
-	}
+        if (url == https_url) {
+            curl_easy_setopt(thread_list[idx].curl, CURLOPT_SSL_VERIFYPEER, 0L);
+            curl_easy_setopt(thread_list[idx].curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        }
         thread_list[idx].idx = idx;
-	set_share_handle(thread_list[idx].curl);
+        set_share_handle(thread_list[idx].curl);
     }
 
     int error;
     TS_BEGIN(perf);
     for (idx = 0; idx < global_info.thread_num; ++idx) {
         error = pthread_create(&(thread_list[idx].tid),
-                            NULL, /* default attributes please */
-                            pull_one_url,
-                            (void *)&(thread_list[idx]));
+                NULL, /* default attributes please */
+                pull_one_url,
+                (void *)&(thread_list[idx]));
         if (0 != error) {
             fprintf(stderr, "Couldn't run thread number %d, errno %d\n", idx, error);
             return EXIT_FAILURE;
