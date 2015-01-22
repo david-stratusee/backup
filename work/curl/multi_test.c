@@ -317,7 +317,7 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
     }
     printf("%16s : %lu\n", "total length", total_length);
     printf("%16s : %lu\n", "total time(ms)", msdiff);
-    printf("%16s : %lu\n", "throughput", (total_length) / (msdiff));
+    printf("%16s : %luKB-%luMB\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
     printf("----------------------\n");
 }
 
