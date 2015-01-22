@@ -4,8 +4,6 @@
  *        Created: 2015-01-20 16:42
  *         Author: dengwei david@stratusee.com
  ************************************************/
-
-
 #ifndef _DATA_STRUCT_H
 #define _DATA_STRUCT_H
 
