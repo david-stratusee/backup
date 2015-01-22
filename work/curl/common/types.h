@@ -36,8 +36,7 @@ typedef struct _fix_str_size_t {
 #define NULL_STR_SIZE_PAIR         {NULL, 0}
 
 #define EMPTY_STATE \
-    do {            \
-    } while (0)
+    do {} while (0)
 
 /* 1000 = 1024 - 16 - 8 */
 #define PLUS1000(value)   \

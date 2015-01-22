@@ -49,6 +49,8 @@ typedef struct _global_info_t {
     int cpu_num;
     int rampup;
     unsigned int error_num;
+    char desc[128];
+    char output_filename[128];
     char sample_error[256];
     bool do_exit;
     bool is_https;

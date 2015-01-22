@@ -13,7 +13,7 @@
 
 static void show_help(void)
 {
-    printf("USAGE: \n\t-w for request num\n\t-t for agent num\n\t-s for https test\n\t-f for config file\n");
+    printf("USAGE: \n\t-w for request num\n\t-t for agent num\n\t-s for https test\n\t-f for config file\n\t-d desc\n\t-o output file\n");
 }
 
 #define PRINT_MEM_INT(__stru, __memb)    printf("  %s: %u\n", #__memb, (__stru)->__memb)
@@ -27,6 +27,7 @@ void print_global_info(global_info_t *global_info)
 {
     printf("----------------------\n");
     printf("GLOBAL INFO:\n");
+    PRINT_MEM_STR(global_info, desc);
     PRINT_MEM_INT(global_info, work_num);
     PRINT_MEM_INT(global_info, cpu_num);
     PRINT_MEM_INT(global_info, thread_num);
@@ -42,8 +43,16 @@ void print_global_info(global_info_t *global_info)
 int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 {
     int opt;
-    while ((opt = getopt(argc, argv, "r:w:t:f:hs")) != -1) {
+    while ((opt = getopt(argc, argv, "o:d:r:w:t:f:hs")) != -1) {
         switch (opt) {
+            case 'o':
+                fix_strcpy_s(global_info->output_filename, optarg);
+                break;
+
+            case 'd':
+                fix_strcpy_s(global_info->desc, optarg);
+                break;
+
             case 'w':
                 global_info->work_num = atoi(optarg);
                 break;

@@ -5,7 +5,7 @@ CC=gcc
 CFLAGS=-O2 -Wall -Werror -I. -I./common
 #-DDEBUG
 LDFLAGS=-lcurl -lpthread -lcrypto
-COMMON_OBJS=common/setsignal.o  common/ssl_lock.o  common/timestamp.o  util.o common/cfg_parse.o common/string_s.o common/misc.o
+COMMON_OBJS=common/setsignal.o  common/ssl_lock.o  common/timestamp.o  util.o common/cfg_parse.o common/string_s.o common/misc.o common/file_op.o
 
 #simple: simple.o
 
