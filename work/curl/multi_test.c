@@ -344,6 +344,7 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
     printf("RESULT:\n");
     printf("%16s : %u\n", "request num", global_info->work_num);
     printf("%16s : %u\n", "error num", global_info->error_num);
+    printf("%16s : %u\n", "succ num", suc_num);
     if (global_info->error_num > 0) {
         printf("%16s : %s\n", "sample error", global_info->sample_error);
     }
@@ -352,7 +353,6 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
     printf("%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
     printf("%16s : %lu/s\n", "request rate", (global_info->work_num * 1000) / msdiff);
     if (suc_num > 0) {
-        printf("%16s : %u\n", "succ num", suc_num);
         printf("%16s : %lums[max:%lums]\n", "latency", total_time / suc_num, max_latency);
     }
     printf("----------------------\n");
