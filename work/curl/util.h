@@ -12,7 +12,7 @@
 #include "types.h"
 #include "data_struct.h"
 int32_t parse_cmd(int argc, char **argv, global_info_t *global_info);
-#define MEM_ALIGN_SIZE(size, align) (((size) + (align) - 1) & ~((align) - 1))
+void print_global_info(global_info_t *global_info);
 
 #endif   /* -- #ifndef _UTIL_H -- */
 

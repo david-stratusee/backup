@@ -23,7 +23,7 @@ do {    \
         printf("  %s: %s\n", #__memb, (__stru)->__memb);    \
     }   \
 } while (0)
-static void print_global_info(global_info_t *global_info)
+void print_global_info(global_info_t *global_info)
 {
     printf("----------------------\n");
     printf("GLOBAL INFO:\n");

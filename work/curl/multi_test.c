@@ -15,6 +15,7 @@
 #include "common/atomic_def.h"
 #include "common/ssl_lock.h"
 #include "common/optimize.h"
+#include "common/misc.h"
 #include "common/string_s.h"
 #include "data_struct.h"
 #include "util.h"
