@@ -41,6 +41,7 @@ typedef struct _global_info_t {
     int curl_handle_num;
     int handle_num_per_thread;
     int cpu_num;
+    int rampup;
     unsigned int error_num;
     char sample_error[256];
     bool do_exit;

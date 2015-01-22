@@ -283,17 +283,27 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
 {
     int error;
     int idx = 0;
+    int msleep_during = 0;
+
+    if (global_info->rampup > 0) {
+        msleep_during = (global_info->rampup * 1000) / global_info->thread_num;
+    }
 
     for (idx = 0; idx < global_info->thread_num; ++idx) {
+        if (msleep_during > 0 && idx > 0) {
+            ms_sleep(msleep_during);
+        }
+
         error = pthread_create(&(thread_list[idx].tid),
                                NULL, /* default attributes please */
                                pull_one_url,
                                (void *) & (thread_list[idx]));
-
         if (0 != error) {
             fprintf(stderr, "Couldn't run thread number %d, errno %d\n", idx, error);
             return error;
         }
+
+        printf("[%lu]Thread %u start\n", time(NULL), idx);
     }
 
     return 0;
@@ -361,7 +371,7 @@ int main(int argc, char *argv[])
     /* now wait for all threads to terminate */
     for (idx = 0; idx < global_info.thread_num; idx++) {
         pthread_join(thread_list[idx].tid, NULL);
-        printf("[%u:%lu]Thread %d terminated\n", idx, time(NULL), idx);
+        printf("[%lu]Thread %d terminated\n", time(NULL), idx);
     }
     TS_END(perf);
 

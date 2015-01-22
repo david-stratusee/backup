@@ -32,6 +32,7 @@ void print_global_info(global_info_t *global_info)
     PRINT_MEM_INT(global_info, thread_num);
     PRINT_MEM_INT(global_info, curl_handle_num);
     PRINT_MEM_INT(global_info, handle_num_per_thread);
+    PRINT_MEM_INT(global_info, rampup);
     PRINT_MEM_STR(global_info, http_url);
     PRINT_MEM_STR(global_info, https_url);
     PRINT_MEM_INT(global_info, is_https);
@@ -41,7 +42,7 @@ void print_global_info(global_info_t *global_info)
 int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 {
     int opt;
-    while ((opt = getopt(argc, argv, "w:t:f:hs")) != -1) {
+    while ((opt = getopt(argc, argv, "r:w:t:f:hs")) != -1) {
         switch (opt) {
             case 'w':
                 global_info->work_num = atoi(optarg);
@@ -49,6 +50,10 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 
             case 't':
                 global_info->curl_handle_num = atoi(optarg);
+                break;
+
+            case 'r':
+                global_info->rampup = atoi(optarg);
                 break;
 
             case 's':

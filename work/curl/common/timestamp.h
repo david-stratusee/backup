@@ -95,5 +95,19 @@ do {                                                                            
 #define TS_PRINT(MNAME)     EMPTY_STATE
 
 #endif
+
+#include <time.h>
+/* specise cpu calc, but cause much CPU */
+#define time_sleep(sec_num, ns_num)                                             \
+    do {                                                                        \
+        const struct timespec request = {.tv_sec = sec_num, .tv_nsec = ns_num}; \
+        nanosleep(&request, NULL);                                              \
+    } while (0)
+
+#include <unistd.h>
+#define sec_sleep(sec_num) sleep(sec_num)
+#define ms_sleep(ms_num) usleep(PLUS1000(ms_num))
+#define ns_sleep(ns_num) usleep(ns_num)
+
 #endif    // _TIMESTAMP_H
 
