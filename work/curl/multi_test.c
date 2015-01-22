@@ -310,14 +310,15 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
     free(global_info->work_list);
     printf("----------------------\n");
     printf("RESULT:\n");
-    printf("%16s : %u\n", "work num", global_info->work_num);
+    printf("%16s : %u\n", "request num", global_info->work_num);
     printf("%16s : %u\n", "error num", global_info->error_num);
     if (global_info->error_num > 0) {
         printf("%16s : %s\n", "sample error", global_info->sample_error);
     }
     printf("%16s : %lu\n", "total length", total_length);
     printf("%16s : %lu\n", "total time(ms)", msdiff);
-    printf("%16s : %luKB-%luMB\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
+    printf("%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
+    printf("%16s : %lu/s\n", "request rate", (global_info->work_num * 1000) / msdiff);
     printf("----------------------\n");
 }
 
