@@ -110,6 +110,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
                 work_info = global_info->work_list + (global_info->read_work_idx++);
                 curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_WRITEDATA, work_info);
                 curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_URL, work_info->url);
+                curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_PRIVATE, work_info);
                 curl_multi_add_handle(thread_list[idx].multi_handle, thread_list[idx].curl[jdx]);
                 DUMP("[%u]add handle %p to multi_handle %p\n", idx, thread_list[idx].curl[jdx], thread_list[idx].multi_handle);
             }
@@ -193,6 +194,16 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
                 if (unlikely(global_info->sample_error[0] == '\0')) {
                     fix_strcpy_s(global_info->sample_error, curl_easy_strerror(msg->data.result));
                 }
+            } else if (easy_handle) {
+                /*  TODO: curl_easy_getinfo */
+                work_info = NULL;
+                if (curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &work_info) == CURLE_OK && work_info != NULL) {
+                    double total_time = 0.0f;
+                    curl_easy_getinfo(easy_handle, CURLINFO_TOTAL_TIME, &(total_time));
+                    work_info->total_time = (unsigned long)(total_time * 1000);
+                }
+            } else {
+                continue;
             }
 
             curl_multi_remove_handle(multi_handle, easy_handle);
@@ -200,6 +211,7 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
             if (work_info) {
                 curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, work_info);
                 curl_easy_setopt(easy_handle, CURLOPT_URL, work_info->url);
+                curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, work_info);
                 curl_multi_add_handle(multi_handle, easy_handle);
                 num++;
             }
@@ -312,10 +324,19 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
 static void calc_stat(global_info_t *global_info, unsigned long msdiff)
 {
     unsigned long total_length = 0;
+    unsigned long total_time = 0, max_latency = 0;
     int idx = 0;
+    int suc_num = 0;
 
     for (idx = 0; idx < global_info->work_num; idx++) {
         total_length += global_info->work_list[idx].data_len;
+        if (global_info->work_list[idx].total_time > 0) {
+            ++suc_num;
+            total_time += global_info->work_list[idx].total_time;
+            if (global_info->work_list[idx].total_time > max_latency) {
+                max_latency = global_info->work_list[idx].total_time;
+            }
+        }
     }
 
     free(global_info->work_list);
@@ -330,6 +351,10 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
     printf("%16s : %lu\n", "total time(ms)", msdiff);
     printf("%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
     printf("%16s : %lu/s\n", "request rate", (global_info->work_num * 1000) / msdiff);
+    if (suc_num > 0) {
+        printf("%16s : %u\n", "succ num", suc_num);
+        printf("%16s : %lums[max:%lums]\n", "latency", total_time / suc_num, max_latency);
+    }
     printf("----------------------\n");
 }
 

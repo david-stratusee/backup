@@ -25,6 +25,7 @@ typedef struct _work_info_t {
     char *url;
     int idx;
     int data_len;
+    unsigned long total_time;  /* total time for this work, unit ms */
 } work_info_t;   /* -- end of work_info_t -- */
 
 #define MAX_URL_LEN 256
@@ -57,7 +58,7 @@ typedef struct _thread_info_t {
     int idx;
 } thread_info_t;   /* -- end of thread_info_t -- */
 
-#define CONN_TIMEOUT 10     /* second */
+#define CONN_TIMEOUT 30     /* second */
 #define THREADNUM_PER_CPU 4
 
 #endif   /* -- #ifndef _DATA_STRUCT_H -- */
