@@ -33,8 +33,8 @@ void print_global_info(global_info_t *global_info)
     PRINT_MEM_INT(global_info, curl_handle_num);
     PRINT_MEM_INT(global_info, handle_num_per_thread);
     PRINT_MEM_INT(global_info, rampup);
-    PRINT_MEM_STR(global_info, http_url);
-    PRINT_MEM_STR(global_info, https_url);
+    PRINT_MEM_STR(global_info, url[HTTP_TYPE]);
+    PRINT_MEM_STR(global_info, url[HTTPS_TYPE]);
     PRINT_MEM_INT(global_info, is_https);
     printf("----------------------\n");
 }
@@ -63,8 +63,8 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
             case 'f':
                 {
                     cfg_item_t cfg_list[] = {
-                        {FIX_CFGNAME("http"), FIX_CFG_STRDATA(global_info->http_url), dft_cfg_set_string, "http url"},
-                        {FIX_CFGNAME("https"), FIX_CFG_STRDATA(global_info->https_url), dft_cfg_set_string, "https url"},
+                        {FIX_CFGNAME("http"), FIX_CFG_STRDATA(global_info->url[HTTP_TYPE]), dft_cfg_set_string, "http url"},
+                        {FIX_CFGNAME("https"), FIX_CFG_STRDATA(global_info->url[HTTPS_TYPE]), dft_cfg_set_string, "https url"},
                     };
 
                     int32_t ret_val = parse_cfglist_linux_fmt(optarg, cfg_list);
@@ -88,11 +88,8 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
         return -1;
     }
 
-    if (global_info->is_https && global_info->https_url[0] == '\0') {
-        printf("https url is not defined in config file\n");
-        return -1;
-    } else if (!(global_info->is_https) && global_info->http_url[0] == '\0') {
-        printf("http url is not defined in config file\n");
+    if (global_info->url[global_info->is_https][0] == '\0') {
+        printf("%s url is not defined in config file\n", global_info->is_https ? "https" : "http");
         return -1;
     }
 
@@ -115,7 +112,6 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 
     int idx = 0;
     for (idx = 0; idx < global_info->work_num; ++idx) {
-        global_info->work_list[idx].url = (global_info->is_https ? global_info->https_url : global_info->http_url);
         global_info->work_list[idx].idx = idx;
     }
 

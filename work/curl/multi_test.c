@@ -41,6 +41,13 @@ size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
     return real_size;
 }
 
+static void add_no_cache_header(CURL *curl_handle)
+{
+    struct curl_slist *no_cache = NULL;
+    no_cache = curl_slist_append(no_cache, "Cache-control: no-cache");
+    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, no_cache);
+}
+
 static void set_share_handle(CURL *curl_handle)
 {
     static CURLSH *share_handle = NULL;
@@ -72,13 +79,13 @@ static CURL *curl_handle_init(global_info_t *global_info)
     }
 
     set_share_handle(curl);
+    add_no_cache_header(curl);
     return curl;
 }
 
 static inline thread_info_t *thread_init(global_info_t *global_info)
 {
     thread_info_t *thread_list = calloc(global_info->thread_num, sizeof(thread_info_t));
-
     if (thread_list == NULL) {
         printf("alloc threads error\n");
         return NULL;
@@ -89,7 +96,6 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
 
     for (idx = 0; idx < global_info->thread_num; ++idx) {
         thread_list[idx].global_info = global_info;
-
         thread_list[idx].multi_handle = curl_multi_init();
         curl_multi_setopt(thread_list[idx].multi_handle, CURLMOPT_PIPELINING, 1L);
         curl_multi_setopt(thread_list[idx].multi_handle, CURLMOPT_MAXCONNECTS, MEM_ALIGN_SIZE(global_info->handle_num_per_thread, 4));
@@ -109,7 +115,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
             if (global_info->read_work_idx < global_info->work_num) {
                 work_info = global_info->work_list + (global_info->read_work_idx++);
                 curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_WRITEDATA, work_info);
-                curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_URL, work_info->url);
+                curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_URL, global_info->url[global_info->is_https]);
                 curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_PRIVATE, work_info);
                 curl_multi_add_handle(thread_list[idx].multi_handle, thread_list[idx].curl[jdx]);
                 DUMP("[%u]add handle %p to multi_handle %p\n", idx, thread_list[idx].curl[jdx], thread_list[idx].multi_handle);
@@ -140,7 +146,7 @@ static void thread_destroy(global_info_t *global_info, thread_info_t *thread_lis
 
 static inline void global_init(void)
 {
-    curl_global_init(CURL_GLOBAL_ALL);
+    curl_global_init(CURL_GLOBAL_DEFAULT);
     init_locks();
     TS_INIT();
 }
@@ -210,7 +216,7 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
             work_info = get_one_work(global_info, thread_info);
             if (work_info) {
                 curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, work_info);
-                curl_easy_setopt(easy_handle, CURLOPT_URL, work_info->url);
+                curl_easy_setopt(easy_handle, CURLOPT_URL, global_info->url[global_info->is_https]);
                 curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, work_info);
                 curl_multi_add_handle(multi_handle, easy_handle);
                 num++;

@@ -22,19 +22,24 @@ typedef enum _WORK_STATUS_EN {
 } WORK_STATUS_EN;   /* -- end of WORK_STATUS_EN -- */
 /* Description: work info */
 typedef struct _work_info_t {
-    char *url;
     int idx;
     int data_len;
     unsigned long total_time;  /* total time for this work, unit ms */
 } work_info_t;   /* -- end of work_info_t -- */
+
+
+typedef enum _HTTP_TYPE_EN {
+    HTTP_TYPE,
+    HTTPS_TYPE,
+    HTTP_TYPE_MAX
+} HTTP_TYPE_EN;   /* -- end of HTTP_TYPE_EN -- */
 
 #define MAX_URL_LEN 256
 /* Description: global info */
 typedef struct _global_info_t {
     pthread_mutex_t rmtx;
     work_info_t *work_list;
-    char http_url[MAX_URL_LEN];
-    char https_url[MAX_URL_LEN];
+    char url[HTTP_TYPE_MAX][MAX_URL_LEN];
     int read_work_idx;
     int write_work_idx;
     int work_num;
@@ -56,6 +61,7 @@ typedef struct _thread_info_t {
     CURL **curl;
     global_info_t *global_info;
     int idx;
+    int resv_32;
 } thread_info_t;   /* -- end of thread_info_t -- */
 
 #define CONN_TIMEOUT 30     /* second */
