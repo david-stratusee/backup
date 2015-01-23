@@ -470,20 +470,12 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    int idx = 0;
     TS_BEGIN(perf);
     if (start_thread_list(thread_list, &global_info) != 0) {
         printf("error when start thread\n");
         return EXIT_FAILURE;
     }
-
     check_thread_end(thread_list, &global_info);
-
-    /* now wait for all threads to terminate */
-    for (idx = 0; idx < global_info.thread_num; idx++) {
-        pthread_join(thread_list[idx].tid, NULL);
-        printf("[%lu]Thread %d terminated\n", time(NULL), idx);
-    }
     TS_END(perf);
 
     thread_destroy(&global_info, thread_list);
