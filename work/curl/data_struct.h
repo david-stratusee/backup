@@ -69,7 +69,8 @@ typedef struct _thread_info_t {
     int work_done:4,
         work_num :28;
     unsigned int error_num;
-    char sample_error[124];
+    int still_running;
+    char sample_error[128];
 } thread_info_t;   /* -- end of thread_info_t -- */
 
 #define CONN_TIMEOUT 30     /* second */

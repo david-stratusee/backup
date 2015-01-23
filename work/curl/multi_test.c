@@ -256,17 +256,16 @@ static void *pull_one_url(void *arg)
     int ignore_sig[] = {SIGINT, SIGTERM};
     pthread_set_ignore_sig(ignore_sig, sizeof(ignore_sig) / sizeof(int));
 
-    int still_running;
     CURLMcode mc; /* curl_multi_wait() return code */
     int numfds;
     int calc_num = 0;
 
-    if (curl_multi_perform_cont(thread_info->multi_handle, &still_running, global_info) != CURLM_OK) {
+    if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK) {
         fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
         return NULL;
     }
 
-    DUMP("get still_running: %u, multi_handle: %p\n", still_running, thread_info->multi_handle);
+    DUMP("get still_running: %u, multi_handle: %p\n", thread_info->still_running, thread_info->multi_handle);
     do {
         /* wait for activity, timeout or "nothing" */
         mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 1000, &numfds);
@@ -276,19 +275,19 @@ static void *pull_one_url(void *arg)
         }
 
         DUMP("[%u]get still_running: %u, multi_handle: %p, numfds: %u, calc_num: %u\n",
-                thread_info->idx, still_running, thread_info->multi_handle, numfds, calc_num);
+                thread_info->idx, thread_info->still_running, thread_info->multi_handle, numfds, calc_num);
 
         if (numfds || check_available(thread_info->multi_handle, global_info, thread_info) > 0 || calc_num >= CONN_TIMEOUT) {
             calc_num = 0;
 
-            if (curl_multi_perform_cont(thread_info->multi_handle, &still_running, global_info) != CURLM_OK) {
+            if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK) {
                 fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
                 break;
             }
 
 #if 1
             if (check_available(thread_info->multi_handle, global_info, thread_info) > 0) {
-                if (curl_multi_perform_cont(thread_info->multi_handle, &still_running, global_info) != CURLM_OK) {
+                if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK) {
                     fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
                     break;
                 }
@@ -297,7 +296,7 @@ static void *pull_one_url(void *arg)
         } else {
             calc_num++;
         }
-    } while ((still_running > 0 || global_info->read_work_idx < global_info->work_num) && !(global_info->do_exit));
+    } while ((thread_info->still_running > 0 || global_info->read_work_idx < global_info->work_num) && !(global_info->do_exit));
 
     check_available(thread_info->multi_handle, global_info, thread_info);
     thread_info->work_done = TSE_DONE;
@@ -341,9 +340,9 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
     printf("[%lu]threads info:\n", time(NULL));
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            printf("  %u:S[%u]-D[%u]\n", idx, thread_list[idx].work_done, thread_list[idx].work_num);
+            printf("  %u:S[%u]-R[%u]-D[%u]\n", idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num);
         } else {
-            printf("  %u:S[%u]-D[%u]-E[%u]-ES[%s]\n", idx, thread_list[idx].work_done, thread_list[idx].work_num,
+            printf("  %u:S[%u]-R[%u]-D[%u]-E[%u]-ES[%s]\n", idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num,
                     thread_list[idx].error_num, thread_list[idx].sample_error);
             if (global_info->sample_error[0] == '\0') {
                 fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);
