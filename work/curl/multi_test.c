@@ -119,6 +119,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
                 curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_URL, global_info->url[global_info->is_https]);
                 curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_PRIVATE, work_info);
                 curl_multi_add_handle(thread_list[idx].multi_handle, thread_list[idx].curl[jdx]);
+                thread_list[idx].work_num++;
                 DUMP("[%u]add handle %p to multi_handle %p\n", idx, thread_list[idx].curl[jdx], thread_list[idx].multi_handle);
             }
         }
@@ -220,6 +221,7 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
                 curl_easy_setopt(easy_handle, CURLOPT_URL, global_info->url[global_info->is_https]);
                 curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, work_info);
                 curl_multi_add_handle(multi_handle, easy_handle);
+                thread_info->work_num++;
                 num++;
             }
         } else {
@@ -365,7 +367,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
 
             if (++check_num > PRINT_ROUND) {
                 for (idx = 0; idx < global_info->thread_num; idx++) {
-                    printf("[%u]%u ", idx, thread_list[idx].work_done);
+                    printf("[%u]%u-%u ", idx, thread_list[idx].work_done, thread_list[idx].work_num);
                 }
                 printf("\n");
 

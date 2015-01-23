@@ -69,9 +69,8 @@ typedef struct _thread_info_t {
     CURL **curl;
     global_info_t *global_info;
     int idx;
-    int16_t resv_16;
-    uint8_t work_done;
-    uint8_t resv_8;
+    int work_done:2,
+        work_num : 30;
 } thread_info_t;   /* -- end of thread_info_t -- */
 
 #define CONN_TIMEOUT 30     /* second */
