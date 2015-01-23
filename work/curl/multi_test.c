@@ -447,15 +447,15 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
         if (fp) {
             if (!file_exist) {
                 fprintf(fp,
-                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
-                        "desc", "req url", "req num", "err num", "suc num", "total len", "total ms", "perf KB", "perf MB",
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
+                        "desc", "req url", "agent num", "req num", "err num", "suc num", "total len", "total ms", "perf KB", "perf MB",
                         "req rate", "latency avg", "latency max", "err str"
                 );
             }
 
             fprintf(fp,
-                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%s\"\n" ,
-                    global_info->desc, global_info->url[global_info->is_https], global_info->work_num, error_num, suc_num,
+                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%s\"\n" ,
+                    global_info->desc, global_info->url[global_info->is_https], global_info->agent_num, global_info->work_num, error_num, suc_num,
                     total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),
                     (global_info->work_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0), max_latency,
                     global_info->sample_error
