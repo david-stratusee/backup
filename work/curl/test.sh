@@ -17,9 +17,11 @@ set -o nounset                              # Treat unset variables as an error
 #echo ./multi_test $@
 desc=$1
 output=$2
-#./multi_test $@
-./multi_test -w 20000 -t 1000 -f data/ds_512.txt -d "${desc}" -o ${output}
-./multi_test -w 20000 -t 1000 -f data/ds_1k.txt -d "${desc}" -o ${output}
-./multi_test -w 20000 -t 1000 -f data/ds_10k.txt -d "${desc}" -o ${output}
-./multi_test -w 20000 -t 1000 -f data/ds_100k.txt -d "${desc}" -o ${output}
-./multi_test -w 2000 -t 1000 -f data/ds_1m.txt -d "${desc}" -o ${output}
+req=20000
+agent=1000
+
+./multi_test -w ${req} -t ${agent} -f data/ds_512.txt -d "${desc}" -o ${output}
+./multi_test -w ${req} -t ${agent} -f data/ds_1k.txt -d "${desc}" -o ${output}
+./multi_test -w ${req} -t ${agent} -f data/ds_10k.txt -d "${desc}" -o ${output}
+./multi_test -w ${req} -t ${agent} -f data/ds_100k.txt -d "${desc}" -o ${output}
+#./multi_test -w 2000 -t ${agent} -f data/ds_1m.txt -d "${desc}" -o ${output}
