@@ -407,7 +407,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
 static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, unsigned long msdiff)
 {
     unsigned long total_length = 0;
-    unsigned long total_time = 0, max_latency = 0;
+    unsigned long total_time = 0, max_latency = 0, min_latency = (unsigned long)(-1);
     int idx = 0;
     int suc_num = 0, error_num = 0;
 
@@ -418,6 +418,9 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
             total_time += global_info->work_list[idx].total_time;
             if (global_info->work_list[idx].total_time > max_latency) {
                 max_latency = global_info->work_list[idx].total_time;
+            }
+            if (global_info->work_list[idx].total_time < min_latency) {
+                min_latency = global_info->work_list[idx].total_time;
             }
         }
     }
@@ -437,7 +440,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     printf("%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
     printf("%16s : %lu/s\n", "request rate", (global_info->work_num * 1000) / msdiff);
     if (suc_num > 0) {
-        printf("%16s : %lums[max:%lums]\n", "latency", total_time / suc_num, max_latency);
+        printf("%16s : %lums[max:%lums, min:%lums]\n", "latency", total_time / suc_num, max_latency, min_latency);
     }
     printf("----------------------\n");
 
@@ -447,18 +450,20 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
         if (fp) {
             if (!file_exist) {
                 fprintf(fp,
-                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
                         "desc", "req url", "agent num", "req num", "err num", "suc num", "total len", "total ms", "perf KB", "perf MB",
-                        "req rate", "latency avg", "latency max", "err str"
+                        "req rate", "latency avg", "latency max", "latency min", "err str"
                 );
             }
 
             fprintf(fp,
-                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%s\"\n" ,
+                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\","
+                    "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%s\"\n" ,
                     global_info->desc, global_info->url[global_info->is_https], global_info->agent_num, global_info->work_num, error_num, suc_num,
                     total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),
-                    (global_info->work_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0), max_latency,
-                    global_info->sample_error
+                    (global_info->work_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0),
+                    max_latency, min_latency, global_info->sample_error
                    );
             fclose(fp);
         }
