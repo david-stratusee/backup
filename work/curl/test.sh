@@ -14,7 +14,6 @@ set -o nounset                              # Treat unset variables as an error
 #echo 1 > /proc/sys/net/ipv4/tcp_tw_recycle
 #echo 1 > /proc/sys/net/ipv4/tcp_tw_reuse
 
-#echo ./multi_test $@
 desc=$1
 output=$2
 req=20000
