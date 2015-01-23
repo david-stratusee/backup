@@ -134,7 +134,7 @@ static void thread_destroy(global_info_t *global_info, thread_info_t *thread_lis
 {
     int idx = 0, jdx = 0;
 
-    printf("clear thread info\n");
+    DUMP("clear thread info\n");
 
     for (idx = 0; idx < global_info->thread_num; idx++) {
         for (jdx = 0; jdx < global_info->handle_num_per_thread; ++jdx) {
