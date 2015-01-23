@@ -366,10 +366,12 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             sec_sleep(1);
 
             if (++check_num > PRINT_ROUND) {
+                printf("[%lu]", time(NULL));
                 for (idx = 0; idx < global_info->thread_num; idx++) {
-                    printf("[%u]%u-%u ", idx, thread_list[idx].work_done, thread_list[idx].work_num);
+                    printf(" [%u]%u-%u", idx, thread_list[idx].work_done, thread_list[idx].work_num);
                 }
                 printf("\n");
+                fflush(stdout);
 
                 if (get_exit) {
                     return -1;
