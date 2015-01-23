@@ -99,15 +99,15 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
         thread_list[idx].global_info = global_info;
         thread_list[idx].multi_handle = curl_multi_init();
         curl_multi_setopt(thread_list[idx].multi_handle, CURLMOPT_PIPELINING, 1L);
-        curl_multi_setopt(thread_list[idx].multi_handle, CURLMOPT_MAXCONNECTS, MEM_ALIGN_SIZE(global_info->handle_num_per_thread, 4));
+        curl_multi_setopt(thread_list[idx].multi_handle, CURLMOPT_MAXCONNECTS, MEM_ALIGN_SIZE(global_info->agent_num_per_thread, 4));
 
-        thread_list[idx].curl = calloc(global_info->handle_num_per_thread, sizeof(CURL *));
+        thread_list[idx].curl = calloc(global_info->agent_num_per_thread, sizeof(CURL *));
         if (thread_list[idx].curl == NULL || thread_list[idx].multi_handle == NULL) {
             printf("error when curl init\n");
             return NULL;
         }
 
-        for (jdx = 0; jdx < global_info->handle_num_per_thread; ++jdx) {
+        for (jdx = 0; jdx < global_info->agent_num_per_thread; ++jdx) {
             thread_list[idx].curl[jdx] = curl_handle_init(global_info);
             if (thread_list[idx].curl[jdx] == NULL) {
                 return NULL;
@@ -137,7 +137,7 @@ static void thread_destroy(global_info_t *global_info, thread_info_t *thread_lis
     DUMP("clear thread info\n");
 
     for (idx = 0; idx < global_info->thread_num; idx++) {
-        for (jdx = 0; jdx < global_info->handle_num_per_thread; ++jdx) {
+        for (jdx = 0; jdx < global_info->agent_num_per_thread; ++jdx) {
             curl_easy_cleanup(thread_list[idx].curl[jdx]);
         }
         curl_multi_cleanup(thread_list[idx].multi_handle);

@@ -41,8 +41,8 @@ typedef struct _global_info_t {
     char url[HTTP_TYPE_MAX][MAX_URL_LEN];
     int read_work_idx;
     int work_num;
-    int curl_handle_num;
-    int handle_num_per_thread;
+    int agent_num;
+    int agent_num_per_thread;
     uint8_t cpu_num;
     uint8_t thread_num;
     uint16_t rampup;

@@ -31,8 +31,8 @@ void print_global_info(global_info_t *global_info)
     PRINT_MEM_INT(global_info, work_num);
     PRINT_MEM_INT(global_info, cpu_num);
     PRINT_MEM_INT(global_info, thread_num);
-    PRINT_MEM_INT(global_info, curl_handle_num);
-    PRINT_MEM_INT(global_info, handle_num_per_thread);
+    PRINT_MEM_INT(global_info, agent_num);
+    PRINT_MEM_INT(global_info, agent_num_per_thread);
     PRINT_MEM_INT(global_info, rampup);
     PRINT_MEM_STR(global_info, url[HTTP_TYPE]);
     PRINT_MEM_STR(global_info, url[HTTPS_TYPE]);
@@ -58,7 +58,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
                 break;
 
             case 't':
-                global_info->curl_handle_num = atoi(optarg);
+                global_info->agent_num = atoi(optarg);
                 break;
 
             case 'r':
@@ -92,7 +92,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
         }
     }
 
-    if (global_info->work_num == 0 || global_info->curl_handle_num == 0) {
+    if (global_info->work_num == 0 || global_info->agent_num == 0) {
         show_help();
         return -1;
     }
@@ -102,13 +102,13 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
         return -1;
     }
 
-    if (global_info->curl_handle_num < global_info->thread_num) {
-        global_info->thread_num = global_info->curl_handle_num;
+    if (global_info->agent_num < global_info->thread_num) {
+        global_info->thread_num = global_info->agent_num;
     }
 
-    global_info->handle_num_per_thread = (global_info->curl_handle_num / global_info->thread_num);
-    if ((global_info->curl_handle_num % global_info->thread_num) != 0) {
-        global_info->handle_num_per_thread++;
+    global_info->agent_num_per_thread = (global_info->agent_num / global_info->thread_num);
+    if ((global_info->agent_num % global_info->thread_num) != 0) {
+        global_info->agent_num_per_thread++;
     }
 
     print_global_info(global_info);
