@@ -371,8 +371,8 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
             if (!file_exist) {
                 fprintf(fp,
                         "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
-                        "desc", "request_url", "request num", "error num", "succ num", "sample error", "total length", "total time(ms)", "throughput-K", "throughput-M",
-                        "request rate", "latency-avg", "latency-max"
+                        "desc", "req url", "req num", "err num", "suc num", "err str", "total len", "total ms", "perf KB", "perf MB",
+                        "req rate", "latency avg", "latency max"
                 );
             }
 
