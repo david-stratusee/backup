@@ -184,7 +184,7 @@ static inline work_info_t *get_one_work(global_info_t *global_info, thread_info_
     }
 }
 
-int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_info_t *thread_info)
+static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_info_t *thread_info)
 {
     int msgs_left;
     CURLMsg *msg;
@@ -205,13 +205,22 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
 
                 curl_multi_remove_handle(multi_handle, easy_handle);
                 continue;
-            } else if (easy_handle) {
+            } else if (likely(easy_handle)) {
                 /*  TODO: curl_easy_getinfo */
-                work_info = NULL;
-                if (curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &work_info) == CURLE_OK && work_info != NULL) {
-                    double total_time = 0.0f;
-                    curl_easy_getinfo(easy_handle, CURLINFO_TOTAL_TIME, &(total_time));
-                    work_info->total_time = (unsigned long)(total_time * 1000);
+                long response_code = 200;
+                if (likely(curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK
+                        && (response_code >= 200 && response_code < 400))) {
+                    work_info = NULL;
+                    if (curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &work_info) == CURLE_OK && work_info != NULL) {
+                        double total_time = 0.0f;
+                        curl_easy_getinfo(easy_handle, CURLINFO_TOTAL_TIME, &(total_time));
+                        work_info->total_time = (unsigned long)(total_time * 1000);
+                    }
+                } else {
+                    thread_info->error_num++;
+                    if (unlikely(thread_info->sample_error[0] == '\0')) {
+                        fix_snprintf(thread_info->sample_error, "get response_code %ld", response_code);
+                    }
                 }
             } else {
                 continue;
