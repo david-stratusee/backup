@@ -331,6 +331,17 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
     return 0;
 }
 
+static void print_thread_info(thread_info_t *thread_list, int thread_num)
+{
+    int idx = 0;
+    printf("[%lu]", time(NULL));
+    for (idx = 0; idx < thread_num; idx++) {
+        printf(" [%u]%u-%u", idx, thread_list[idx].work_done, thread_list[idx].work_num);
+    }
+    printf("\n");
+    fflush(stdout);
+}
+
 #define PRINT_ROUND 5
 static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *global_info)
 {
@@ -366,13 +377,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             sec_sleep(1);
 
             if (++check_num > PRINT_ROUND) {
-                printf("[%lu]", time(NULL));
-                for (idx = 0; idx < global_info->thread_num; idx++) {
-                    printf(" [%u]%u-%u", idx, thread_list[idx].work_done, thread_list[idx].work_num);
-                }
-                printf("\n");
-                fflush(stdout);
-
+                print_thread_info(thread_list, global_info->thread_num);
                 if (get_exit) {
                     return -1;
                 }
@@ -380,6 +385,8 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
                 check_num = 0;
                 get_exit = global_info->do_exit;
             }
+        } else {
+            print_thread_info(thread_list, global_info->thread_num);
         }
     } while (finish_num < global_info->thread_num);
 
