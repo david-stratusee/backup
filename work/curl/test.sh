@@ -16,8 +16,8 @@ set -o nounset                              # Treat unset variables as an error
 
 desc=$1
 output=$2
-req=20000
-agent=1000
+req=100000
+agent=400
 
 ./multi_test -w ${req} -t ${agent} -f data/ds_512.txt -d "${desc}" -o ${output}
 ./multi_test -w ${req} -t ${agent} -f data/ds_1k.txt -d "${desc}" -o ${output}
