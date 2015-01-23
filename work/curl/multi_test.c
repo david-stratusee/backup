@@ -338,7 +338,7 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
 {
     int idx = 0;
     printf("------------------\n");
-    printf("[%lu]threads info:", time(NULL));
+    printf("[%lu]threads info:\n", time(NULL));
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
             printf("  %u:S[%u]-D[%u]\n", idx, thread_list[idx].work_done, thread_list[idx].work_num);
