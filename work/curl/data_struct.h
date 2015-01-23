@@ -37,23 +37,20 @@ typedef enum _HTTP_TYPE_EN {
 #define MAX_URL_LEN 256
 /* Description: global info */
 typedef struct _global_info_t {
-    pthread_mutex_t rmtx;
     work_info_t *work_list;
     char url[HTTP_TYPE_MAX][MAX_URL_LEN];
     int read_work_idx;
-    int write_work_idx;
     int work_num;
-    int thread_num;
     int curl_handle_num;
     int handle_num_per_thread;
-    int cpu_num;
-    int rampup;
-    unsigned int error_num;
-    char desc[128];
-    char output_filename[128];
-    char sample_error[256];
+    uint8_t cpu_num;
+    uint8_t thread_num;
+    uint16_t rampup;
     bool do_exit;
     bool is_https;
+    char sample_error[122];
+    char desc[128];
+    char output_filename[128];
 } global_info_t;   /* -- end of global_info_t -- */
 
 typedef enum _THREAD_STATUS_EN {
@@ -71,6 +68,8 @@ typedef struct _thread_info_t {
     int idx;
     int work_done:4,
         work_num :28;
+    unsigned int error_num;
+    char sample_error[124];
 } thread_info_t;   /* -- end of thread_info_t -- */
 
 #define CONN_TIMEOUT 30     /* second */

@@ -134,7 +134,7 @@ static void thread_destroy(global_info_t *global_info, thread_info_t *thread_lis
 {
     int idx = 0, jdx = 0;
 
-    DUMP("clear thread info\n");
+    printf("clear thread info\n");
 
     for (idx = 0; idx < global_info->thread_num; idx++) {
         for (jdx = 0; jdx < global_info->handle_num_per_thread; ++jdx) {
@@ -198,9 +198,9 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
             DUMP("easy_handle %p is done, code: %u-%s\n", easy_handle, msg->data.result, curl_easy_strerror(msg->data.result));
 
             if (unlikely(msg->data.result != CURLE_OK)) {
-                global_info->error_num++;
-                if (unlikely(global_info->sample_error[0] == '\0')) {
-                    fix_strcpy_s(global_info->sample_error, curl_easy_strerror(msg->data.result));
+                thread_info->error_num++;
+                if (unlikely(thread_info->sample_error[0] == '\0')) {
+                    fix_strcpy_s(thread_info->sample_error, curl_easy_strerror(msg->data.result));
                 }
 
                 curl_multi_remove_handle(multi_handle, easy_handle);
@@ -337,11 +337,20 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
 static void print_thread_info(thread_info_t *thread_list, global_info_t *global_info)
 {
     int idx = 0;
-    printf("[%lu]error[%u-%s], threads:", time(NULL), global_info->error_num, global_info->sample_error);
+    printf("------------------\n");
+    printf("[%lu]threads info:", time(NULL));
     for (idx = 0; idx < global_info->thread_num; idx++) {
-        printf(" [%u]%u-%u", idx, thread_list[idx].work_done, thread_list[idx].work_num);
+        if (thread_list[idx].error_num == 0) {
+            printf("  %u:S[%u]-D[%u]\n", idx, thread_list[idx].work_done, thread_list[idx].work_num);
+        } else {
+            printf("  %u:S[%u]-D[%u]-E[%u]-ES[%s]\n", idx, thread_list[idx].work_done, thread_list[idx].work_num,
+                    thread_list[idx].error_num, thread_list[idx].sample_error);
+            if (global_info->sample_error[0] == '\0') {
+                fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);
+            }
+        }
     }
-    printf("\n");
+    printf("------------------\n");
     fflush(stdout);
 }
 
@@ -396,12 +405,12 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
     return 0;
 }
 
-static void calc_stat(global_info_t *global_info, unsigned long msdiff)
+static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, unsigned long msdiff)
 {
     unsigned long total_length = 0;
     unsigned long total_time = 0, max_latency = 0;
     int idx = 0;
-    int suc_num = 0;
+    int suc_num = 0, error_num = 0;
 
     for (idx = 0; idx < global_info->work_num; idx++) {
         total_length += global_info->work_list[idx].data_len;
@@ -414,15 +423,16 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
         }
     }
 
+    for (idx = 0; idx < global_info->thread_num; idx++) {
+        error_num += thread_list[idx].error_num;
+    }
+
     free(global_info->work_list);
     printf("----------------------\n");
     printf("RESULT: \"%s\"\n", global_info->desc);
     printf("%16s : %u\n", "request num", global_info->work_num);
-    printf("%16s : %u\n", "error num", global_info->error_num);
+    printf("%16s : %u\n", "error num", error_num);
     printf("%16s : %u\n", "succ num", suc_num);
-    if (global_info->error_num > 0) {
-        printf("%16s : %s\n", "sample error", global_info->sample_error);
-    }
     printf("%16s : %lu\n", "total length", total_length);
     printf("%16s : %lu\n", "total time(ms)", msdiff);
     printf("%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
@@ -439,17 +449,17 @@ static void calc_stat(global_info_t *global_info, unsigned long msdiff)
             if (!file_exist) {
                 fprintf(fp,
                         "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
-                        "desc", "req url", "req num", "err num", "suc num", "err str", "total len", "total ms", "perf KB", "perf MB",
-                        "req rate", "latency avg", "latency max"
+                        "desc", "req url", "req num", "err num", "suc num", "total len", "total ms", "perf KB", "perf MB",
+                        "req rate", "latency avg", "latency max", "err str"
                 );
             }
 
             fprintf(fp,
-                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%s\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"\n",
-                    global_info->desc, global_info->url[global_info->is_https], global_info->work_num,
-                    global_info->error_num, suc_num, global_info->sample_error,
+                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%s\"\n" ,
+                    global_info->desc, global_info->url[global_info->is_https], global_info->work_num, error_num, suc_num,
                     total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),
-                    (global_info->work_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0), max_latency
+                    (global_info->work_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0), max_latency,
+                    global_info->sample_error
                    );
             fclose(fp);
         }
@@ -492,9 +502,9 @@ int main(int argc, char *argv[])
     check_thread_end(thread_list, &global_info);
     TS_END(perf);
 
-    thread_destroy(&global_info, thread_list);
-    calc_stat(&global_info, TS_MSDIFF(perf));
+    calc_stat(&global_info, thread_list, TS_MSDIFF(perf));
 
+    thread_destroy(&global_info, thread_list);
     global_destroy();
     return EXIT_SUCCESS;
 }       /* -- end of function main -- */
