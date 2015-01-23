@@ -257,7 +257,7 @@ static void *pull_one_url(void *arg)
     int calc_num = 0;
 
     if (curl_multi_perform_cont(thread_info->multi_handle, &still_running, global_info) != CURLM_OK) {
-        DUMP("[%u]error when call curl_multi_perform\n", thread_info->idx);
+        fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
         return NULL;
     }
 
@@ -265,7 +265,7 @@ static void *pull_one_url(void *arg)
     do {
         /* wait for activity, timeout or "nothing" */
         mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 1000, &numfds);
-        if(mc != CURLM_OK) {
+        if (mc != CURLM_OK) {
             fprintf(stderr, "[%u]curl_multi_fdset() failed, code %d.\n", thread_info->idx, mc);
             break;
         }
@@ -277,14 +277,14 @@ static void *pull_one_url(void *arg)
             calc_num = 0;
 
             if (curl_multi_perform_cont(thread_info->multi_handle, &still_running, global_info) != CURLM_OK) {
-                DUMP("[%u]error when call curl_multi_perform\n", thread_info->idx);
+                fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
                 break;
             }
 
 #if 1
             if (check_available(thread_info->multi_handle, global_info, thread_info) > 0) {
                 if (curl_multi_perform_cont(thread_info->multi_handle, &still_running, global_info) != CURLM_OK) {
-                    DUMP("[%u]error when call curl_multi_perform\n", thread_info->idx);
+                    fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
                     break;
                 }
             }
@@ -295,6 +295,7 @@ static void *pull_one_url(void *arg)
     } while ((still_running > 0 || global_info->read_work_idx < global_info->work_num) && !(global_info->do_exit));
 
     check_available(thread_info->multi_handle, global_info, thread_info);
+    thread_info->work_done = TSE_DONE;
     return NULL;
 }
 
@@ -324,6 +325,59 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
 
         printf("[%lu]Thread %u start\n", time(NULL), idx);
     }
+
+    return 0;
+}
+
+#define PRINT_ROUND 5
+static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *global_info)
+{
+    int idx = 0;
+
+#if 0
+    /* now wait for all threads to terminate */
+    for (idx = 0; idx < global_info->thread_num; idx++) {
+        pthread_join(thread_list[idx].tid, NULL);
+        printf("[%lu]Thread %d terminated\n", time(NULL), idx);
+    }
+#endif
+
+    int finish_num;
+    int check_num = 0;
+    bool get_exit = global_info->do_exit;
+    do {
+        finish_num = 0;
+        for (idx = 0; idx < global_info->thread_num; idx++) {
+            if (thread_list[idx].work_done >= TSE_DONE) {
+                if (thread_list[idx].work_done == TSE_DONE) {
+                    pthread_join(thread_list[idx].tid, NULL);
+                    printf("[%lu]Thread %d terminated\n", time(NULL), idx);
+
+                    thread_list[idx].work_done = TSE_VERIFY;
+                }
+
+                finish_num++;
+            }
+        }
+
+        if (finish_num < global_info->thread_num) {
+            sec_sleep(1);
+
+            if (++check_num > PRINT_ROUND) {
+                for (idx = 0; idx < global_info->thread_num; idx++) {
+                    printf("[%u]%u ", idx, thread_list[idx].work_done);
+                }
+                printf("\n");
+
+                if (get_exit) {
+                    return -1;
+                }
+
+                check_num = 0;
+                get_exit = global_info->do_exit;
+            }
+        }
+    } while (finish_num < global_info->thread_num);
 
     return 0;
 }
@@ -422,6 +476,8 @@ int main(int argc, char *argv[])
         printf("error when start thread\n");
         return EXIT_FAILURE;
     }
+
+    check_thread_end(thread_list, &global_info);
 
     /* now wait for all threads to terminate */
     for (idx = 0; idx < global_info.thread_num; idx++) {

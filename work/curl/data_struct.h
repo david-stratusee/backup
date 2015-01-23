@@ -56,6 +56,12 @@ typedef struct _global_info_t {
     bool is_https;
 } global_info_t;   /* -- end of global_info_t -- */
 
+typedef enum _THREAD_STATUS_EN {
+    TSE_INIT,
+    TSE_DONE,
+    TSE_VERIFY,
+} THREAD_STATUS_EN;   /* -- end of THREAD_STATUS_EN -- */
+
 /* Description: thread info */
 typedef struct _thread_info_t {
     pthread_t tid;
@@ -63,7 +69,9 @@ typedef struct _thread_info_t {
     CURL **curl;
     global_info_t *global_info;
     int idx;
-    int resv_32;
+    int16_t resv_16;
+    uint8_t work_done;
+    uint8_t resv_8;
 } thread_info_t;   /* -- end of thread_info_t -- */
 
 #define CONN_TIMEOUT 30     /* second */
