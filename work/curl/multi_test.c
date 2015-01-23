@@ -376,7 +376,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
         if (finish_num < global_info->thread_num) {
             sec_sleep(1);
 
-            if (++check_num > PRINT_ROUND) {
+            if (++check_num >= PRINT_ROUND) {
                 print_thread_info(thread_list, global_info->thread_num);
                 if (get_exit) {
                     return -1;
