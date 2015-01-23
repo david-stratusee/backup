@@ -202,6 +202,9 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
                 if (unlikely(global_info->sample_error[0] == '\0')) {
                     fix_strcpy_s(global_info->sample_error, curl_easy_strerror(msg->data.result));
                 }
+
+                curl_multi_remove_handle(multi_handle, easy_handle);
+                continue;
             } else if (easy_handle) {
                 /*  TODO: curl_easy_getinfo */
                 work_info = NULL;
@@ -225,7 +228,7 @@ int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_
                 num++;
             }
         } else {
-            DUMP("-------------------- [easy_handle-%p] not OK\n", msg->easy_handle);
+            printf("-------------------- [easy_handle-%p] not OK\n", msg->easy_handle);
         }
     }
 
@@ -331,11 +334,11 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
     return 0;
 }
 
-static void print_thread_info(thread_info_t *thread_list, int thread_num)
+static void print_thread_info(thread_info_t *thread_list, global_info_t *global_info)
 {
     int idx = 0;
-    printf("[%lu]", time(NULL));
-    for (idx = 0; idx < thread_num; idx++) {
+    printf("[%lu]error[%u-%s], threads:", time(NULL), global_info->error_num, global_info->sample_error);
+    for (idx = 0; idx < global_info->thread_num; idx++) {
         printf(" [%u]%u-%u", idx, thread_list[idx].work_done, thread_list[idx].work_num);
     }
     printf("\n");
@@ -377,7 +380,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             sec_sleep(1);
 
             if (++check_num >= PRINT_ROUND) {
-                print_thread_info(thread_list, global_info->thread_num);
+                print_thread_info(thread_list, global_info);
                 if (get_exit) {
                     return -1;
                 }
@@ -386,7 +389,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
                 get_exit = global_info->do_exit;
             }
         } else {
-            print_thread_info(thread_list, global_info->thread_num);
+            print_thread_info(thread_list, global_info);
         }
     } while (finish_num < global_info->thread_num);
 
