@@ -59,8 +59,10 @@ if [ "${remote_file}" != "" ]; then
         echo scp ${dsthost}:/home/david/${remote_file} .
         scp ${dsthost}:/home/david/${remote_file} .
     fi
+elif [ "${local_file}" != "" ]; then
+    echo scp ${local_file} ${dsthost}:/home/david/
+    scp ${local_file} ${dsthost}:/home/david/
 else
     echo ssh ${dsthost}
     ssh ${dsthost}
 fi
-
