@@ -18,7 +18,7 @@
 	editor = vim
 [alias]
 	unstage = reset HEAD --
-	last = log -2 HEAD
+	last = log -5 HEAD
 	wdiff = diff --ignore-space-at-eol --ignore-space-change --ignore-all-space
 [http "https://github.com"]
 	sslVerify = false
