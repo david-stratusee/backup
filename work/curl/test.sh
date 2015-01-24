@@ -19,8 +19,15 @@ output=$2
 req=100000
 agent=400
 
-./multi_test -w ${req} -t ${agent} -f data/ds_512.txt -d "${desc}" -o ${output}
-./multi_test -w ${req} -t ${agent} -f data/ds_1k.txt -d "${desc}" -o ${output}
-./multi_test -w ${req} -t ${agent} -f data/ds_10k.txt -d "${desc}" -o ${output}
-./multi_test -w ${req} -t ${agent} -f data/ds_100k.txt -d "${desc}" -o ${output}
-#./multi_test -w 2000 -t ${agent} -f data/ds_1m.txt -d "${desc}" -o ${output}
+list="ds_512.txt ds_1k.txt ds_10k.txt ds_100k.txt"
+first_file=0
+
+for file in $list; do
+    if [ ${first_file} -ne 0 ]; then
+        sleep 10
+    else
+        first_file=1
+    fi
+    echo ./multi_test -w ${req} -t ${agent} -f data/${file} -d "${desc}" -o ${output}
+    ./multi_test -w ${req} -t ${agent} -f data/${file} -d "${desc}" -o ${output}
+done
