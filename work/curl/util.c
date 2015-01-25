@@ -19,7 +19,7 @@ static void show_help(void)
                   "\n\t-f for config file"
                   "\n\t-d for desc"
                   "\n\t-r for rampup, unit second"
-                  "\n\t-t for testing time"
+                  "\n\t-t for testing time, unit second"
                   "\n\t-o output file\n");
 }
 
