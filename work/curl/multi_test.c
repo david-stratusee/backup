@@ -143,7 +143,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
                 curl_multi_add_handle(thread_info->multi_handle, work_info->curl);
                 DUMP("[%u]add handle %p to multi_handle %p\n", idx, work_info->curl, thread_info->multi_handle);
 
-                thread_info->alloc_agent_num = jdx;
+                thread_info->alloc_agent_num = jdx + 1;
                 thread_info->last_alloc_time = time(NULL);
             }
         }
