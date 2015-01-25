@@ -28,6 +28,6 @@ for file in $list; do
     else
         first_file=1
     fi
-    echo ./multi_test -w ${req} -t ${agent} -f data/${file} -d "${desc}" -o ${output}
-    ./multi_test -w ${req} -t ${agent} -f data/${file} -d "${desc}" -o ${output}
+    echo ./multi_test -q ${req} -a ${agent} -f data/${file} -d "${desc}" -o ${output}
+    ./multi_test -q ${req} -a ${agent} -f data/${file} -d "${desc}" -o ${output}
 done
