@@ -265,7 +265,12 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
     while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
         if (CURLMSG_DONE == msg->msg) {
             easy_handle = msg->easy_handle;
-            DUMP("easy_handle %p is done, code: %u-%s\n", easy_handle, msg->data.result, curl_easy_strerror(msg->data.result));
+            DUMP("easy_handle %p is done, code: %u-%s, msg_left: %d\n",
+                    easy_handle, msg->data.result, curl_easy_strerror(msg->data.result),
+                    msg_left);
+            DUMP("  %u:S[%u]-R[%u]-D[%u-%u]\n",
+                    thread_info->idx, thread_info->work_done, thread_info->still_running,
+                    thread_info->work_num, thread_info->succ_num);
 
             if (likely(msg->data.result == CURLE_OK && easy_handle)) {
                 /*  TODO: curl_easy_getinfo */
@@ -397,7 +402,7 @@ static void *pull_one_url(void *arg)
         }
     } while ((thread_info->still_running > 0 || HAVE_WORK_AVAILABLE(global_info)) && !(global_info->do_exit));
 
-    DUMP("last check avail\n");
+    DUMP("[%u]last check avail\n", thread_info->idx);
 
 #ifdef DEBUG
     if (thread_info->error_num == 0) {
