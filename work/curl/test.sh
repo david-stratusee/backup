@@ -18,6 +18,8 @@ desc=$1
 output=$2
 req=100000
 agent=400
+rampup=10
+during=60
 
 list="ds_512.txt ds_1k.txt ds_10k.txt ds_100k.txt"
 first_file=0
@@ -28,6 +30,6 @@ for file in $list; do
     else
         first_file=1
     fi
-    echo ./multi_test -q ${req} -a ${agent} -f data/${file} -d "${desc}" -o ${output}
-    ./multi_test -q ${req} -a ${agent} -f data/${file} -d "${desc}" -o ${output}
+    echo ./multi_test -a ${agent} -f data/${file} -d \"${desc}\" -o ${output} -r ${rampup} -t ${during}
+    ./multi_test -a ${agent} -f data/${file} -d "${desc}" -o ${output} -r ${rampup} -t ${during}
 done
