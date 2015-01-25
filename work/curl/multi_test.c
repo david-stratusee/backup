@@ -138,7 +138,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
             if (jdx < agent_num_per_sec_thread && get_one_work(global_info, thread_info)) {
                 work_info->data_len = 0;
                 curl_multi_add_handle(thread_info->multi_handle, work_info->curl);
-                DUMP("[%u]add handle %p to multi_handle %p\n", idx, thread_info->curl[jdx], thread_info->multi_handle);
+                DUMP("[%u]add handle %p to multi_handle %p\n", idx, work_info->curl, thread_info->multi_handle);
 
                 thread_info->alloc_agent_num = jdx;
                 thread_info->last_alloc_time = time(NULL);
