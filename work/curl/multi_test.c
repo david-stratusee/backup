@@ -30,7 +30,7 @@ global_info_t global_info;
 
 static void _sig_int(int signum, siginfo_t *info, void *ptr)
 {
-    global_info.do_exit = true;
+    global_info.do_exit = G_FORCE_EXIT;
     return;
 }
 
@@ -64,7 +64,7 @@ static void set_share_handle(CURL *curl_handle)
 
 static inline bool _get_one_work(global_info_t *global_info, thread_info_t *thread_info, const char *func, const int line)
 {
-    if (HAVE_WORK_AVAILABLE(global_info)) {
+    if (global_info->do_exit == G_RUNNING && HAVE_WORK_AVAILABLE(global_info)) {
         atomic_inc(global_info->read_work_idx);
         thread_info->work_num++;
         DUMP("[%s-%u]thread %u add one work, work_num is %u\n", func, line, thread_info->idx, thread_info->work_num);
@@ -215,17 +215,13 @@ static int32_t check_rampup_agent(CURLM *multi_handle, global_info_t *global_inf
                 work_info->data_len = 0;
                 curl_multi_add_handle(multi_handle, work_info->curl);
                 thread_info->alloc_agent_num++;
+                thread_info->last_alloc_time = ts;
                 DUMP("[%u]add handle %p to multi_handle %p\n", thread_info->idx, work_info->curl, multi_handle);
             } else {
-                thread_info->last_alloc_time = time(NULL);
                 break;
             }
 
             num++;
-        }
-
-        if (idx == agent_num_per_sec_thread) {
-            thread_info->last_alloc_time = time(NULL);
         }
 
         return num;
@@ -347,7 +343,7 @@ static inline CURLMcode curl_multi_perform_cont(CURLM *multi_handle, int *runnin
     CURLMcode ret_code;
     while ((ret_code = curl_multi_perform(multi_handle, running_handles)) == CURLM_CALL_MULTI_PERFORM) {
         DUMP("get still_running: %u\n", *running_handles);
-        if (global_info->do_exit) {
+        if (unlikely(global_info->do_exit == G_FORCE_EXIT)) {
             return CURLM_BAD_HANDLE;
         }
     }
@@ -403,7 +399,7 @@ static void *pull_one_url(void *arg)
         } else {
             calc_num++;
         }
-    } while ((thread_info->still_running > 0 || HAVE_WORK_AVAILABLE(global_info)) && !(global_info->do_exit));
+    } while ((thread_info->still_running > 0 || HAVE_WORK_AVAILABLE(global_info)) && (global_info->do_exit != G_FORCE_EXIT));
 
     DUMP("[%u]last check avail\n", thread_info->idx);
 
@@ -454,14 +450,6 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
         end_time = time(NULL) + global_info->during_time;
     }
 
-#if 0
-    /* now wait for all threads to terminate */
-    for (idx = 0; idx < global_info->thread_num; idx++) {
-        pthread_join(thread_list[idx].tid, NULL);
-        printf("[%lu]Thread %d terminated\n", time(NULL), idx);
-    }
-#endif
-
     int finish_num;
     int check_num = 0;
     bool get_exit = global_info->do_exit;
@@ -485,7 +473,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
 
             if (++check_num >= PRINT_ROUND) {
                 print_thread_info(thread_list, global_info);
-                if (get_exit) {
+                if (get_exit == G_FORCE_EXIT) {
                     return -1;
                 }
 
@@ -497,7 +485,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
         }
 
         if (global_info->during_time > 0 && time(NULL) >= end_time) {
-            global_info->do_exit = true;
+            global_info->do_exit = G_EXIT;
         }
     } while (finish_num < global_info->thread_num);
 
