@@ -283,7 +283,7 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                         if (latency > thread_info->max_latency) {
                             thread_info->max_latency = latency;
                         }
-                        if (latency < thread_info->min_latency) {
+                        if (latency > 0 && latency < thread_info->min_latency) {
                             thread_info->min_latency = latency;
                         }
 
@@ -509,7 +509,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
         if (thread_list[idx].max_latency > max_latency) {
             max_latency = thread_list[idx].max_latency;
         }
-        if (thread_list[idx].min_latency < min_latency) {
+        if (thread_list[idx].min_latency > 0 && thread_list[idx].min_latency < min_latency) {
             min_latency = thread_list[idx].min_latency;
         }
     }
