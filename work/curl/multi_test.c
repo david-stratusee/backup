@@ -62,17 +62,19 @@ static void set_share_handle(CURL *curl_handle)
     curl_easy_setopt(curl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
 }
 
-static inline bool get_one_work(global_info_t *global_info, thread_info_t *thread_info)
+static inline bool _get_one_work(global_info_t *global_info, thread_info_t *thread_info, const char *func, const int line)
 {
     if (HAVE_WORK_AVAILABLE(global_info)) {
         atomic_inc(global_info->read_work_idx);
         thread_info->work_num++;
-        DUMP("thread %u add one work, work_num is %u\n", thread_info->idx, thread_info->work_num);
+        DUMP("[%s-%u]thread %u add one work, work_num is %u\n", func, line, thread_info->idx, thread_info->work_num);
         return true;
     } else {
         return false;
     }
 }
+#define get_one_work(global_info, thread_info)  \
+    _get_one_work(global_info, thread_info, __func__, __LINE__)
 
 static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info)
 {
