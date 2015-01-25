@@ -67,6 +67,7 @@ static inline bool get_one_work(global_info_t *global_info, thread_info_t *threa
     if (HAVE_WORK_AVAILABLE(global_info)) {
         atomic_inc(global_info->read_work_idx);
         thread_info->work_num++;
+        DUMP("thread %u add one work, work_num is %u\n", thread_info->idx, thread_info->work_num);
         return true;
     } else {
         return false;
