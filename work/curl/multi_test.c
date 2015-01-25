@@ -64,7 +64,7 @@ static void set_share_handle(CURL *curl_handle)
 
 static inline bool _get_one_work(global_info_t *global_info, thread_info_t *thread_info, const char *func, const int line)
 {
-    if (global_info->do_exit == G_RUNNING && HAVE_WORK_AVAILABLE(global_info)) {
+    if (HAVE_WORK_AVAILABLE(global_info)) {
         atomic_inc(global_info->read_work_idx);
         thread_info->work_num++;
         DUMP("[%s-%u]thread %u add one work, work_num is %u\n", func, line, thread_info->idx, thread_info->work_num);
@@ -320,14 +320,14 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
 {
     int idx = 0;
     printf("------------------\n");
-    printf("[%lu]threads info:\n", time(NULL));
+    printf("[%lu]do_exit:%u, threads info:\n", time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            printf("  %u:S[%u]-R[%u]-D[%u-%u]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num);
+            printf("  %u:S[%u]-R[%u]-D[%u]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num);
         } else {
-            printf("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num,
+            printf("  %u:S[%u]-R[%u]-D[%u]-E[%u]-ES[%s]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num,
                     thread_list[idx].error_num, thread_list[idx].sample_error);
             if (global_info->sample_error[0] == '\0') {
                 fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);

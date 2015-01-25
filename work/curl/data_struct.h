@@ -59,7 +59,7 @@ typedef struct _global_info_t {
     char output_filename[128];
 } global_info_t;   /* -- end of global_info_t -- */
 #define HAVE_WORK_AVAILABLE(global_info) \
-    ((global_info)->work_num == 0 || (global_info)->read_work_idx < (global_info)->work_num)
+    (global_info->do_exit == G_RUNNING && ((global_info)->work_num == 0 || (global_info)->read_work_idx < (global_info)->work_num))
 
 typedef enum _THREAD_STATUS_EN {
     TSE_INIT,
@@ -74,10 +74,10 @@ typedef struct _thread_info_t {
     work_info_t *work_list;
 
     global_info_t *global_info;
-    unsigned int work_done       : 4,
-                 work_num        : 28;
+    unsigned int work_num;
     unsigned int idx             : 8,
-                 alloc_agent_num : 24;
+                 work_done       : 4,
+                 alloc_agent_num : 20;
     unsigned int error_num;
     int still_running;
     time_t last_alloc_time;
