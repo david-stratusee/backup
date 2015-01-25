@@ -400,7 +400,14 @@ static void *pull_one_url(void *arg)
     DUMP("last check avail\n");
 
 #ifdef DEBUG
-    print_thread_info(thread_info, global_info);
+    if (thread_info->error_num == 0) {
+        printf("  %u:S[%u]-R[%u]-D[%u-%u]\n",
+                idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num);
+    } else {
+        printf("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
+                idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num,
+                thread_info->error_num, thread_info->sample_error);
+    }
 #endif
 
     check_available(thread_info->multi_handle, global_info, thread_info);
