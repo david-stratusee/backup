@@ -402,10 +402,10 @@ static void *pull_one_url(void *arg)
 #ifdef DEBUG
     if (thread_info->error_num == 0) {
         printf("  %u:S[%u]-R[%u]-D[%u-%u]\n",
-                idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num);
+                thread_info->idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num);
     } else {
         printf("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
-                idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num,
+                thread_info->idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num,
                 thread_info->error_num, thread_info->sample_error);
     }
 #endif
