@@ -218,6 +218,7 @@ static int32_t check_rampup_agent(CURLM *multi_handle, global_info_t *global_inf
                 DUMP("[%u]add handle %p to multi_handle %p\n", thread_info->idx, work_info->curl, multi_handle);
             } else {
                 thread_info->last_alloc_time = time(NULL);
+                break;
             }
 
             num++;
@@ -249,7 +250,6 @@ static int32_t check_rampup_agent(CURLM *multi_handle, global_info_t *global_inf
         }   \
     } while (0)
 
-
 static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, thread_info_t *thread_info)
 {
     int msgs_left;
@@ -271,9 +271,9 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
             DUMP("easy_handle %p is done, code: %u-%s, msg_left: %d\n",
                     easy_handle, msg->data.result, curl_easy_strerror(msg->data.result),
                     msgs_left);
-            DUMP("  %u:S[%u]-R[%u]-D[%u-%u], [%s]\n",
+            DUMP("  %u:S[%u]-R[%u]-D[%u-%u]\n",
                     thread_info->idx, thread_info->work_done, thread_info->still_running,
-                    thread_info->work_num, thread_info->succ_num, BOOL_DESC(thread_info->work_num - thread_info->succ_num == 1));
+                    thread_info->work_num, thread_info->succ_num);
 
             if (likely(msg->data.result == CURLE_OK && easy_handle)) {
                 /*  TODO: curl_easy_getinfo */
