@@ -27,7 +27,6 @@ typedef struct _work_info_t {
     unsigned long total_time;  /* total time for this work, unit ms */
 } work_info_t;   /* -- end of work_info_t -- */
 
-
 typedef enum _HTTP_TYPE_EN {
     HTTP_TYPE,
     HTTPS_TYPE,
