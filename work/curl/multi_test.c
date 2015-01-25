@@ -408,9 +408,11 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
     printf("[%lu]threads info:\n", time(NULL));
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            printf("  %u:S[%u]-R[%u]-D[%u]\n", idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num);
+            printf("  %u:S[%u]-R[%u]-D[%u-%u]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num);
         } else {
-            printf("  %u:S[%u]-R[%u]-D[%u]-E[%u]-ES[%s]\n", idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num,
+            printf("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num,
                     thread_list[idx].error_num, thread_list[idx].sample_error);
             if (global_info->sample_error[0] == '\0') {
                 fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);
