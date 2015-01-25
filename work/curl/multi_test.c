@@ -312,6 +312,28 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
     return num;
 }
 
+static void print_thread_info(thread_info_t *thread_list, global_info_t *global_info)
+{
+    int idx = 0;
+    printf("------------------\n");
+    printf("[%lu]threads info:\n", time(NULL));
+    for (idx = 0; idx < global_info->thread_num; idx++) {
+        if (thread_list[idx].error_num == 0) {
+            printf("  %u:S[%u]-R[%u]-D[%u-%u]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num);
+        } else {
+            printf("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num,
+                    thread_list[idx].error_num, thread_list[idx].sample_error);
+            if (global_info->sample_error[0] == '\0') {
+                fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);
+            }
+        }
+    }
+    printf("------------------\n");
+    fflush(stdout);
+}
+
 static inline CURLMcode curl_multi_perform_cont(CURLM *multi_handle, int *running_handles, global_info_t *global_info)
 {
     CURLMcode ret_code;
@@ -375,6 +397,12 @@ static void *pull_one_url(void *arg)
         }
     } while ((thread_info->still_running > 0 || HAVE_WORK_AVAILABLE(global_info)) && !(global_info->do_exit));
 
+    DUMP("last check avail\n");
+
+#ifdef DEBUG
+    print_thread_info(thread_info, global_info);
+#endif
+
     check_available(thread_info->multi_handle, global_info, thread_info);
     thread_info->work_done = TSE_DONE;
     return NULL;
@@ -399,28 +427,6 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
     }
 
     return 0;
-}
-
-static void print_thread_info(thread_info_t *thread_list, global_info_t *global_info)
-{
-    int idx = 0;
-    printf("------------------\n");
-    printf("[%lu]threads info:\n", time(NULL));
-    for (idx = 0; idx < global_info->thread_num; idx++) {
-        if (thread_list[idx].error_num == 0) {
-            printf("  %u:S[%u]-R[%u]-D[%u-%u]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num);
-        } else {
-            printf("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num,
-                    thread_list[idx].error_num, thread_list[idx].sample_error);
-            if (global_info->sample_error[0] == '\0') {
-                fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);
-            }
-        }
-    }
-    printf("------------------\n");
-    fflush(stdout);
 }
 
 #define PRINT_ROUND 5
