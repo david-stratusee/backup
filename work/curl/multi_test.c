@@ -202,6 +202,7 @@ static int32_t check_rampup_agent(CURLM *multi_handle, global_info_t *global_inf
         for (idx = 0; idx < agent_num_per_sec_thread; ++idx) {
             work_info = get_one_work(global_info, thread_info);
             if (!work_info) {
+                thread_info->last_alloc_time = time(NULL);
                 break;
             }
 
@@ -212,10 +213,13 @@ static int32_t check_rampup_agent(CURLM *multi_handle, global_info_t *global_inf
 
             curl_multi_add_handle(multi_handle, easy_handle);
             DUMP("[%u]add handle %p to multi_handle %p\n", thread_info->idx, easy_handle, multi_handle);
-
-            thread_info->last_alloc_time = time(NULL);
             num++;
         }
+
+        if (idx == agent_num_per_sec_thread) {
+            thread_info->last_alloc_time = time(NULL);
+        }
+
         return num;
     } else {
         return 0;
