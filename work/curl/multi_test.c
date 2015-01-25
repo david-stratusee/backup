@@ -62,6 +62,18 @@ static void set_share_handle(CURL *curl_handle)
     curl_easy_setopt(curl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
 }
 
+static inline work_info_t *get_one_work(global_info_t *global_info, thread_info_t *thread_info)
+{
+    if (global_info->read_work_idx < global_info->work_num) {
+        work_info_t *work_info = global_info->work_list + atomic_inc(global_info->read_work_idx);
+        DUMP("[%u]work %u, read_work_idx: %u\n", thread_info->idx, work_info->idx, global_info->read_work_idx);
+        thread_info->work_num++;
+        return work_info;
+    } else {
+        return NULL;
+    }
+}
+
 static CURL *curl_handle_init(global_info_t *global_info)
 {
     CURL *curl = curl_easy_init();
@@ -73,6 +85,7 @@ static CURL *curl_handle_init(global_info_t *global_info)
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)CONN_TIMEOUT);
+    curl_easy_setopt(curl, CURLOPT_URL, global_info->url[global_info->is_https]);
 
     if (global_info->is_https) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -113,14 +126,15 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
                 return NULL;
             }
 
-            if (global_info->read_work_idx < global_info->work_num) {
-                work_info = global_info->work_list + (global_info->read_work_idx++);
+            if (global_info->read_work_idx < global_info->work_num && jdx < global_info->agent_num_per_sec_thread) {
+                work_info = get_one_work(global_info, thread_list + idx);
                 curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_WRITEDATA, work_info);
-                curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_URL, global_info->url[global_info->is_https]);
                 curl_easy_setopt(thread_list[idx].curl[jdx], CURLOPT_PRIVATE, work_info);
                 curl_multi_add_handle(thread_list[idx].multi_handle, thread_list[idx].curl[jdx]);
-                thread_list[idx].work_num++;
                 DUMP("[%u]add handle %p to multi_handle %p\n", idx, thread_list[idx].curl[jdx], thread_list[idx].multi_handle);
+
+                thread_list[idx].alloc_agent_num = jdx;
+                thread_list[idx].last_alloc_time = time(NULL);
             }
         }
 
@@ -173,14 +187,38 @@ static inline int32_t global_info_init(global_info_t *global_info)
     return 0;
 }
 
-static inline work_info_t *get_one_work(global_info_t *global_info, thread_info_t *thread_info)
+static int32_t check_rampup_agent(CURLM *multi_handle, global_info_t *global_info, thread_info_t *thread_info)
 {
-    if (global_info->read_work_idx < global_info->work_num) {
-        work_info_t *work_info = global_info->work_list + atomic_inc(global_info->read_work_idx);
-        DUMP("[%u]work %u, read_work_idx: %u\n", thread_info->idx, work_info->idx, global_info->read_work_idx);
-        return work_info;
+    time_t ts;
+    time(&ts);
+
+    if (ts != thread_info->last_alloc_time) {
+        work_info_t *work_info = NULL;
+        CURL *easy_handle = NULL;
+        int num = 0;
+        int32_t idx = 0;
+
+        int32_t agent_num_per_sec_thread = MIN(global_info->agent_num_per_sec_thread, global_info->agent_num_per_thread - thread_info->alloc_agent_num);
+        for (idx = 0; idx < agent_num_per_sec_thread; ++idx) {
+            work_info = get_one_work(global_info, thread_info);
+            if (!work_info) {
+                break;
+            }
+
+            easy_handle = thread_info->curl[thread_info->alloc_agent_num++];
+
+            curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, work_info);
+            curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, work_info);
+
+            curl_multi_add_handle(multi_handle, easy_handle);
+            DUMP("[%u]add handle %p to multi_handle %p\n", thread_info->idx, easy_handle, multi_handle);
+
+            thread_info->last_alloc_time = time(NULL);
+            num++;
+        }
+        return num;
     } else {
-        return NULL;
+        return 0;
     }
 }
 
@@ -190,22 +228,18 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
     CURLMsg *msg;
     work_info_t *work_info = NULL;
     CURL *easy_handle = NULL;
-
     int num = 0;
+
+    if (unlikely(thread_info->alloc_agent_num < global_info->agent_num_per_thread)) {
+        num += check_rampup_agent(multi_handle, global_info, thread_info);
+    }
+
     while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
         if (CURLMSG_DONE == msg->msg) {
             easy_handle = msg->easy_handle;
             DUMP("easy_handle %p is done, code: %u-%s\n", easy_handle, msg->data.result, curl_easy_strerror(msg->data.result));
 
-            if (unlikely(msg->data.result != CURLE_OK)) {
-                thread_info->error_num++;
-                if (unlikely(thread_info->sample_error[0] == '\0')) {
-                    fix_strcpy_s(thread_info->sample_error, curl_easy_strerror(msg->data.result));
-                }
-
-                curl_multi_remove_handle(multi_handle, easy_handle);
-                continue;
-            } else if (likely(easy_handle)) {
+            if (likely(msg->data.result == CURLE_OK && easy_handle)) {
                 /*  TODO: curl_easy_getinfo */
                 long response_code = 200;
                 if (likely(curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK
@@ -222,19 +256,24 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                         fix_snprintf(thread_info->sample_error, "get response_code %ld", response_code);
                     }
                 }
-            } else {
-                continue;
-            }
 
-            curl_multi_remove_handle(multi_handle, easy_handle);
-            work_info = get_one_work(global_info, thread_info);
-            if (work_info) {
-                curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, work_info);
-                curl_easy_setopt(easy_handle, CURLOPT_URL, global_info->url[global_info->is_https]);
-                curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, work_info);
-                curl_multi_add_handle(multi_handle, easy_handle);
-                thread_info->work_num++;
-                num++;
+                curl_multi_remove_handle(multi_handle, easy_handle);
+                work_info = get_one_work(global_info, thread_info);
+                if (work_info) {
+                    curl_easy_setopt(easy_handle, CURLOPT_WRITEDATA, work_info);
+                    curl_easy_setopt(easy_handle, CURLOPT_PRIVATE, work_info);
+                    curl_multi_add_handle(multi_handle, easy_handle);
+                    num++;
+                }
+            } else {
+                thread_info->error_num++;
+                if (unlikely(thread_info->sample_error[0] == '\0')) {
+                    fix_strcpy_s(thread_info->sample_error, curl_easy_strerror(msg->data.result));
+                }
+
+                if (easy_handle) {
+                    curl_multi_remove_handle(multi_handle, easy_handle);
+                }
             }
         } else {
             printf("-------------------- [easy_handle-%p] not OK\n", msg->easy_handle);
@@ -316,17 +355,8 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
 {
     int error;
     int idx = 0;
-    int msleep_during = 0;
-
-    if (global_info->rampup > 0) {
-        msleep_during = (global_info->rampup * 1000) / global_info->thread_num;
-    }
 
     for (idx = 0; idx < global_info->thread_num; ++idx) {
-        if (msleep_during > 0 && idx > 0) {
-            ms_sleep(msleep_during);
-        }
-
         error = pthread_create(&(thread_list[idx].tid),
                                NULL, /* default attributes please */
                                pull_one_url,

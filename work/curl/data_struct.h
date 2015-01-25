@@ -48,7 +48,8 @@ typedef struct _global_info_t {
     uint16_t rampup;
     bool do_exit;
     bool is_https;
-    char sample_error[122];
+    uint16_t agent_num_per_sec_thread;
+    char sample_error[128];
     char desc[128];
     char output_filename[128];
 } global_info_t;   /* -- end of global_info_t -- */
@@ -65,12 +66,14 @@ typedef struct _thread_info_t {
     CURLM *multi_handle;
     CURL **curl;
     global_info_t *global_info;
-    int idx;
-    int work_done:4,
-        work_num :28;
+    unsigned int work_done       : 4,
+                 work_num        : 28;
+    unsigned int idx             : 8,
+                 alloc_agent_num : 24;
     unsigned int error_num;
     int still_running;
     char sample_error[128];
+    time_t last_alloc_time;
 } thread_info_t;   /* -- end of thread_info_t -- */
 
 #define CONN_TIMEOUT 30     /* second */

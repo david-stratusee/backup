@@ -33,6 +33,7 @@ void print_global_info(global_info_t *global_info)
     PRINT_MEM_INT(global_info, thread_num);
     PRINT_MEM_INT(global_info, agent_num);
     PRINT_MEM_INT(global_info, agent_num_per_thread);
+    PRINT_MEM_INT(global_info, agent_num_per_sec_thread);
     PRINT_MEM_INT(global_info, rampup);
     PRINT_MEM_STR(global_info, url[HTTP_TYPE]);
     PRINT_MEM_STR(global_info, url[HTTPS_TYPE]);
@@ -109,6 +110,15 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     global_info->agent_num_per_thread = (global_info->agent_num / global_info->thread_num);
     if ((global_info->agent_num % global_info->thread_num) != 0) {
         global_info->agent_num_per_thread++;
+    }
+
+    if (global_info->rampup > 0) {
+        global_info->agent_num_per_sec_thread = global_info->agent_num_per_thread / global_info->rampup;
+        if ((global_info->agent_num_per_thread % global_info->rampup) != 0) {
+            global_info->agent_num_per_sec_thread++;
+        }
+    } else {
+        global_info->agent_num_per_sec_thread = global_info->agent_num_per_thread;
     }
 
     print_global_info(global_info);
