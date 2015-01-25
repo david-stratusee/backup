@@ -33,6 +33,12 @@ typedef enum _HTTP_TYPE_EN {
     HTTP_TYPE_MAX
 } HTTP_TYPE_EN;   /* -- end of HTTP_TYPE_EN -- */
 
+typedef enum _DO_EXIT_EN {
+    G_RUNNING,
+    G_EXIT,
+    G_FORCE_EXIT
+} DO_EXIT_EN;   /* -- end of DO_EXIT_EN -- */
+
 #define MAX_URL_LEN 256
 /* Description: global info */
 typedef struct _global_info_t {
@@ -45,7 +51,7 @@ typedef struct _global_info_t {
     uint8_t cpu_num;
     uint8_t thread_num;
     uint16_t rampup;
-    bool do_exit;
+    uint8_t do_exit;
     bool is_https;
     uint16_t agent_num_per_sec_thread;
     char sample_error[128];
