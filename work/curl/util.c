@@ -13,7 +13,14 @@
 
 static void show_help(void)
 {
-    printf("USAGE: \n\t-w for request num\n\t-t for agent num\n\t-s for https test\n\t-f for config file\n\t-d desc\n\t-o output file\n");
+    printf("USAGE: \n\t-q for request num"
+                  "\n\t-a for agent num"
+                  "\n\t-s for https test"
+                  "\n\t-f for config file"
+                  "\n\t-d for desc"
+                  "\n\t-r for rampup, unit second"
+                  "\n\t-t for testing time"
+                  "\n\t-o output file\n");
 }
 
 #define PRINT_MEM_INT(__stru, __memb)    printf("  %s: %u\n", #__memb, (__stru)->__memb)
@@ -44,7 +51,7 @@ void print_global_info(global_info_t *global_info)
 int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 {
     int opt;
-    while ((opt = getopt(argc, argv, "o:d:r:w:t:f:hs")) != -1) {
+    while ((opt = getopt(argc, argv, "o:d:r:q:a:t:f:hs")) != -1) {
         switch (opt) {
             case 'o':
                 fix_strcpy_s(global_info->output_filename, optarg);
@@ -54,16 +61,20 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
                 fix_strcpy_s(global_info->desc, optarg);
                 break;
 
-            case 'w':
+            case 'r':
+                global_info->rampup = atoi(optarg);
+                break;
+
+            case 'q':
                 global_info->work_num = atoi(optarg);
                 break;
 
-            case 't':
+            case 'a':
                 global_info->agent_num = atoi(optarg);
                 break;
 
-            case 'r':
-                global_info->rampup = atoi(optarg);
+            case 't':
+                global_info->during_time = atoi(optarg);
                 break;
 
             case 's':
@@ -93,7 +104,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
         }
     }
 
-    if (global_info->work_num == 0 || global_info->agent_num == 0) {
+    if ((global_info->work_num == 0 && global_info->during_time == 0) || global_info->agent_num == 0) {
         show_help();
         return -1;
     }
@@ -122,17 +133,6 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     }
 
     print_global_info(global_info);
-
-    global_info->work_list = calloc(global_info->work_num, sizeof(work_info_t));
-    if (global_info->work_list == NULL) {
-        printf("alloc work_list error\n");
-        return -1;
-    }
-
-    int idx = 0;
-    for (idx = 0; idx < global_info->work_num; ++idx) {
-        global_info->work_list[idx].idx = idx;
-    }
 
     return 0;
 }
