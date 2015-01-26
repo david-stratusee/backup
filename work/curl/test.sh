@@ -14,8 +14,8 @@ set -o nounset                              # Treat unset variables as an error
 #echo 1 > /proc/sys/net/ipv4/tcp_tw_recycle
 #echo 1 > /proc/sys/net/ipv4/tcp_tw_reuse
 
-desc=$1
-output=$2
+#desc=$1
+#output=$2
 req=100000
 agent=400
 rampup=10
@@ -30,6 +30,9 @@ for file in $list; do
     else
         first_file=1
     fi
-    echo ./multi_test -a ${agent} -f data/${file} -d \"${desc}\" -o ${output} -r ${rampup} -t ${during}
-    ./multi_test -a ${agent} -f data/${file} -d "${desc}" -o ${output} -r ${rampup} -t ${during}
+    #echo ./multi_test -a ${agent} -f data/${file} -d \"${desc}\" -o ${output} -r ${rampup} -t ${during}
+    #./multi_test -a ${agent} -f data/${file} -d "${desc}" -o ${output} -r ${rampup} -t ${during}
+    echo ./multi_test -f data/${file} $@
+    ./multi_test -f data/${file} $@
 done
+
