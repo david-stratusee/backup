@@ -541,17 +541,17 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
 
             if (!file_exist) {
                 fprintf(fp,
-                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
                         "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
-                        "desc", "req url", "agent num", "req num", "err num", "suc num", "total len", "total ms", "perf KB", "perf MB",
+                        "desc", "req url", "agent num", "rampup", "req num", "err num", "suc num", "total len", "total ms", "perf KB", "perf MB",
                         "req rate", "latency avg", "latency max", "latency min", "err str"
                 );
             }
 
             fprintf(fp,
-                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\","
+                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\","
                     "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%u\"," "\"%u\"," "\"%s\"\n" ,
-                    global_info->desc, last_url, global_info->agent_num, global_info->read_work_idx, error_num, suc_num,
+                    global_info->desc, last_url, global_info->agent_num, global_info->rampup, global_info->read_work_idx, error_num, suc_num,
                     total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),
                     (global_info->read_work_idx * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0),
                     max_latency, min_latency, global_info->sample_error

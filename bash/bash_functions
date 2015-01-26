@@ -4,3 +4,7 @@ function diff_r()
 	diff $@ | less -RF
 }
 
+function gdiff()
+{
+    git wdiff `cat $@`
+}
