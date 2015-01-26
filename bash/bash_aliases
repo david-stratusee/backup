@@ -20,6 +20,7 @@ alias egrep='egrep --color=auto --text' # show differences in colour
 alias nfgrep='fgrep -n --color=auto --text' # show differences in colour
 alias fgrep='fgrep --color=auto --text' # show differences in colour
 alias route='route -nee'
+alias yum_inst='yum -y install'
 #
 # Some shortcuts for different directory listings
 alias ls='ls -hF --color=auto --show-control-chars' # classify files in colour
