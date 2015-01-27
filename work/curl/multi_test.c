@@ -485,7 +485,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             print_thread_info(thread_list, global_info);
         }
 
-        if (global_info->during_time > 0 && time(NULL) >= end_time) {
+        if (global_info->during_time > 0 && time(NULL) >= end_time && global_info->do_exit == G_RUNNING) {
             global_info->do_exit = G_EXIT;
         }
     } while (finish_num < global_info->thread_num);
