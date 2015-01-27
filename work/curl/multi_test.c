@@ -309,7 +309,7 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                 }
             }
         } else {
-            printf("-------------------- [easy_handle-%p] not OK\n", msg->easy_handle);
+            printf("==================== [easy_handle-%p] not OK\n", msg->easy_handle);
         }
     }
 
@@ -320,7 +320,7 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
 {
     int idx = 0;
     static unsigned int print_thread_count = 0;
-    printf("------------------\n");
+    printf("==================\n");
     printf("[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
@@ -335,7 +335,7 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
             }
         }
     }
-    printf("------------------\n");
+    printf("==================\n");
     fflush(stdout);
 }
 
@@ -515,7 +515,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
         }
     }
 
-    printf("----------------------\n");
+    printf("======================\n");
     printf("RESULT: \"%s\"\n", global_info->desc);
     printf("%16s : %u\n", "request num", global_info->read_work_idx);
     printf("%16s : %u\n", "error num", error_num);
@@ -527,7 +527,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     if (suc_num > 0) {
         printf("%16s : %lums[max:%ums, min:%ums]\n", "latency", total_time / suc_num, max_latency, min_latency);
     }
-    printf("----------------------\n");
+    printf("======================\n");
 
     if (global_info->output_filename[0]) {
         bool file_exist = isfile(global_info->output_filename);
