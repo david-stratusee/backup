@@ -121,7 +121,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 
     if (is_daemon) {
         daemon(1, 0);
-        FILE *fout = fopen("daemon_out.log", "w");
+        FILE *fout = fopen("daemon_out.log", "a");
         if (fout) {
             stdout = fout;
         }
