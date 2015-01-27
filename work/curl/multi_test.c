@@ -324,10 +324,10 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
     fprintf(stdout, "[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            fprintf(stdout, "  %u:S[%u]-R[%u]-D[%u]\n",
+            fprintf(stdout, "  %u:S[%u]-R[%u]-D[%lu]\n",
                     idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num);
         } else {
-            fprintf(stdout, "  %u:S[%u]-R[%u]-D[%u]-E[%u]-ES[%s]\n",
+            fprintf(stdout, "  %u:S[%u]-R[%u]-D[%lu]-E[%lu]-ES[%s]\n",
                     idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num,
                     thread_list[idx].error_num, thread_list[idx].sample_error);
             if (global_info->sample_error[0] == '\0') {
@@ -520,7 +520,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     unsigned long total_time = 0;
     unsigned int max_latency = 0, min_latency = (unsigned int)(-1);
     int idx = 0;
-    int suc_num = 0, error_num = 0;
+    unsigned long suc_num = 0, error_num = 0;
 
     char *last_url = get_url_file(global_info->url[global_info->is_https]);
     for (idx = 0; idx < global_info->thread_num; idx++) {
@@ -539,9 +539,9 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
 
     fprintf(stdout, "----------------------\n");
     fprintf(stdout, "RESULT: \"%s\" \"%s\"\n", global_info->desc, last_url);
-    fprintf(stdout, "%16s : %u\n", "request num", global_info->read_work_idx);
-    fprintf(stdout, "%16s : %u\n", "error num", error_num);
-    fprintf(stdout, "%16s : %u\n", "succ num", suc_num);
+    fprintf(stdout, "%16s : %lu\n", "request num", global_info->read_work_idx);
+    fprintf(stdout, "%16s : %lu\n", "error num", error_num);
+    fprintf(stdout, "%16s : %lu\n", "succ num", suc_num);
     fprintf(stdout, "%16s : %lu\n", "total length", total_length);
     fprintf(stdout, "%16s : %lu\n", "total time(ms)", msdiff);
     fprintf(stdout, "%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
@@ -565,7 +565,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
             }
 
             fprintf(fp,
-                    "\"%s\"," "\"%s\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\","
+                    "\"%s\"," "\"%s\"," "\"%lu\"," "\"%u\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\","
                     "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%u\"," "\"%u\"," "\"%s\"\n" ,
                     global_info->desc, last_url, global_info->agent_num, global_info->rampup, global_info->read_work_idx, error_num, suc_num,
                     total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),

@@ -43,11 +43,11 @@ typedef enum _DO_EXIT_EN {
 /* Description: global info */
 typedef struct _global_info_t {
     char url[HTTP_TYPE_MAX][MAX_URL_LEN];
-    unsigned int read_work_idx;
-    unsigned int work_num;
-    unsigned int agent_num;
-    unsigned int during_time;
-    unsigned int agent_num_per_thread;
+    unsigned long read_work_idx;
+    unsigned long work_num;
+    unsigned long agent_num;
+    unsigned long during_time;
+    unsigned long agent_num_per_thread;
     uint8_t cpu_num;
     uint8_t thread_num;
     uint16_t rampup;
@@ -74,21 +74,22 @@ typedef struct _thread_info_t {
     work_info_t *work_list;
 
     global_info_t *global_info;
-    unsigned int work_num;
+    unsigned long work_num;
+    unsigned long error_num;
+
     unsigned int idx             : 8,
                  work_done       : 4,
                  alloc_agent_num : 20;
-    unsigned int error_num;
     int still_running;
     time_t last_alloc_time;
 
-    unsigned int total_latency;      /* total time for this work, unit ms */
+    unsigned long total_latency;      /* total time for this work, unit ms */
     unsigned int min_latency;  /* total time for this work, unit ms */
     unsigned int max_latency;  /* total time for this work, unit ms */
-    unsigned int succ_num;
-    unsigned int total_data_len;
+    unsigned long succ_num;
+    unsigned long total_data_len;
 
-    char sample_error[124];
+    char sample_error[128];
 } thread_info_t;   /* -- end of thread_info_t -- */
 
 #define CONN_TIMEOUT 30     /* second */

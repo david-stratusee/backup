@@ -24,6 +24,7 @@ static void show_help(void)
 }
 
 #define PRINT_MEM_INT(__stru, __memb)    fprintf(stdout, "  %s: %u\n", #__memb, (__stru)->__memb)
+#define PRINT_MEM_LONG(__stru, __memb)    fprintf(stdout, "  %s: %lu\n", #__memb, (__stru)->__memb)
 #define PRINT_MEM_STR(__stru, __memb)    \
 do {    \
     if (strlen((__stru)->__memb) > 0) {  \
@@ -35,11 +36,11 @@ void print_global_info(global_info_t *global_info)
     fprintf(stdout, "----------------------\n");
     fprintf(stdout, "GLOBAL INFO:\n");
     PRINT_MEM_STR(global_info, desc);
-    PRINT_MEM_INT(global_info, work_num);
+    PRINT_MEM_LONG(global_info, work_num);
     PRINT_MEM_INT(global_info, cpu_num);
     PRINT_MEM_INT(global_info, thread_num);
-    PRINT_MEM_INT(global_info, agent_num);
-    PRINT_MEM_INT(global_info, agent_num_per_thread);
+    PRINT_MEM_LONG(global_info, agent_num);
+    PRINT_MEM_LONG(global_info, agent_num_per_thread);
     PRINT_MEM_INT(global_info, agent_num_per_sec_thread);
     PRINT_MEM_INT(global_info, rampup);
     PRINT_MEM_STR(global_info, url[HTTP_TYPE]);
