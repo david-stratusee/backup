@@ -18,6 +18,7 @@ static void show_help(void)
                   "\n\t-s for https test"
                   "\n\t-f for config file"
                   "\n\t-d for desc"
+                  "\n\t-D for daemon mode, and output to daemon_out.log"
                   "\n\t-r for rampup, unit second"
                   "\n\t-t for testing time, unit second"
                   "\n\t-o output file\n");
