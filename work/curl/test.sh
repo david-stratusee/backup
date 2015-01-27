@@ -23,8 +23,8 @@ during=60
 
 list="ds_512.txt ds_100k.txt ds_1k.txt ds_10k.txt"
 
-echo ./multi_test -f data/ds_512.txt -a 400 -t 10
-./multi_test -f data/ds_512.txt -a 400 -t 10
+echo ./multi_test -f data/ds_512.txt -a 400 -t 10 -d "preview"
+./multi_test -f data/ds_512.txt -a 400 -t 10 -d "preview"
 
 for file in $list; do
     sleep 10
