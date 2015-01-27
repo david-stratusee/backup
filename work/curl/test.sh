@@ -21,15 +21,12 @@ agent=400
 rampup=10
 during=60
 
-list="ds_512.txt ds_1k.txt ds_10k.txt ds_100k.txt"
-first_file=0
+list="ds_512.txt ds_100k.txt ds_1k.txt ds_10k.txt"
+
+echo ./multi_test -f data/ds_512.txt -a 400 -t 10
 
 for file in $list; do
-    if [ ${first_file} -ne 0 ]; then
-        sleep 10
-    else
-        first_file=1
-    fi
+    sleep 10
     #echo ./multi_test -a ${agent} -f data/${file} -d \"${desc}\" -o ${output} -r ${rampup} -t ${during}
     #./multi_test -a ${agent} -f data/${file} -d "${desc}" -o ${output} -r ${rampup} -t ${during}
     echo ./multi_test -f data/${file} $@
