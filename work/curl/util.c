@@ -51,11 +51,11 @@ void print_global_info(global_info_t *global_info)
 int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 {
     int opt;
-    bool is_daemon = true;
-    while ((opt = getopt(argc, argv, "o:d:r:q:a:t:f:hsN")) != -1) {
+    bool is_daemon = false;
+    while ((opt = getopt(argc, argv, "o:d:r:q:a:t:f:hsD")) != -1) {
         switch (opt) {
-            case 'N':
-                is_daemon = false;
+            case 'D':
+                is_daemon = true;
                 break;
 
             case 'o':
@@ -124,6 +124,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
         FILE *fout = fopen("daemon_out.log", "a");
         if (fout) {
             stdout = fout;
+            stderr = fout;
         }
     }
 
