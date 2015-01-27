@@ -43,11 +43,11 @@ typedef enum _DO_EXIT_EN {
 /* Description: global info */
 typedef struct _global_info_t {
     char url[HTTP_TYPE_MAX][MAX_URL_LEN];
-    int read_work_idx;
-    int work_num;
-    int agent_num;
-    int during_time;
-    int agent_num_per_thread;
+    unsigned int read_work_idx;
+    unsigned int work_num;
+    unsigned int agent_num;
+    unsigned int during_time;
+    unsigned int agent_num_per_thread;
     uint8_t cpu_num;
     uint8_t thread_num;
     uint16_t rampup;

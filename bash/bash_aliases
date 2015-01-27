@@ -1,8 +1,8 @@
 alias diff='colordiff -E -b -w -B -u -p'
 alias diffy='colordiff -y -E -b -w -W 200'
 alias hexdump='hexdump -C'
-alias psm='ps auxf | /bin/grep -v egrep | /bin/egrep --color=auto "(squid|resmgr|icap|startup|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|COMMAND)"'
-alias pst='pidstat -t | /bin/egrep --color=auto "(squid|resmgr|icap|startup|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|CPU)"'
+alias psm='ps auxf | /bin/grep -v egrep | /bin/egrep --color=auto "(squid|resmgr|icap|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|COMMAND)"'
+alias pst='pidstat -t | /bin/egrep --color=auto "(squid|resmgr|icap|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|CPU)"'
 
 alias echo='echo -e'
 alias yacc='yacc -d -l'
