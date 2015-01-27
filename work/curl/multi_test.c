@@ -502,6 +502,18 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
     return 0;
 }
 
+static inline char *get_url_file(char *full_path)
+{
+    char *last_url = strrchr(full_path, '/');
+    if (last_url) {
+        last_url++;
+    } else {
+        last_url = full_path;
+    }
+
+    return last_url;
+}
+
 static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, unsigned long msdiff)
 {
     unsigned long total_length = 0;
@@ -510,6 +522,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     int idx = 0;
     int suc_num = 0, error_num = 0;
 
+    char *last_url = get_url_file(global_info->url[global_info->is_https]);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         total_length += thread_list[idx].total_data_len;
         suc_num += thread_list[idx].succ_num;
@@ -525,7 +538,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     }
 
     fprintf(stdout, "----------------------\n");
-    fprintf(stdout, "RESULT: \"%s\"\n", global_info->desc);
+    fprintf(stdout, "RESULT: \"%s\" \"%s\"\n", global_info->desc, last_url);
     fprintf(stdout, "%16s : %u\n", "request num", global_info->read_work_idx);
     fprintf(stdout, "%16s : %u\n", "error num", error_num);
     fprintf(stdout, "%16s : %u\n", "succ num", suc_num);
@@ -542,13 +555,6 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
         bool file_exist = isfile(global_info->output_filename);
         FILE *fp = fopen(global_info->output_filename, "a");
         if (fp) {
-            char *last_url = strrchr(global_info->url[global_info->is_https], '/');
-            if (last_url) {
-                last_url++;
-            } else {
-                last_url = global_info->url[global_info->is_https];
-            }
-
             if (!file_exist) {
                 fprintf(fp,
                         "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
