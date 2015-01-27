@@ -13,7 +13,7 @@
 
 static void show_help(void)
 {
-    printf("USAGE: \n\t-q for request num"
+    fprintf(stdout, "USAGE: \n\t-q for request num"
                   "\n\t-a for agent num"
                   "\n\t-s for https test"
                   "\n\t-f for config file"
@@ -23,17 +23,17 @@ static void show_help(void)
                   "\n\t-o output file\n");
 }
 
-#define PRINT_MEM_INT(__stru, __memb)    printf("  %s: %u\n", #__memb, (__stru)->__memb)
+#define PRINT_MEM_INT(__stru, __memb)    fprintf(stdout, "  %s: %u\n", #__memb, (__stru)->__memb)
 #define PRINT_MEM_STR(__stru, __memb)    \
 do {    \
     if (strlen((__stru)->__memb) > 0) {  \
-        printf("  %s: %s\n", #__memb, (__stru)->__memb);    \
+        fprintf(stdout, "  %s: %s\n", #__memb, (__stru)->__memb);    \
     }   \
 } while (0)
 void print_global_info(global_info_t *global_info)
 {
     fprintf(stdout, "----------------------\n");
-    printf("GLOBAL INFO:\n");
+    fprintf(stdout, "GLOBAL INFO:\n");
     PRINT_MEM_STR(global_info, desc);
     PRINT_MEM_INT(global_info, work_num);
     PRINT_MEM_INT(global_info, cpu_num);
@@ -95,7 +95,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 
                     int32_t ret_val = parse_cfglist_linux_fmt(optarg, cfg_list);
                     if (ret_val < 0) {
-                        printf("error when parse config file: %s\n", optarg);
+                        fprintf(stdout, "error when parse config file: %s\n", optarg);
                         return -1;
                     }
 
@@ -115,7 +115,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     }
 
     if (global_info->url[global_info->is_https][0] == '\0') {
-        printf("%s url is not defined in config file\n", global_info->is_https ? "https" : "http");
+        fprintf(stdout, "%s url is not defined in config file\n", global_info->is_https ? "https" : "http");
         return -1;
     }
 

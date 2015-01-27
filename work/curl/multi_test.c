@@ -23,7 +23,7 @@
 
 global_info_t global_info;
 #ifdef DEBUG
-#define DUMP(fmt, args...) printf("[%s-%u-%lu]"fmt, __func__, __LINE__, time(NULL), ##args)
+#define DUMP(fmt, args...) fprintf(stdout, "[%s-%u-%lu]"fmt, __func__, __LINE__, time(NULL), ##args)
 #else
 #define DUMP(...)
 #endif
@@ -105,7 +105,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
 {
     thread_info_t *thread_list = calloc(global_info->thread_num, sizeof(thread_info_t));
     if (thread_list == NULL) {
-        printf("alloc threads error\n");
+        fprintf(stdout, "alloc threads error\n");
         return NULL;
     }
 
@@ -121,7 +121,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
         thread_info->multi_handle = curl_multi_init();
         thread_info->work_list = calloc(global_info->agent_num_per_thread, sizeof(work_info_t));
         if (thread_info->multi_handle == NULL || thread_info->work_list == NULL) {
-            printf("error when curl init\n");
+            fprintf(stdout, "error when curl init\n");
             return NULL;
         }
 
@@ -187,7 +187,7 @@ static inline int32_t global_info_init(global_info_t *global_info)
 {
     int cpu_num = get_cpu_num();
     if (cpu_num == 0) {
-        printf("error when get cpu num\n");
+        fprintf(stdout, "error when get cpu num\n");
         return -1;
     }
 
@@ -321,13 +321,13 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
     int idx = 0;
     static unsigned int print_thread_count = 0;
     fprintf(stdout, "------------------\n");
-    printf("[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
+    fprintf(stdout, "[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            printf("  %u:S[%u]-R[%u]-D[%u]\n",
+            fprintf(stdout, "  %u:S[%u]-R[%u]-D[%u]\n",
                     idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num);
         } else {
-            printf("  %u:S[%u]-R[%u]-D[%u]-E[%u]-ES[%s]\n",
+            fprintf(stdout, "  %u:S[%u]-R[%u]-D[%u]-E[%u]-ES[%s]\n",
                     idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num,
                     thread_list[idx].error_num, thread_list[idx].sample_error);
             if (global_info->sample_error[0] == '\0') {
@@ -406,10 +406,10 @@ static void *pull_one_url(void *arg)
 
 #ifdef DEBUG
     if (thread_info->error_num == 0) {
-        printf("  %u:S[%u]-R[%u]-D[%u-%u]\n",
+        fprintf(stdout, "  %u:S[%u]-R[%u]-D[%u-%u]\n",
                 thread_info->idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num);
     } else {
-        printf("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
+        fprintf(stdout, "  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
                 thread_info->idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num,
                 thread_info->error_num, thread_info->sample_error);
     }
@@ -435,7 +435,7 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
             return error;
         }
 
-        printf("[%lu]Thread %u start\n", time(NULL), idx);
+        fprintf(stdout, "[%lu]Thread %u start\n", time(NULL), idx);
     }
 
     return 0;
@@ -460,7 +460,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             if (thread_list[idx].work_done >= TSE_DONE) {
                 if (thread_list[idx].work_done == TSE_DONE) {
                     pthread_join(thread_list[idx].tid, NULL);
-                    printf("[%lu]Thread %d terminated\n", time(NULL), idx);
+                    fprintf(stdout, "[%lu]Thread %d terminated\n", time(NULL), idx);
 
                     thread_list[idx].work_done = TSE_VERIFY;
                 }
@@ -516,16 +516,16 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     }
 
     fprintf(stdout, "----------------------\n");
-    printf("RESULT: \"%s\"\n", global_info->desc);
-    printf("%16s : %u\n", "request num", global_info->read_work_idx);
-    printf("%16s : %u\n", "error num", error_num);
-    printf("%16s : %u\n", "succ num", suc_num);
-    printf("%16s : %lu\n", "total length", total_length);
-    printf("%16s : %lu\n", "total time(ms)", msdiff);
-    printf("%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
-    printf("%16s : %lu/s\n", "request rate", (global_info->read_work_idx * 1000) / msdiff);
+    fprintf(stdout, "RESULT: \"%s\"\n", global_info->desc);
+    fprintf(stdout, "%16s : %u\n", "request num", global_info->read_work_idx);
+    fprintf(stdout, "%16s : %u\n", "error num", error_num);
+    fprintf(stdout, "%16s : %u\n", "succ num", suc_num);
+    fprintf(stdout, "%16s : %lu\n", "total length", total_length);
+    fprintf(stdout, "%16s : %lu\n", "total time(ms)", msdiff);
+    fprintf(stdout, "%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
+    fprintf(stdout, "%16s : %lu/s\n", "request rate", (global_info->read_work_idx * 1000) / msdiff);
     if (suc_num > 0) {
-        printf("%16s : %lums[max:%ums, min:%ums]\n", "latency", total_time / suc_num, max_latency, min_latency);
+        fprintf(stdout, "%16s : %lums[max:%ums, min:%ums]\n", "latency", total_time / suc_num, max_latency, min_latency);
     }
     fprintf(stdout, "----------------------\n");
 
@@ -586,13 +586,13 @@ int main(int argc, char *argv[])
 
     thread_info_t *thread_list = thread_init(&global_info);
     if (thread_list == NULL) {
-        printf("error when init thread\n");
+        fprintf(stdout, "error when init thread\n");
         return EXIT_FAILURE;
     }
 
     TS_BEGIN(perf);
     if (start_thread_list(thread_list, &global_info) != 0) {
-        printf("error when start thread\n");
+        fprintf(stdout, "error when start thread\n");
         return EXIT_FAILURE;
     }
     check_thread_end(thread_list, &global_info);
