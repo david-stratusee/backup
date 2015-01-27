@@ -32,7 +32,7 @@ do {    \
 } while (0)
 void print_global_info(global_info_t *global_info)
 {
-    printf("======================\n");
+    fprintf(stdout, "----------------------\n");
     printf("GLOBAL INFO:\n");
     PRINT_MEM_STR(global_info, desc);
     PRINT_MEM_INT(global_info, work_num);
@@ -45,7 +45,7 @@ void print_global_info(global_info_t *global_info)
     PRINT_MEM_STR(global_info, url[HTTP_TYPE]);
     PRINT_MEM_STR(global_info, url[HTTPS_TYPE]);
     PRINT_MEM_INT(global_info, is_https);
-    printf("======================\n");
+    fprintf(stdout, "----------------------\n");
 }
 
 int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
