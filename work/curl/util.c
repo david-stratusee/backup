@@ -122,7 +122,9 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     if (is_daemon) {
         daemon(1, 0);
         FILE *fout = fopen("daemon_out.log", "w");
-        stdout = fout;
+        if (fout) {
+            stdout = fout;
+        }
     }
 
     if (global_info->agent_num < global_info->thread_num) {
