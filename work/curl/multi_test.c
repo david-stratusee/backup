@@ -445,10 +445,12 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
 static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *global_info)
 {
     int idx = 0;
-    time_t end_time = 0;
+    time_t end_time = 0, now_time = 0, force_endtime = 0;
 
     if (global_info->during_time > 0) {
-        end_time = time(NULL) + global_info->during_time;
+        time(&now_time);
+        end_time = now_time + global_info->during_time;
+        force_endtime = end_time + (global_info->during_time >> 1);
     }
 
     int finish_num;
@@ -485,8 +487,15 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             print_thread_info(thread_list, global_info);
         }
 
-        if (global_info->during_time > 0 && time(NULL) >= end_time && global_info->do_exit == G_RUNNING) {
-            global_info->do_exit = G_EXIT;
+        if (global_info->during_time > 0) {
+            time(&now_time);
+            if (now_time >= end_time) {
+                if (global_info->do_exit == G_RUNNING) {
+                    global_info->do_exit = G_EXIT;
+                } else if (now_time >= force_endtime) {
+                    global_info->do_exit = G_FORCE_EXIT;
+                }
+            }
         }
     } while (finish_num < global_info->thread_num);
 
