@@ -319,8 +319,9 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
 static void print_thread_info(thread_info_t *thread_list, global_info_t *global_info)
 {
     int idx = 0;
+    static unsigned int print_thread_count = 0;
     printf("------------------\n");
-    printf("[%lu]do_exit:%u, threads info:\n", time(NULL), global_info->do_exit);
+    printf("[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
             printf("  %u:S[%u]-R[%u]-D[%u]\n",
