@@ -51,8 +51,13 @@ void print_global_info(global_info_t *global_info)
 int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 {
     int opt;
-    while ((opt = getopt(argc, argv, "o:d:r:q:a:t:f:hs")) != -1) {
+    bool is_daemon = true;
+    while ((opt = getopt(argc, argv, "o:d:r:q:a:t:f:hsN")) != -1) {
         switch (opt) {
+            case 'N':
+                is_daemon = false;
+                break;
+
             case 'o':
                 fix_strcpy_s(global_info->output_filename, optarg);
                 break;
@@ -112,6 +117,12 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     if (global_info->url[global_info->is_https][0] == '\0') {
         printf("%s url is not defined in config file\n", global_info->is_https ? "https" : "http");
         return -1;
+    }
+
+    if (is_daemon) {
+        daemon(1, 0);
+        FILE *fout = fopen("daemon_out.log", "w");
+        stdout = fout;
     }
 
     if (global_info->agent_num < global_info->thread_num) {
