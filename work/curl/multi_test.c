@@ -125,8 +125,8 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
             return NULL;
         }
 
-        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_PIPELINING, 1L);
-        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAXCONNECTS, MEM_ALIGN_SIZE(global_info->agent_num_per_thread, 4));
+        //curl_multi_setopt(thread_info->multi_handle, CURLMOPT_PIPELINING, 1L);
+        //curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAXCONNECTS, MEM_ALIGN_SIZE(global_info->agent_num_per_thread, 4));
 
         thread_info->url_buffer_len = fix_snprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
 
@@ -387,7 +387,7 @@ static void *pull_one_url(void *arg)
     DUMP("get still_running: %u, multi_handle: %p\n", thread_info->still_running, thread_info->multi_handle);
     do {
         /* wait for activity, timeout or "nothing" */
-        mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 1000, &numfds);
+        mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 10, &numfds);
         if (mc != CURLM_OK) {
             fprintf(stderr, "[%u]curl_multi_fdset() failed, code %d.\n", thread_info->idx, mc);
             break;
