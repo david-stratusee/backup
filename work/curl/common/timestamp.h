@@ -104,10 +104,22 @@ do {                                                                            
         nanosleep(&request, NULL);                                              \
     } while (0)
 
+#define WAITNS(x)                               \
+do {    \
+    struct timeval wait = { 0, (x) };      \
+    (void)select(0, NULL, NULL, NULL, &wait);   \
+} while (0)
+
+#define WAITSEC(x)                               \
+do {    \
+    struct timeval wait = { (x), 0 };      \
+    (void)select(0, NULL, NULL, NULL, &wait);   \
+} while (0)
+
 #include <unistd.h>
-#define sec_sleep(sec_num) sleep(sec_num)
-#define ms_sleep(ms_num) usleep(PLUS1000(ms_num))
-#define ns_sleep(ns_num) usleep(ns_num)
+#define sec_sleep(sec_num) WAITSEC(sec_num)
+#define ms_sleep(ms_num) WAITNS(PLUS1000(ms_num))
+#define ns_sleep(ns_num) WAITNS(ns_num)
 
 #endif    // _TIMESTAMP_H
 

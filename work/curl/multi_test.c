@@ -486,6 +486,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             }
         } else {
             print_thread_info(thread_list, global_info);
+            break;
         }
 
         if (global_info->during_time > 0) {
