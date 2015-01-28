@@ -1,2 +1,2 @@
-http  "http://192.168.10.101/1k.js"
-https "https://192.168.10.101/1k.js"
+http  "http://192.168.10.102/1k.js"
+https "https://192.168.10.102/1k.js"
