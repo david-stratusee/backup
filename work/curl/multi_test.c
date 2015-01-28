@@ -508,7 +508,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             time(&now_time);
             if (now_time >= end_time) {
                 if (global_info->do_exit == G_RUNNING) {
-                    global_info->do_exit = G_EXIT;
+                    global_info->do_exit = G_FORCE_EXIT;
                 } else if (now_time >= force_endtime) {
                     global_info->do_exit = G_FORCE_EXIT;
                 }
@@ -562,7 +562,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     fprintf(stdout, "%16s : %lu\n", "total length", total_length);
     fprintf(stdout, "%16s : %lu\n", "total time(ms)", msdiff);
     fprintf(stdout, "%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
-    fprintf(stdout, "%16s : %lu/s\n", "request rate", (global_info->read_work_idx * 1000) / msdiff);
+    fprintf(stdout, "%16s : %lu/s\n", "request rate", (suc_num * 1000) / msdiff);
     if (suc_num > 0) {
         fprintf(stdout, "%16s : %lums[max:%ums, min:%ums]\n", "latency", total_time / suc_num, max_latency, min_latency);
     }
@@ -586,7 +586,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
                     "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%u\"," "\"%u\"," "\"%s\"\n" ,
                     global_info->desc, last_url, global_info->agent_num, global_info->rampup, global_info->read_work_idx, error_num, suc_num,
                     total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),
-                    (global_info->read_work_idx * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0),
+                    (suc_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0),
                     max_latency, min_latency, global_info->sample_error
                    );
             fclose(fp);
