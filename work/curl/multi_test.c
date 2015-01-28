@@ -364,7 +364,7 @@ static inline CURLMcode curl_multi_perform_cont(CURLM *multi_handle, int *runnin
         }
     }
 
-    return ret_code;
+    return ((*running_handles >= 0) ? ret_code : CURLM_BAD_HANDLE);
 }
 
 static void *pull_one_url(void *arg)
@@ -379,7 +379,7 @@ static void *pull_one_url(void *arg)
     int numfds;
     int calc_num = 0;
 
-    if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK) {
+    if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK || thread_info->still_running < 0) {
         fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
         return NULL;
     }
