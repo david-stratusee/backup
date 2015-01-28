@@ -199,7 +199,6 @@ static inline int32_t global_info_init(global_info_t *global_info)
     }
 
     global_info->cpu_num = cpu_num;
-    global_info->thread_num = cpu_num * THREADNUM_PER_CPU;
     return 0;
 }
 

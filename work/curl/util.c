@@ -18,6 +18,7 @@ static void show_help(void)
                   "\n\t-s for https test"
                   "\n\t-f for config file"
                   "\n\t-d for desc"
+                  "\n\t-n for set thread num per cpu, default is 4"
                   "\n\t-D for daemon mode, and output to daemon_out.log"
                   "\n\t-r for rampup, unit second"
                   "\n\t-t for testing time, unit second"
@@ -54,7 +55,9 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 {
     int opt;
     bool is_daemon = false;
-    while ((opt = getopt(argc, argv, "o:d:r:q:a:t:f:hsD")) != -1) {
+    int32_t threadnum_per_cpu = THREADNUM_PER_CPU;
+
+    while ((opt = getopt(argc, argv, "n:o:d:r:q:a:t:f:hsD")) != -1) {
         switch (opt) {
             case 'D':
                 is_daemon = true;
@@ -78,6 +81,10 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 
             case 'a':
                 global_info->agent_num = atoi(optarg);
+                break;
+
+            case 'n':
+                threadnum_per_cpu = atoi(optarg);
                 break;
 
             case 't':
@@ -130,6 +137,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
         }
     }
 
+    global_info->thread_num = global_info->cpu_num * threadnum_per_cpu;
     if (global_info->agent_num < global_info->thread_num) {
         global_info->thread_num = global_info->agent_num;
     }
