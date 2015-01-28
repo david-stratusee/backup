@@ -90,6 +90,8 @@ typedef struct _thread_info_t {
     unsigned long total_data_len;
 
     char sample_error[128];
+    char url_buffer[MAX_URL_LEN + 4];
+    unsigned int url_buffer_len;
 } thread_info_t;   /* -- end of thread_info_t -- */
 
 #define CONN_TIMEOUT 30     /* second */

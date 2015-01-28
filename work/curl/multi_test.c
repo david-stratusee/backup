@@ -62,19 +62,19 @@ static void set_share_handle(CURL *curl_handle)
     curl_easy_setopt(curl_handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 5);
 }
 
-static inline bool _get_one_work(global_info_t *global_info, thread_info_t *thread_info, const char *func, const int line)
+static inline unsigned long _get_one_work(global_info_t *global_info, thread_info_t *thread_info, const char *func, const int line)
 {
     if (HAVE_WORK_AVAILABLE(global_info)) {
-        atomic_inc(global_info->read_work_idx);
+        unsigned long read_work_idx = atomic_inc_and_return(global_info->read_work_idx);
         thread_info->work_num++;
         DUMP("[%s-%u]thread %u add one work, work_num is %u\n", func, line, thread_info->idx, thread_info->work_num);
-        return true;
+        return read_work_idx;
     } else {
-        return false;
+        return 0UL;
     }
 }
-#define get_one_work(global_info, thread_info)  \
-    _get_one_work(global_info, thread_info, __func__, __LINE__)
+#define get_one_work(global_info, thread_info, read_work_idx)  \
+    (read_work_idx = _get_one_work(global_info, thread_info, __func__, __LINE__))
 
 static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info)
 {
@@ -87,7 +87,6 @@ static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)CONN_TIMEOUT);
-    curl_easy_setopt(curl, CURLOPT_URL, global_info->url[global_info->is_https]);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, work_info);
     curl_easy_setopt(curl, CURLOPT_PRIVATE, work_info);
 
@@ -112,6 +111,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
     int32_t idx = 0, jdx = 0, agent_num_per_sec_thread = 0;
     work_info_t *work_info = NULL;
     thread_info_t *thread_info;
+    unsigned long read_work_idx = 0UL;
 
     for (idx = 0; idx < global_info->thread_num; ++idx) {
         thread_info = thread_list + idx;
@@ -128,6 +128,8 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
         curl_multi_setopt(thread_info->multi_handle, CURLMOPT_PIPELINING, 1L);
         curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAXCONNECTS, MEM_ALIGN_SIZE(global_info->agent_num_per_thread, 4));
 
+        thread_info->url_buffer_len = fix_snprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
+
         agent_num_per_sec_thread = MIN(global_info->agent_num_per_sec_thread, global_info->agent_num_per_thread);
 
         for (jdx = 0; jdx < global_info->agent_num_per_thread; ++jdx) {
@@ -138,8 +140,11 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
                 return NULL;
             }
 
-            if (jdx < agent_num_per_sec_thread && get_one_work(global_info, thread_info)) {
+            if (jdx < agent_num_per_sec_thread && get_one_work(global_info, thread_info, read_work_idx) > 0) {
                 work_info->data_len = 0;
+
+                snprintf(thread_info->url_buffer + thread_info->url_buffer_len, sizeof(thread_info->url_buffer) - thread_info->url_buffer_len, "%lu", read_work_idx);
+                curl_easy_setopt(work_info->curl, CURLOPT_URL, thread_info->url_buffer);
                 curl_multi_add_handle(thread_info->multi_handle, work_info->curl);
                 DUMP("[%u]add handle %p to multi_handle %p\n", idx, work_info->curl, thread_info->multi_handle);
 
@@ -207,14 +212,19 @@ static int32_t check_rampup_agent(CURLM *multi_handle, global_info_t *global_inf
         work_info_t *work_info = NULL;
         int num = 0;
         int32_t idx = 0;
+        unsigned long read_work_idx = 0UL;
 
         int32_t agent_num_per_sec_thread = MIN(global_info->agent_num_per_sec_thread, global_info->agent_num_per_thread - thread_info->alloc_agent_num);
         for (idx = 0; idx < agent_num_per_sec_thread; ++idx) {
             work_info = thread_info->work_list + thread_info->alloc_agent_num;
 
-            if (get_one_work(global_info, thread_info)) {
+            if (get_one_work(global_info, thread_info, read_work_idx) > 0) {
                 work_info->data_len = 0;
+
+                snprintf(thread_info->url_buffer + thread_info->url_buffer_len, sizeof(thread_info->url_buffer) - thread_info->url_buffer_len, "%lu", read_work_idx);
+                curl_easy_setopt(work_info->curl, CURLOPT_URL, thread_info->url_buffer);
                 curl_multi_add_handle(multi_handle, work_info->curl);
+
                 thread_info->alloc_agent_num++;
                 thread_info->last_alloc_time = ts;
                 DUMP("[%u]add handle %p to multi_handle %p\n", thread_info->idx, work_info->curl, multi_handle);
@@ -262,6 +272,8 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
     long response_code = 200;
     double total_time = 0.0f;
     unsigned int latency = 0;
+    unsigned long read_work_idx = 0UL;
+
     while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
         if (CURLMSG_DONE == msg->msg) {
             easy_handle = msg->easy_handle;
@@ -298,9 +310,12 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                 }
 
                 curl_multi_remove_handle(multi_handle, easy_handle);
-                if (get_one_work(global_info, thread_info)) {
+                if (get_one_work(global_info, thread_info, read_work_idx) > 0) {
                     work_info->data_len = 0;
+                    snprintf(thread_info->url_buffer + thread_info->url_buffer_len, sizeof(thread_info->url_buffer) - thread_info->url_buffer_len, "%lu", read_work_idx);
+                    curl_easy_setopt(easy_handle, CURLOPT_URL, thread_info->url_buffer);
                     curl_multi_add_handle(multi_handle, easy_handle);
+
                     num++;
                 }
             } else {
