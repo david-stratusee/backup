@@ -46,6 +46,7 @@ static void add_no_cache_header(CURL *curl_handle)
 {
     struct curl_slist *no_cache = NULL;
     no_cache = curl_slist_append(no_cache, "Cache-control: no-cache");
+    no_cache = curl_slist_append(no_cache, "Connection: Keep-Alive");
     curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, no_cache);
 }
 
@@ -387,7 +388,7 @@ static void *pull_one_url(void *arg)
     DUMP("get still_running: %u, multi_handle: %p\n", thread_info->still_running, thread_info->multi_handle);
     do {
         /* wait for activity, timeout or "nothing" */
-        mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 10, &numfds);
+        mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 100, &numfds);
         if (mc != CURLM_OK) {
             fprintf(stderr, "[%u]curl_multi_fdset() failed, code %d.\n", thread_info->idx, mc);
             break;
