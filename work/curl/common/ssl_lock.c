@@ -1,12 +1,14 @@
+#ifndef MACOS
 #define USE_OPENSSL
+#endif
 
 #include <stdio.h>
 #include <pthread.h>
 
 /* we have this global to let the callback get easy access to it */
-static pthread_mutex_t *lockarray;
+#if defined(USE_OPENSSL)
 
-#ifdef USE_OPENSSL
+static pthread_mutex_t *lockarray;
 #include <openssl/crypto.h>
 static void lock_callback(int mode, int type, char *file, int line)
 {
@@ -52,9 +54,7 @@ void kill_locks(void)
 
     OPENSSL_free(lockarray);
 }
-#endif
-
-#ifdef USE_GNUTLS
+#elif defined(USE_GNUTLS)
 #include <gcrypt.h>
 #include <errno.h>
 
@@ -63,6 +63,16 @@ GCRY_THREAD_OPTION_PTHREAD_IMPL;
 void init_locks(void)
 {
     gcry_control(GCRYCTL_SET_THREAD_CBS);
+}
+
+void kill_locks(void)
+{
+    return;
+}
+#else
+void init_locks(void)
+{
+    return;
 }
 
 void kill_locks(void)

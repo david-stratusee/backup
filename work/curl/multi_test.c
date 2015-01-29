@@ -185,13 +185,14 @@ static inline void global_destroy(void)
 
 static inline int32_t global_info_init(global_info_t *global_info)
 {
+    memset(global_info, 0, sizeof(global_info_t));
+
     int cpu_num = get_cpu_num();
-    if (cpu_num == 0) {
-        fprintf(stdout, "error when get cpu num\n");
-        return -1;
+    if (cpu_num <= 0) {
+        fprintf(stderr, "error when get cpu num, set to default 4\n");
+        cpu_num = 4;
     }
 
-    memset(global_info, 0, sizeof(global_info_t));
     global_info->cpu_num = cpu_num;
     global_info->thread_num = cpu_num * THREADNUM_PER_CPU;
     return 0;
@@ -455,7 +456,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
 
     int finish_num;
     int check_num = 0;
-    bool get_exit = global_info->do_exit;
+    uint8_t get_exit = global_info->do_exit;
     do {
         finish_num = 0;
         for (idx = 0; idx < global_info->thread_num; idx++) {
