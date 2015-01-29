@@ -52,12 +52,17 @@ if [ "${dsthost}" == "" ]; then
 fi
 
 if [ "${remote_file}" != "" ]; then
+    start_dir="/home/david/"
+    if [ "${remote_file:0:1}" == "/" ]; then
+        start_dir=""
+    fi
+
     if [ "${local_file}" != "" ]; then
-        echo scp ${local_file} ${dsthost}:/home/david/${remote_file}
-        scp ${local_file} ${dsthost}:/home/david/${remote_file}
+        echo scp ${local_file} ${dsthost}:${start_dir}${remote_file}
+        scp ${local_file} ${dsthost}:${start_dir}${remote_file}
     else
-        echo scp ${dsthost}:/home/david/${remote_file} .
-        scp ${dsthost}:/home/david/${remote_file} .
+        echo scp ${dsthost}:${start_dir}${remote_file} .
+        scp ${dsthost}:${start_dir}${remote_file} .
     fi
 elif [ "${local_file}" != "" ]; then
     echo scp ${local_file} ${dsthost}:/home/david/
