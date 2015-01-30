@@ -96,11 +96,12 @@ do {                                                                            
 
 #endif
 
+#include "types.h"
 #include <time.h>
 /* specise cpu calc, but cause much CPU */
 #define time_sleep(sec_num, ns_num)                                             \
     do {                                                                        \
-        const struct timespec request = {.tv_sec = sec_num, .tv_nsec = ns_num}; \
+        const struct timespec request = {.tv_sec = sec_num, .tv_nsec = PLUS1000(ns_num)}; \
         nanosleep(&request, NULL);                                              \
     } while (0)
 
@@ -117,9 +118,9 @@ do {    \
 } while (0)
 
 #include <unistd.h>
-#define sec_sleep(sec_num) WAITSEC(sec_num)
-#define ms_sleep(ms_num) WAITNS(PLUS1000(ms_num))
-#define ns_sleep(ns_num) WAITNS(ns_num)
+#define sec_sleep(sec_num) time_sleep(sec_num, 0)
+#define ms_sleep(ms_num) time_sleep(0, PLUS1000(ms_num))
+#define ns_sleep(ns_num) time_sleep(0, us_num)
 
 #endif    // _TIMESTAMP_H
 
