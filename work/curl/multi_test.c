@@ -42,12 +42,11 @@ size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
     return real_size;
 }
 
-static void add_no_cache_header(CURL *curl_handle)
+struct curl_slist *no_cache_list = NULL;
+static void add_no_cache_list_header()
 {
-    struct curl_slist *no_cache = NULL;
-    no_cache = curl_slist_append(no_cache, "Cache-control: no-cache");
-    no_cache = curl_slist_append(no_cache, "Connection: Keep-Alive");
-    curl_easy_setopt(curl_handle, CURLOPT_HTTPHEADER, no_cache);
+    no_cache_list = curl_slist_append(no_cache_list, "Cache-control: no-cache");
+    no_cache_list = curl_slist_append(no_cache_list, "Connection: Keep-Alive");
 }
 
 static void set_share_handle(CURL *curl_handle)
@@ -99,7 +98,7 @@ static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info
     }
 
     set_share_handle(curl);
-    add_no_cache_header(curl);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, no_cache_list);
     return curl;
 }
 
@@ -110,6 +109,8 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
         fprintf(stdout, "alloc threads error\n");
         return NULL;
     }
+
+    add_no_cache_list_header();
 
     int32_t idx = 0, jdx = 0, agent_num_per_sec_thread = 0;
     work_info_t *work_info = NULL;
@@ -130,6 +131,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
 
         curl_multi_setopt(thread_info->multi_handle, CURLMOPT_PIPELINING, 1L);
         curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, (global_info->agent_num_per_thread / global_info->pipline_batch_length));
+        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAXCONNECTS, (global_info->agent_num_per_thread / global_info->pipline_batch_length));
         curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_PIPELINE_LENGTH, global_info->pipline_batch_length);
 
         thread_info->url_buffer_len = fix_snprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
@@ -176,6 +178,7 @@ static void thread_destroy(global_info_t *global_info, thread_info_t *thread_lis
     }
 
     free(thread_list);
+    curl_slist_free_all(no_cache_list);
 }
 
 static inline void global_init(void)
