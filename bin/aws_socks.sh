@@ -17,7 +17,7 @@ set -o nounset                              # Treat unset variables as an error
 #-------------------------------------------------------------------------------
 username=david
 
-available_host_port=("dev-aie.stratusee.com:22" "54.174.130.103:22" "us.stratusee.com:2221")
+available_host_port=("dev-aie.stratusee.com:22" "dev-aie3.stratusee.com:22" "us.stratusee.com:2221")
 host_port=${available_host_port[1]}
 
 ETH="Wi-Fi"
@@ -56,14 +56,29 @@ function kill_process()
 
 function print_avail_host()
 {
-    echo "available socks host:port is:"
+    nhost=0
+    echo "available socks host:port is:[${#available_host_port[*]}]"
     for node in ${available_host_port[*]}; do
         if [ "${host_port}" == "${node}" ]; then
-            echo " * $node [***]"
+            echo " [${nhost}] $node [***]"
         else
-            echo " * $node"
+            echo " [${nhost}] $node"
+        fi
+
+        nhost=`expr ${nhost} + 1`
+    done
+}
+
+function check_host_port()
+{
+    check_value=$1
+    for node in ${available_host_port[*]}; do
+        if [ "${check_value}" == "${node}" ]; then
+            return 0
         fi
     done
+
+    return 1
 }
 
 function update_pac()
@@ -119,12 +134,17 @@ while getopts 'e:p:i:hclf' opt; do
             fi
             ;;
         p)
-            host_port=$OPTARG
-            comma_count=`echo $host_port | grep -c ":"`
-            if [ ${comma_count} -eq 0 ]; then
-                echo "invalid host_port format"
-                $0 -h
-                exit 1
+            isdigit=`echo $OPTARG | grep -c "^[0-9]$"`
+            if [ $isdigit -gt 0 ] && [ $OPTARG -lt ${#available_host_port[*]} ]; then
+                host_port=${available_host_port[$OPTARG]}
+            else
+                check_host_port $OPTARG
+                if [ $? -eq 0 ]; then
+                    host_port=$OPTARG
+                else
+                    echo "invalid host_port format"
+                    $0 -h
+                fi
             fi
             ;;
         h|*)
