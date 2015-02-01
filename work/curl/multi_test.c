@@ -84,12 +84,14 @@ static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info
         return NULL;
     }
 
-    //curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)CONN_TIMEOUT);
+    //curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)CONN_TIMEOUT);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, work_info);
     curl_easy_setopt(curl, CURLOPT_PRIVATE, work_info);
+    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+    curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
 
     if (global_info->is_https) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
@@ -120,19 +122,19 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
         thread_info->min_latency = (unsigned int)(-1);
 
         thread_info->multi_handle = curl_multi_init();
-        thread_info->work_list = calloc(global_info->agent_num_per_thread, sizeof(work_info_t));
+        thread_info->work_list = calloc(global_info->agent_num_per_thread * global_info->pipline_batch_length, sizeof(work_info_t));
         if (thread_info->multi_handle == NULL || thread_info->work_list == NULL) {
             fprintf(stdout, "error when curl init\n");
             return NULL;
         }
 
-        //curl_multi_setopt(thread_info->multi_handle, CURLMOPT_PIPELINING, 1L);
-        //curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAXCONNECTS, MEM_ALIGN_SIZE(global_info->agent_num_per_thread, 4));
+        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_PIPELINING, 1L);
+        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, (global_info->agent_num_per_thread / global_info->pipline_batch_length));
+        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_PIPELINE_LENGTH, global_info->pipline_batch_length);
 
         thread_info->url_buffer_len = fix_snprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
 
         agent_num_per_sec_thread = MIN(global_info->agent_num_per_sec_thread, global_info->agent_num_per_thread);
-
         for (jdx = 0; jdx < global_info->agent_num_per_thread; ++jdx) {
             work_info = thread_info->work_list + jdx;
 

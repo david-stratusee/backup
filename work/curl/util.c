@@ -15,6 +15,7 @@ static void show_help(void)
 {
     fprintf(stdout, "USAGE: \n\t-q for request num"
                   "\n\t-a for agent num"
+                  "\n\t-b for pipeline length"
                   "\n\t-s for https test"
                   "\n\t-f for config file"
                   "\n\t-d for desc"
@@ -43,6 +44,7 @@ void print_global_info(global_info_t *global_info)
     PRINT_MEM_INT(global_info, thread_num);
     PRINT_MEM_LONG(global_info, agent_num);
     PRINT_MEM_LONG(global_info, agent_num_per_thread);
+    PRINT_MEM_LONG(global_info, pipline_batch_length);
     PRINT_MEM_INT(global_info, agent_num_per_sec_thread);
     PRINT_MEM_INT(global_info, rampup);
     PRINT_MEM_STR(global_info, url[HTTP_TYPE]);
@@ -57,7 +59,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     bool is_daemon = false;
     int32_t threadnum_per_cpu = THREADNUM_PER_CPU;
 
-    while ((opt = getopt(argc, argv, "n:o:d:r:q:a:t:f:hsD")) != -1) {
+    while ((opt = getopt(argc, argv, "n:o:d:r:q:a:t:f:b:hsD")) != -1) {
         switch (opt) {
             case 'D':
                 is_daemon = true;
@@ -72,7 +74,11 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
                 break;
 
             case 'r':
-                global_info->rampup = atoi(optarg);
+                global_info->rampup = (uint16_t)atoi(optarg);
+                break;
+
+            case 'b':
+                global_info->pipline_batch_length = strtoul(optarg, NULL, 0);
                 break;
 
             case 'q':
@@ -137,6 +143,10 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
         }
     }
 
+    if (global_info->pipline_batch_length == 0) {
+        global_info->pipline_batch_length = DFT_PIPLINE_BATCH_LENGTH;
+    }
+
     global_info->thread_num = global_info->cpu_num * threadnum_per_cpu;
     if (global_info->agent_num < global_info->thread_num) {
         global_info->thread_num = global_info->agent_num;
@@ -146,6 +156,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     if ((global_info->agent_num % global_info->thread_num) != 0) {
         global_info->agent_num_per_thread++;
     }
+    global_info->agent_num_per_thread = MEM_ALIGN_SIZE(global_info->agent_num_per_thread, 4) * global_info->pipline_batch_length;
 
     if (global_info->rampup > 0) {
         global_info->agent_num_per_sec_thread = global_info->agent_num_per_thread / global_info->rampup;

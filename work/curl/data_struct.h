@@ -40,6 +40,7 @@ typedef enum _DO_EXIT_EN {
 } DO_EXIT_EN;   /* -- end of DO_EXIT_EN -- */
 
 #define MAX_URL_LEN 256
+#define DFT_PIPLINE_BATCH_LENGTH 8
 /* Description: global info */
 typedef struct _global_info_t {
     char url[HTTP_TYPE_MAX][MAX_URL_LEN];
@@ -48,6 +49,7 @@ typedef struct _global_info_t {
     unsigned long agent_num;
     unsigned long during_time;
     unsigned long agent_num_per_thread;
+    unsigned long pipline_batch_length;
     uint8_t cpu_num;
     uint8_t thread_num;
     uint16_t rampup;
