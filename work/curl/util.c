@@ -15,15 +15,16 @@ static void show_help(void)
 {
     fprintf(stdout, "USAGE: \n\t-q for request num"
                   "\n\t-a for agent num"
-                  "\n\t-b for pipeline length"
+                  "\n\t-b for pipeline length, default is %u"
                   "\n\t-s for https test"
                   "\n\t-f for config file"
                   "\n\t-d for desc"
-                  "\n\t-n for set thread num per cpu, default is 4"
+                  "\n\t-n for set thread num per cpu, default is %u"
                   "\n\t-D for daemon mode, and output to daemon_out.log"
                   "\n\t-r for rampup, unit second"
                   "\n\t-t for testing time, unit second"
-                  "\n\t-o output file\n");
+                  "\n\t-o output file\n",
+                  DFT_PIPELINE_BATCH_LENGTH, THREADNUM_PER_CPU);
 }
 
 #define PRINT_MEM_INT(__stru, __memb)    fprintf(stdout, "  %s: %u\n", #__memb, (__stru)->__memb)
