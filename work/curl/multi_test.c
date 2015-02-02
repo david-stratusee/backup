@@ -292,11 +292,17 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                     thread_info->work_num, thread_info->succ_num);
 
             work_info = NULL;
+            if (easy_handle) {
+                if (curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &work_info) != CURLE_OK) {
+                    work_info = NULL;
+                }
+            }
+
             if (likely(msg->data.result == CURLE_OK && easy_handle)) {
                 /*  TODO: curl_easy_getinfo */
                 if (likely(curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK
                         && (response_code >= 200 && response_code < 400))) {
-                    if (curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &work_info) == CURLE_OK && work_info != NULL) {
+                    if (work_info != NULL) {
                         curl_easy_getinfo(easy_handle, CURLINFO_TOTAL_TIME, &(total_time));
                         latency = (unsigned int)(unsigned long)(total_time * 1000);
                         thread_info->total_latency += latency;
@@ -320,10 +326,8 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
             } else {
                 fill_thread_fixerr(thread_info, curl_easy_strerror(msg->data.result));
                 if (easy_handle) {
-                    if (global_info->pipline_batch_length != NO_PIPELINE_BATCH_LENGTH) {
-                        if (curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &work_info) != CURLE_OK) {
-                            work_info = NULL;
-                        }
+                    if (global_info->pipline_batch_length == NO_PIPELINE_BATCH_LENGTH) {
+                        work_info = NULL;
                     }
 
                     curl_multi_remove_handle(multi_handle, easy_handle);
