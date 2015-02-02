@@ -185,7 +185,7 @@ static void thread_destroy(global_info_t *global_info, thread_info_t *thread_lis
 
 static inline void global_init(void)
 {
-    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl_global_init(CURL_GLOBAL_ALL);
     init_locks();
     TS_INIT();
 }
