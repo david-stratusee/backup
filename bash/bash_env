@@ -8,7 +8,7 @@ if [ -d "${HOME}/man" ]; then
 fi
 
 #export PS1='\n[\A]\[\e[36m\]\u@\[\e[33m\]\W\[\e[0m\]\$ '
-export PS1='\n[\A]\[\e[36m\]\u@\[\e[35m\]\W\[\e[0m\]\$ '
+export PS1='\n[\t]\[\e[36m\]\u@\[\e[35m\]\W\[\e[0m\]\$ '
 export CSCOPE_EDITOR="vim"
 
 # History Options
