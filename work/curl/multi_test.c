@@ -280,6 +280,7 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
     double total_time = 0.0f;
     unsigned int latency = 0;
     unsigned long read_work_idx = 0UL;
+    bool need_work;
 
     while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
         if (CURLMSG_DONE == msg->msg) {
@@ -291,6 +292,7 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                     thread_info->idx, thread_info->work_done, thread_info->still_running,
                     thread_info->work_num, thread_info->succ_num);
 
+            need_work = true;
             if (likely(msg->data.result == CURLE_OK && easy_handle)) {
                 /*  TODO: curl_easy_getinfo */
                 if (likely(curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK
@@ -317,19 +319,25 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                 }
 
                 curl_multi_remove_handle(multi_handle, easy_handle);
-                if (get_one_work(global_info, thread_info, read_work_idx) > 0) {
-                    work_info->data_len = 0;
-                    snprintf(thread_info->url_buffer + thread_info->url_buffer_len, sizeof(thread_info->url_buffer) - thread_info->url_buffer_len, "%lu", read_work_idx);
-                    curl_easy_setopt(easy_handle, CURLOPT_URL, thread_info->url_buffer);
-                    curl_multi_add_handle(multi_handle, easy_handle);
-
-                    num++;
-                }
             } else {
                 fill_thread_fixerr(thread_info, curl_easy_strerror(msg->data.result));
                 if (easy_handle) {
                     curl_multi_remove_handle(multi_handle, easy_handle);
+                    if (global_info->pipline_batch_length == NO_PIPELINE_BATCH_LENGTH) {
+                        need_work = false;
+                    }
+                } else {
+                    need_work = false;
                 }
+            }
+
+            if (need_work && get_one_work(global_info, thread_info, read_work_idx) > 0) {
+                work_info->data_len = 0;
+                snprintf(thread_info->url_buffer + thread_info->url_buffer_len, sizeof(thread_info->url_buffer) - thread_info->url_buffer_len, "%lu", read_work_idx);
+                curl_easy_setopt(easy_handle, CURLOPT_URL, thread_info->url_buffer);
+                curl_multi_add_handle(multi_handle, easy_handle);
+
+                num++;
             }
         } else {
             fprintf(stdout, "-------------------- [easy_handle-%p] not OK\n", msg->easy_handle);
