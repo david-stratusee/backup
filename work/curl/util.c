@@ -58,6 +58,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     int opt;
     bool is_daemon = false;
     int32_t threadnum_per_cpu = THREADNUM_PER_CPU;
+    global_info->pipline_batch_length = DFT_PIPELINE_BATCH_LENGTH;
 
     while ((opt = getopt(argc, argv, "n:o:d:r:q:a:t:f:b:hsD")) != -1) {
         switch (opt) {
@@ -79,6 +80,9 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 
             case 'b':
                 global_info->pipline_batch_length = strtoul(optarg, NULL, 0);
+                if (global_info->pipline_batch_length == 0 || global_info->pipline_batch_length == 1) {
+                    global_info->pipline_batch_length = NO_PIPELINE_BATCH_LENGTH;
+                }
                 break;
 
             case 'q':
@@ -141,10 +145,6 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
             stdout = fout;
             stderr = fout;
         }
-    }
-
-    if (global_info->pipline_batch_length == 0) {
-        global_info->pipline_batch_length = DFT_PIPLINE_BATCH_LENGTH;
     }
 
     global_info->thread_num = global_info->cpu_num * threadnum_per_cpu;

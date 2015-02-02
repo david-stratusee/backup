@@ -85,8 +85,8 @@ static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info
 
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    //curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)CONN_TIMEOUT);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, work_info);
+    //curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)CONN_TIMEOUT);
     curl_easy_setopt(curl, CURLOPT_PRIVATE, work_info);
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
@@ -129,10 +129,12 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
             return NULL;
         }
 
-        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_PIPELINING, 1L);
-        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, (global_info->agent_num_per_thread / global_info->pipline_batch_length));
-        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAXCONNECTS, (global_info->agent_num_per_thread / global_info->pipline_batch_length));
-        curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_PIPELINE_LENGTH, global_info->pipline_batch_length);
+        if (global_info->pipline_batch_length != NO_PIPELINE_BATCH_LENGTH) {
+            curl_multi_setopt(thread_info->multi_handle, CURLMOPT_PIPELINING, 1L);
+            curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_TOTAL_CONNECTIONS, (global_info->agent_num_per_thread / global_info->pipline_batch_length));
+            curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAXCONNECTS, (global_info->agent_num_per_thread / global_info->pipline_batch_length));
+            curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_PIPELINE_LENGTH, global_info->pipline_batch_length);
+        }
 
         thread_info->url_buffer_len = fix_snprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
 
