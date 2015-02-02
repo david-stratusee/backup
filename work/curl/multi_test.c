@@ -411,7 +411,7 @@ static void *pull_one_url(void *arg)
         DUMP("[%u]get still_running: %u, multi_handle: %p, numfds: %u, calc_num: %u, alloc_agent_num: %u\n",
                 thread_info->idx, thread_info->still_running, thread_info->multi_handle, numfds, calc_num, thread_info->alloc_agent_num);
 
-        if (numfds || check_available(thread_info->multi_handle, global_info, thread_info) > 0 || calc_num >= CONN_TIMEOUT) {
+        if (numfds || check_available(thread_info->multi_handle, global_info, thread_info) > 0 || calc_num >= 30) {
             calc_num = 0;
 
             if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK) {
