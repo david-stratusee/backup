@@ -6,5 +6,27 @@ function diff_r()
 
 function gdiff()
 {
-    git wdiff `cat $@`
+    if [ $# -gt 0 ]; then
+        git wdiff `cat $@`
+    else
+        echo "gdiff filename"
+    fi
+}
+
+function psmx()
+{
+    filterlist="squid|resmgr|icap|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd"
+    arglist="euser,pid,pcpu,pmem,rss,nlwp,psr,stat,start_time,bsdtime,wchan:22,args"
+    pidlist=`ps axfo ${arglist} | grep -v grep | egrep --color=auto "(${filterlist})" | awk '{print $2}'`
+    newpidlist=`echo $pidlist | sed -e 's/ /,/g'`
+    ps mo ${arglist} --pid "${newpidlist}"
+}
+
+function pssx()
+{
+    filterlist=$1
+    arglist="euser,pid,pcpu,pmem,rss,nlwp,psr,stat,start_time,bsdtime,wchan:22,args"
+    pidlist=`ps axfo ${arglist} | grep -v grep | egrep --color=auto "(${filterlist})" | awk '{print $2}'`
+    newpidlist=`echo $pidlist | sed -e 's/ /,/g'`
+    ps mo ${arglist} --pid "${newpidlist}"
 }
