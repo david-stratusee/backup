@@ -23,10 +23,20 @@
 
 global_info_t global_info;
 #ifdef DEBUG
-#define DUMP(fmt, args...) fprintf(stdout, "[%s-%u-%lu]"fmt, __func__, __LINE__, time(NULL), ##args)
+#define DUMP(fmt, args...) \
+do {    \
+    fprintf(stdout, "[DBG:%s-%u-%lu]"fmt, __func__, __LINE__, time(NULL), ##args);  \
+    fflush(stdout); \
+} while (0)
 #else
-#define DUMP(...)
+#define DUMP(...) EMPTY_STATE
 #endif
+
+#define PRINT(fmt, args...) \
+do {    \
+    fprintf(stdout, "[%s-%u]"fmt, __func__, __LINE__, ##args);  \
+    fflush(stdout); \
+} while (0)
 
 static void _sig_int(int signum, siginfo_t *info, void *ptr)
 {
@@ -106,7 +116,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
 {
     thread_info_t *thread_list = calloc(global_info->thread_num, sizeof(thread_info_t));
     if (thread_list == NULL) {
-        fprintf(stdout, "alloc threads error\n");
+        PRINT("alloc threads error\n");
         return NULL;
     }
 
@@ -125,7 +135,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
         thread_info->multi_handle = curl_multi_init();
         thread_info->work_list = calloc(global_info->agent_num_per_thread * global_info->pipline_batch_length, sizeof(work_info_t));
         if (thread_info->multi_handle == NULL || thread_info->work_list == NULL) {
-            fprintf(stdout, "error when curl init\n");
+            PRINT("error when curl init\n");
             return NULL;
         }
 
@@ -343,7 +353,7 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                 num++;
             }
         } else {
-            fprintf(stdout, "-------------------- [easy_handle-%p] not OK\n", msg->easy_handle);
+            PRINT("-------------------- [easy_handle-%p] not OK\n", msg->easy_handle);
         }
     }
 
@@ -354,14 +364,14 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
 {
     int idx = 0;
     static unsigned int print_thread_count = 0;
-    fprintf(stdout, "------------------\n");
-    fprintf(stdout, "[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
+    PRINT("------------------\n");
+    PRINT("[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            fprintf(stdout, "  %u:S[%u]-R[%u]-D[%lu]\n",
+            PRINT("  %u:S[%u]-R[%u]-D[%lu]\n",
                     idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num);
         } else {
-            fprintf(stdout, "  %u:S[%u]-R[%u]-D[%lu]-E[%lu]-ES[%s]\n",
+            PRINT("  %u:S[%u]-R[%u]-D[%lu]-E[%lu]-ES[%s]\n",
                     idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num,
                     thread_list[idx].error_num, thread_list[idx].sample_error);
             if (global_info->sample_error[0] == '\0') {
@@ -369,8 +379,7 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
             }
         }
     }
-    fprintf(stdout, "------------------\n");
-    fflush(stdout);
+    PRINT("------------------\n");
 }
 
 static inline CURLMcode curl_multi_perform_cont(CURLM *multi_handle, int *running_handles, global_info_t *global_info)
@@ -440,10 +449,10 @@ static void *pull_one_url(void *arg)
 
 #ifdef DEBUG
     if (thread_info->error_num == 0) {
-        fprintf(stdout, "  %u:S[%u]-R[%u]-D[%u-%u]\n",
+        PRINT("  %u:S[%u]-R[%u]-D[%u-%u]\n",
                 thread_info->idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num);
     } else {
-        fprintf(stdout, "  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
+        PRINT("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
                 thread_info->idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num,
                 thread_info->error_num, thread_info->sample_error);
     }
@@ -469,7 +478,7 @@ static int32_t start_thread_list(thread_info_t *thread_list, global_info_t *glob
             return error;
         }
 
-        fprintf(stdout, "[%lu]Thread %u start\n", time(NULL), idx);
+        PRINT("[%lu]Thread %u start\n", time(NULL), idx);
     }
 
     return 0;
@@ -496,7 +505,7 @@ static int32_t check_thread_end(thread_info_t *thread_list, global_info_t *globa
             if (thread_list[idx].work_done >= TSE_DONE) {
                 if (thread_list[idx].work_done == TSE_DONE) {
                     pthread_join(thread_list[idx].tid, NULL);
-                    fprintf(stdout, "[%lu]Thread %d terminated\n", time(NULL), idx);
+                    PRINT("[%lu]Thread %d terminated\n", time(NULL), idx);
 
                     thread_list[idx].work_done = TSE_VERIFY;
                 }
@@ -572,19 +581,19 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
         }
     }
 
-    fprintf(stdout, "----------------------\n");
-    fprintf(stdout, "RESULT: \"%s\" \"%s\"\n", global_info->desc, last_url);
-    fprintf(stdout, "%16s : %lu\n", "request num", global_info->read_work_idx);
-    fprintf(stdout, "%16s : %lu\n", "error num", error_num);
-    fprintf(stdout, "%16s : %lu\n", "succ num", suc_num);
-    fprintf(stdout, "%16s : %lu\n", "total length", total_length);
-    fprintf(stdout, "%16s : %lu\n", "total time(ms)", msdiff);
-    fprintf(stdout, "%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
-    fprintf(stdout, "%16s : %lu/s\n", "request rate", (suc_num * 1000) / msdiff);
+    PRINT("----------------------\n");
+    PRINT("RESULT: \"%s\" \"%s\"\n", global_info->desc, last_url);
+    PRINT("%16s : %lu\n", "request num", global_info->read_work_idx);
+    PRINT("%16s : %lu\n", "error num", error_num);
+    PRINT("%16s : %lu\n", "succ num", suc_num);
+    PRINT("%16s : %lu\n", "total length", total_length);
+    PRINT("%16s : %lu\n", "total time(ms)", msdiff);
+    PRINT("%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
+    PRINT("%16s : %lu/s\n", "request rate", (suc_num * 1000) / msdiff);
     if (suc_num > 0) {
-        fprintf(stdout, "%16s : %lums[max:%ums, min:%ums]\n", "latency", total_time / suc_num, max_latency, min_latency);
+        PRINT("%16s : %lums[max:%ums, min:%ums]\n", "latency", total_time / suc_num, max_latency, min_latency);
     }
-    fprintf(stdout, "----------------------\n");
+    PRINT("----------------------\n");
 
     if (global_info->output_filename[0]) {
         bool file_exist = isfile(global_info->output_filename);
@@ -636,13 +645,13 @@ int main(int argc, char *argv[])
 
     thread_info_t *thread_list = thread_init(&global_info);
     if (thread_list == NULL) {
-        fprintf(stdout, "error when init thread\n");
+        PRINT("error when init thread\n");
         return EXIT_FAILURE;
     }
 
     TS_BEGIN(perf);
     if (start_thread_list(thread_list, &global_info) != 0) {
-        fprintf(stdout, "error when start thread\n");
+        PRINT("error when start thread\n");
         return EXIT_FAILURE;
     }
     check_thread_end(thread_list, &global_info);
