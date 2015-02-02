@@ -2,9 +2,9 @@
 allobj=multi_test
 all: $(allobj)
 CC=gcc
-CFLAGS=-O2 -Wall -Werror -I. -I./common
+CFLAGS=-O2 -ggdb -Wall -Werror -I. -I./common -DUSE_JEMALLOC
 #-DDEBUG
-LDFLAGS=-lcurl -lpthread -lcrypto
+LDFLAGS=-lcurl -lpthread -lcrypto -ljemalloc
 COMMON_OBJS=common/setsignal.o  common/ssl_lock.o  common/timestamp.o  util.o common/cfg_parse.o common/string_s.o common/misc.o common/file_op.o
 
 #simple: simple.o
