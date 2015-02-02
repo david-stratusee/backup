@@ -86,7 +86,7 @@ static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, work_info);
-    //curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, (long)CONN_TIMEOUT);
+    //curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)CONN_TIMEOUT);
     curl_easy_setopt(curl, CURLOPT_PRIVATE, work_info);
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
