@@ -16,7 +16,7 @@ function gdiff()
 function pssx()
 {
     filterlist=$1
-    arglist="euser,pid,ppid,pcpu,pmem,rss,nlwp,psr,stat,start_time,bsdtime,wchan:22,args"
+    arglist="user,pid,ppid,pcpu,pmem,rss,nlwp,psr,stat,start_time,bsdtime,wchan:22,args"
     pidlist=`ps axfo ${arglist} | grep -v grep | egrep --color=auto "(${filterlist})" | awk '{print $2}'`
     if [ "${pidlist}" == "" ]; then
         echo No such process: $1
