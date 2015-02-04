@@ -20,6 +20,7 @@ INSTALL_FLAG=3
 GET_ACTION=0
 CUR_DIR=`pwd`
 CMAKE_ARG=""
+QUIET_FLAG=0
 
 function cexit()
 {
@@ -67,6 +68,7 @@ while getopts 'd:a:g:hq' opt; do
             CMAKE_ARG=${CMAKE_ARG}" -D"$OPTARG
             ;;
         q)
+            QUIET_FLAG=1
             CMAKE_ARG=${CMAKE_ARG}" -DVERBOSE=quiet"
             ;;
         h) cbuild_help `basename $0`; exit 0;;
