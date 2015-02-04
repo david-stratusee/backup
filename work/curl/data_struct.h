@@ -100,7 +100,7 @@ typedef struct _thread_info_t {
     unsigned long total_data_len;
 
     char sample_error[128];
-    char url_buffer[MAX_URL_LEN];
+    char *url_buffer;
     unsigned int url_buffer_len;
     int numfds;
 } thread_info_t;   /* -- end of thread_info_t -- */

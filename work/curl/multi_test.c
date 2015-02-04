@@ -52,11 +52,36 @@ size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
     return real_size;
 }
 
+static void _itox(unsigned long value, char *value_str, int32_t max_len)
+{
+    int32_t idx = 0;
+    char *ptr = value_str + max_len - 1;
+    uint8_t ch = 0;
+
+    for (idx = 0; idx < max_len && value > 0; ++idx) {
+        ch = (value & 0xF);
+        value >>= 4;
+
+        if (ch < 10) {
+            *(ptr--) = ch + '0';
+        } else {
+            *(ptr--) = ch - 10 + 'A';
+        }
+    }
+
+    while (ptr >= value_str) {
+        *(ptr--) = '0';
+    }
+}
+
 struct curl_slist *no_cache_list = NULL;
 static void add_no_cache_list_header()
 {
-    no_cache_list = curl_slist_append(no_cache_list, "Cache-control: no-cache");
+    //no_cache_list = curl_slist_append(no_cache_list, "Cache-control: no-cache");
+    //no_cache_list = curl_slist_append(no_cache_list, "Pragma: no-cache");
+    no_cache_list = curl_slist_append(no_cache_list, "Cache-control: no-store");
     no_cache_list = curl_slist_append(no_cache_list, "Connection: Keep-Alive");
+    no_cache_list = curl_slist_append(no_cache_list, "Proxy-Connection: Keep-Alive");
 }
 
 static void set_share_handle(CURL *curl_handle)
@@ -96,10 +121,10 @@ static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, work_info);
-    //curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)CONN_TIMEOUT);
     curl_easy_setopt(curl, CURLOPT_PRIVATE, work_info);
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/600.3.18 (KHTML, like Gecko) Version/8.0.3 Safari/600.3.18");
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
     if (global_info->debug_level == DEBUG_LIBCURL) {
         curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -134,6 +159,11 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
         thread_info = thread_list + idx;
         thread_info->global_info = global_info;
         thread_info->min_latency = (unsigned int)(-1);
+        thread_info->url_buffer = umalloc_empty(strlen(global_info->url[global_info->is_https]) + FLEN("?id=") + 16 + 1);
+        if (PTR_NULL(thread_info->url_buffer)) {
+            PRINT("error when malloc url_buffer in thread_info\n");
+            return NULL;
+        }
 
         thread_info->multi_handle = curl_multi_init();
         thread_info->work_list = calloc(global_info->agent_num_per_thread * global_info->pipline_batch_length, sizeof(work_info_t));
@@ -149,7 +179,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
             curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_PIPELINE_LENGTH, global_info->pipline_batch_length);
         }
 
-        thread_info->url_buffer_len = fix_snprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
+        thread_info->url_buffer_len = sprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
 
         agent_num_per_sec_thread = MIN(global_info->agent_num_per_sec_thread, global_info->agent_num_per_thread);
         for (jdx = 0; jdx < global_info->agent_num_per_thread; ++jdx) {
@@ -163,7 +193,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
             if (jdx < agent_num_per_sec_thread && get_one_work(global_info, thread_info, read_work_idx) > 0) {
                 work_info->data_len = 0;
 
-                snprintf(thread_info->url_buffer + thread_info->url_buffer_len, sizeof(thread_info->url_buffer) - thread_info->url_buffer_len, "%lu", read_work_idx);
+                _itox(read_work_idx, thread_info->url_buffer + thread_info->url_buffer_len, 16);
                 curl_easy_setopt(work_info->curl, CURLOPT_URL, thread_info->url_buffer);
                 curl_multi_add_handle(thread_info->multi_handle, work_info->curl);
                 DUMP("[%u]add handle %p to multi_handle %p\n", idx, work_info->curl, thread_info->multi_handle);
@@ -190,6 +220,7 @@ static void thread_destroy(global_info_t *global_info, thread_info_t *thread_lis
             curl_easy_cleanup(thread_list[idx].work_list[jdx].curl);
         }
         curl_multi_cleanup(thread_list[idx].multi_handle);
+        ufree_setnull(thread_list[idx].url_buffer);
     }
 
     free(thread_list);
@@ -241,7 +272,7 @@ static int32_t check_rampup_agent(CURLM *multi_handle, global_info_t *global_inf
             if (get_one_work(global_info, thread_info, read_work_idx) > 0) {
                 work_info->data_len = 0;
 
-                snprintf(thread_info->url_buffer + thread_info->url_buffer_len, sizeof(thread_info->url_buffer) - thread_info->url_buffer_len, "%lu", read_work_idx);
+                _itox(read_work_idx, thread_info->url_buffer + thread_info->url_buffer_len, 16);
                 curl_easy_setopt(work_info->curl, CURLOPT_URL, thread_info->url_buffer);
                 curl_multi_add_handle(multi_handle, work_info->curl);
 
@@ -293,6 +324,7 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
     double total_time = 0.0f;
     unsigned int latency = 0;
     unsigned long read_work_idx = 0UL;
+    char *last_url = NULL;
 
     while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
         if (CURLMSG_DONE == msg->msg) {
@@ -307,6 +339,10 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
             work_info = NULL;
             if (easy_handle) {
                 if (curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &work_info) != CURLE_OK) {
+                    work_info = NULL;
+                }
+
+                if (curl_easy_getinfo(easy_handle, CURLINFO_EFFECTIVE_URL, &last_url) != CURLE_OK || last_url == NULL) {
                     work_info = NULL;
                 }
             }
@@ -349,8 +385,8 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
 
             if (work_info && get_one_work(global_info, thread_info, read_work_idx) > 0) {
                 work_info->data_len = 0;
-                snprintf(thread_info->url_buffer + thread_info->url_buffer_len, sizeof(thread_info->url_buffer) - thread_info->url_buffer_len, "%lu", read_work_idx);
-                curl_easy_setopt(easy_handle, CURLOPT_URL, thread_info->url_buffer);
+                _itox(read_work_idx, last_url + thread_info->url_buffer_len, 16);
+                DUMP("[%u]last_url: %s\n", thread_info->idx, last_url);
                 curl_multi_add_handle(multi_handle, easy_handle);
 
                 num++;
