@@ -46,12 +46,12 @@ static void _sig_int(int signum, siginfo_t *info, void *ptr)
     return;
 }
 
-static inline size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
+static inline size_t write_data(void *buffer ARG_UNUSED, size_t size, size_t nmemb, void *userp ARG_UNUSED)
 {
-    work_info_t *work_info = (work_info_t *)userp;
-    size_t real_size = size * nmemb;
-    work_info->data_len += real_size;
-    return real_size;
+    //work_info_t *work_info = (work_info_t *)userp;
+    //size_t real_size = size * nmemb;
+    //work_info->data_len += real_size;
+    return size * nmemb;
 }
 
 static void _itox(unsigned long value, char *value_str, int32_t max_len)
@@ -123,7 +123,6 @@ static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, work_info);
-    curl_easy_setopt(curl, CURLOPT_PRIVATE, work_info);
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_2) AppleWebKit/600.3.18 (KHTML, like Gecko) Version/8.0.3 Safari/600.3.18");
@@ -314,7 +313,6 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
 {
     int msgs_left;
     CURLMsg *msg;
-    work_info_t *work_info = NULL;
     CURL *easy_handle = NULL;
     int num = 0;
 
@@ -323,10 +321,11 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
     }
 
     long response_code = 200;
-    double total_time = 0.0f;
+    double total_time = 0.0f, total_length = 0.0f;
     unsigned int latency = 0;
     unsigned long read_work_idx = 0UL;
     char *last_url = NULL;
+    bool need_add_handle = true;
 
     while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
         if (CURLMSG_DONE == msg->msg) {
@@ -338,37 +337,32 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
                     thread_info->idx, thread_info->work_done, thread_info->still_running,
                     thread_info->work_num, thread_info->succ_num);
 
-            work_info = NULL;
             if (easy_handle) {
-                if (curl_easy_getinfo(easy_handle, CURLINFO_PRIVATE, &work_info) != CURLE_OK) {
-                    work_info = NULL;
-                }
-
                 if (curl_easy_getinfo(easy_handle, CURLINFO_EFFECTIVE_URL, &last_url) != CURLE_OK || last_url == NULL) {
-                    work_info = NULL;
+                    last_url = NULL;
                 }
             }
 
+            need_add_handle = true;
             if (likely(msg->data.result == CURLE_OK && easy_handle)) {
                 /*  TODO: curl_easy_getinfo */
                 if (likely(curl_easy_getinfo(easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK
                         && (response_code >= 200 && response_code < 400))) {
-                    if (work_info != NULL) {
-                        curl_easy_getinfo(easy_handle, CURLINFO_TOTAL_TIME, &(total_time));
-                        latency = (unsigned int)(unsigned long)(total_time * 1000);
-                        thread_info->total_latency += latency;
-                        if (latency > thread_info->max_latency) {
-                            thread_info->max_latency = latency;
-                        }
-                        if (latency > 0 && latency < thread_info->min_latency) {
-                            thread_info->min_latency = latency;
-                        }
+                    curl_easy_getinfo(easy_handle, CURLINFO_SIZE_DOWNLOAD, &total_length);
+                    curl_easy_getinfo(easy_handle, CURLINFO_TOTAL_TIME, &(total_time));
 
-                        thread_info->total_data_len += work_info->data_len;
-                        thread_info->succ_num++;
-                    } else {
-                        fill_thread_fixerr(thread_info, "get NULL private data");
+                    latency = (unsigned int)(unsigned long)(total_time * 1000);
+                    thread_info->total_latency += latency;
+
+                    if (latency > thread_info->max_latency) {
+                        thread_info->max_latency = latency;
                     }
+                    if (latency > 0 && latency < thread_info->min_latency) {
+                        thread_info->min_latency = latency;
+                    }
+
+                    thread_info->total_data_len += total_length;
+                    thread_info->succ_num++;
                 } else {
                     fill_thread_error(thread_info, "get response_code %ld", response_code);
                 }
@@ -377,18 +371,26 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
             } else {
                 fill_thread_fixerr(thread_info, curl_easy_strerror(msg->data.result));
                 if (easy_handle) {
+#if 0
                     if (global_info->pipline_batch_length == NO_PIPELINE_BATCH_LENGTH) {
-                        work_info = NULL;
+                        need_add_handle = false;
                     }
+#endif
 
                     curl_multi_remove_handle(multi_handle, easy_handle);
+                } else {
+                    need_add_handle = false;
                 }
             }
 
-            if (work_info && get_one_work(global_info, thread_info, read_work_idx) > 0) {
-                work_info->data_len = 0;
-                _itox(read_work_idx, last_url + thread_info->url_buffer_len, 16);
-                DUMP("[%u]last_url: %s\n", thread_info->idx, last_url);
+            if (need_add_handle && get_one_work(global_info, thread_info, read_work_idx) > 0) {
+                if (PTR_NOT_NULL(last_url)) {
+                    _itox(read_work_idx, last_url + thread_info->url_buffer_len, 16);
+                    DUMP("[%u]last_url: %s\n", thread_info->idx, last_url);
+                } else {
+                    _itox(read_work_idx, thread_info->url_buffer + thread_info->url_buffer_len, 16);
+                    curl_easy_setopt(easy_handle, CURLOPT_URL, thread_info->url_buffer);
+                }
                 curl_multi_add_handle(multi_handle, easy_handle);
 
                 num++;
@@ -613,7 +615,7 @@ static inline char *get_url_file(char *full_path)
 
 static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, unsigned long msdiff)
 {
-    unsigned long total_length = 0;
+    double total_length = 0.0;
     unsigned long total_time = 0;
     unsigned int max_latency = 0, min_latency = (unsigned int)(-1);
     int idx = 0;
@@ -640,9 +642,9 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     PRINT("%16s : %lu\n", "request num", global_info->read_work_idx);
     PRINT("%16s : %lu\n", "error num", error_num);
     PRINT("%16s : %lu\n", "succ num", suc_num);
-    PRINT("%16s : %lu\n", "total length", total_length);
+    PRINT("%16s : %f\n", "total length", total_length);
     PRINT("%16s : %lu\n", "total time(ms)", msdiff);
-    PRINT("%16s : %luKB/s-%luMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
+    PRINT("%16s : %.1fKB/s-%.1fMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
     PRINT("%16s : %lu/s\n", "request rate", (suc_num * 1000) / msdiff);
     if (suc_num > 0) {
         PRINT("%16s : %lums[max:%ums, min:%ums]\n", "latency", total_time / suc_num, max_latency, min_latency);
@@ -663,8 +665,10 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
             }
 
             fprintf(fp,
-                    "\"%s\"," "\"%s\"," "\"%lu\"," "\"%u\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\","
-                    "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%lu\"," "\"%u\"," "\"%u\"," "\"%s\"\n" ,
+                    "\"%s\"," "\"%s\"," "\"%lu\"," "\"%u\"," "\"%lu\"," "\"%lu\"," "\"%lu\","
+                    "\"%.1f\"," "\"%lu\"," "\"%.1f\"," "\"%.1f\","
+                    "\"%lu\"," "\"%lu\","
+                    "\"%u\"," "\"%u\"," "\"%s\"\n" ,
                     global_info->desc, last_url, global_info->agent_num, global_info->rampup, global_info->read_work_idx, error_num, suc_num,
                     total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),
                     (suc_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0),

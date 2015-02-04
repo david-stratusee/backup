@@ -120,7 +120,7 @@ typedef struct _thread_info_t {
     unsigned int min_latency;  /* total time for this work, unit ms */
     unsigned int max_latency;  /* total time for this work, unit ms */
     unsigned long succ_num;
-    unsigned long total_data_len;
+    double total_data_len;
 
     char sample_error[128];
     char *url_buffer;
