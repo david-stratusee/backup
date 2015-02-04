@@ -77,7 +77,7 @@ static inline unsigned long _get_one_work(global_info_t *global_info, thread_inf
     if (HAVE_WORK_AVAILABLE(global_info)) {
         unsigned long read_work_idx = atomic_inc_and_return(global_info->read_work_idx);
         thread_info->work_num++;
-        DUMP("[%s-%u]thread %u add one work, work_num is %u\n", func, line, thread_info->idx, thread_info->work_num);
+        DUMP("[%s-%u]thread %u add one work, work_num is %lu\n", func, line, thread_info->idx, thread_info->work_num);
         return read_work_idx;
     } else {
         return 0UL;
@@ -297,7 +297,7 @@ static int32_t check_available(CURLM *multi_handle, global_info_t *global_info, 
             DUMP("easy_handle %p is done, code: %u-%s, msg_left: %d\n",
                     easy_handle, msg->data.result, curl_easy_strerror(msg->data.result),
                     msgs_left);
-            DUMP("  %u:S[%u]-R[%u]-D[%u-%u]\n",
+            DUMP("  %u:S[%u]-R[%u]-D[%lu-%lu]\n",
                     thread_info->idx, thread_info->work_done, thread_info->still_running,
                     thread_info->work_num, thread_info->succ_num);
 
@@ -368,11 +368,11 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
     PRINT("[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            PRINT("  %u:S[%u]-R[%u]-D[%lu]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num);
+            PRINT("  %u:S[%u]-R[%u]-D[%lu-%lu]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num);
         } else {
-            PRINT("  %u:S[%u]-R[%u]-D[%lu]-E[%lu]-ES[%s]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num,
+            PRINT("  %u:S[%u]-R[%u]-D[%lu-%lu]-E[%lu]-ES[%s]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num,
                     thread_list[idx].error_num, thread_list[idx].sample_error);
             if (global_info->sample_error[0] == '\0') {
                 fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);
@@ -449,10 +449,10 @@ static void *pull_one_url(void *arg)
 
 #ifdef DEBUG
     if (thread_info->error_num == 0) {
-        PRINT("  %u:S[%u]-R[%u]-D[%u-%u]\n",
+        PRINT("  %u:S[%u]-R[%u]-D[%lu-%lu]\n",
                 thread_info->idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num);
     } else {
-        PRINT("  %u:S[%u]-R[%u]-D[%u-%u]-E[%u]-ES[%s]\n",
+        PRINT("  %u:S[%u]-R[%u]-D[%lu-%lu]-E[%lu]-ES[%s]\n",
                 thread_info->idx, thread_info->work_done, thread_info->still_running, thread_info->work_num, thread_info->succ_num,
                 thread_info->error_num, thread_info->sample_error);
     }
