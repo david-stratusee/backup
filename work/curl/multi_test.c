@@ -642,6 +642,7 @@ int main(int argc, char *argv[])
 
     setsignal(SIGINT, _sig_int);
     setsignal(SIGTERM, _sig_int);
+    signal(SIGPIPE, SIG_IGN);
 
     if (parse_cmd(argc, argv, &global_info) != 0) {
         return EXIT_FAILURE;
