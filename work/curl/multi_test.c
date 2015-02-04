@@ -34,7 +34,7 @@ do {    \
 
 #define PRINT(fmt, args...) \
 do {    \
-    fprintf(stdout, "[%s-%u]"fmt, __func__, __LINE__, ##args);  \
+    fprintf(stdout, fmt, ##args);  \
     fflush(stdout); \
 } while (0)
 
