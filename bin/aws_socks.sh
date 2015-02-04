@@ -86,9 +86,10 @@ function update_pac()
     has_wget=$1
     if [ $has_wget -eq 0 ]; then
         rm -f /tmp/proxy.pac
-        wget https://david-stratusee.github.io/proxy.pac -P /tmp/
+        wget -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
         if [ $? -eq 0 ]; then
             sudo mv /tmp/proxy.pac ${local_proxydir}/
+            echo proxy.pac is in ${local_proxydir}
         elif [ ! -f ${local_proxydir}/proxy.pac ]; then
             echo "can not get proxy.pac, exit..."
             return 1
