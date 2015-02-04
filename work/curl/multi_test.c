@@ -585,7 +585,8 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     }
 
     PRINT("----------------------\n");
-    PRINT("RESULT: \"%s\" \"%s\"\n", global_info->desc, last_url);
+    time_t now = time(NULL);
+    PRINT("RESULT: \"%s\" \"%s\" -- %s", global_info->desc, last_url, ctime(&now));
     PRINT("%16s : %lu\n", "request num", global_info->read_work_idx);
     PRINT("%16s : %lu\n", "error num", error_num);
     PRINT("%16s : %lu\n", "succ num", suc_num);

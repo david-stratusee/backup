@@ -39,7 +39,8 @@ do {    \
 void print_global_info(global_info_t *global_info)
 {
     fprintf(stdout, "----------------------\n");
-    fprintf(stdout, "GLOBAL INFO:\n");
+    time_t now = time(NULL);
+    fprintf(stdout, "GLOBAL INFO: %s", ctime(&now));
     PRINT_MEM_STR(global_info, desc);
     PRINT_MEM_LONG(global_info, work_num);
     PRINT_MEM_INT(global_info, cpu_num);
