@@ -46,7 +46,7 @@ static void _sig_int(int signum, siginfo_t *info, void *ptr)
     return;
 }
 
-size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
+static inline size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 {
     work_info_t *work_info = (work_info_t *)userp;
     size_t real_size = size * nmemb;
