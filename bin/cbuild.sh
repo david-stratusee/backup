@@ -64,7 +64,7 @@ while getopts 'd:a:g:h' opt; do
                 exit 1
             fi;;
         g)
-            CMAKE_ARG=$OPTARG
+            CMAKE_ARG=${CMAKE_ARG}" -D"$OPTARG
             ;;
         h) cbuild_help `basename $0`; exit 0;;
         ?) cbuild_help `basename $0`; exit 1;;
@@ -131,11 +131,7 @@ else
 fi
 
 if [ $diff_count -gt 0 ]; then
-    if [ "${CMAKE_ARG}" == "" ]; then
-        cmake ..
-    else
-        cmake -D${CMAKE_ARG} ..
-    fi
+    cmake${CMAKE_ARG} ..
     check_result $? cmake
 
     cp ../${CMAKE_LISTFILE} $BACKUP_CMAKELIST
