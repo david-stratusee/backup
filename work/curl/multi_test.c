@@ -125,7 +125,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
 
     add_no_cache_list_header();
 
-    int32_t idx = 0, jdx = 0, agent_num_per_sec_thread = 0;
+    uint32_t idx = 0, jdx = 0, agent_num_per_sec_thread = 0;
     work_info_t *work_info = NULL;
     thread_info_t *thread_info;
     unsigned long read_work_idx = 0UL;
@@ -181,7 +181,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
 
 static void thread_destroy(global_info_t *global_info, thread_info_t *thread_list)
 {
-    int idx = 0, jdx = 0;
+    uint32_t idx = 0, jdx = 0;
 
     DUMP("clear thread info\n");
 
