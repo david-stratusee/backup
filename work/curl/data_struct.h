@@ -77,6 +77,29 @@ typedef enum _THREAD_STATUS_EN {
     TSE_VERIFY,
 } THREAD_STATUS_EN;   /* -- end of THREAD_STATUS_EN -- */
 
+typedef enum _PROC_STATE_EN {
+    PS_INIT,
+    PS_WAIT,
+    PS_CHECK_AVAILABLE,
+    PS_PERFORM,
+    PS_CHECK_AVAILABLE_AGAIN,
+    PS_PERFORM_AGAIN,
+    PS_MAX
+} PROC_STATE_EN;   /* -- end of PROC_STATE_EN -- */
+#define PS_DESC(__NAME) [PS_##__NAME] = #__NAME
+#ifdef PS_DEFINED
+char *ps_desc[PS_MAX] = {
+    PS_DESC(INIT),
+    PS_DESC(WAIT),
+    PS_DESC(CHECK_AVAILABLE),
+    PS_DESC(PERFORM),
+    PS_DESC(CHECK_AVAILABLE_AGAIN),
+    PS_DESC(PERFORM_AGAIN),
+};
+#else
+extern char *ps_desc[PS_MAX];
+#endif
+
 /* Description: thread info */
 typedef struct _thread_info_t {
     pthread_t tid;
@@ -101,7 +124,8 @@ typedef struct _thread_info_t {
 
     char sample_error[128];
     char *url_buffer;
-    unsigned int url_buffer_len;
+    uint16_t url_buffer_len;
+    uint16_t proc_state;
     int numfds;
 } thread_info_t;   /* -- end of thread_info_t -- */
 

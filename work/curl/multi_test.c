@@ -4,6 +4,8 @@
  *        Created: 2015-01-20 16:28
  *         Author: dengwei david@stratusee.com
  ************************************************/
+#define PS_DEFINED
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -179,7 +181,7 @@ static inline thread_info_t *thread_init(global_info_t *global_info)
             curl_multi_setopt(thread_info->multi_handle, CURLMOPT_MAX_PIPELINE_LENGTH, global_info->pipline_batch_length);
         }
 
-        thread_info->url_buffer_len = sprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
+        thread_info->url_buffer_len = (uint16_t)sprintf(thread_info->url_buffer, "%s?id=", global_info->url[global_info->is_https]);
 
         agent_num_per_sec_thread = MIN(global_info->agent_num_per_sec_thread, global_info->agent_num_per_thread);
         for (jdx = 0; jdx < global_info->agent_num_per_thread; ++jdx) {
@@ -407,12 +409,16 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
     PRINT("[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            PRINT("  %u:S[%u]-R[%u-%d]-D[%lu-%lu]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].numfds, thread_list[idx].work_num, thread_list[idx].succ_num);
+            PRINT("  %u:S[%u]-R[%u-%d]-D[%lu-%lu]-[%s]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].numfds,
+                    thread_list[idx].work_num, thread_list[idx].succ_num,
+                    ps_desc[thread_list[idx].proc_state]);
         } else {
-            PRINT("  %u:S[%u]-R[%u-%d]-D[%lu-%lu]-E[%lu]-ES[%s]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].numfds, thread_list[idx].work_num, thread_list[idx].succ_num,
-                    thread_list[idx].error_num, thread_list[idx].sample_error);
+            PRINT("  %u:S[%u]-R[%u-%d]-D[%lu-%lu]-E[%lu]-ES[%s]-[%s]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].numfds,
+                    thread_list[idx].work_num, thread_list[idx].succ_num,
+                    thread_list[idx].error_num, thread_list[idx].sample_error,
+                    ps_desc[thread_list[idx].proc_state]);
             if (global_info->sample_error[0] == '\0') {
                 fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);
             }
@@ -454,6 +460,9 @@ static void *pull_one_url(void *arg)
     do {
         /* wait for activity, timeout or "nothing" */
         thread_info->numfds = 0;
+
+        thread_info->proc_state = PS_WAIT;
+
         mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 100, &(thread_info->numfds));
         if (mc != CURLM_OK) {
             fprintf(stderr, "[%u]curl_multi_fdset() failed, code %d.\n", thread_info->idx, mc);
@@ -463,16 +472,21 @@ static void *pull_one_url(void *arg)
         DUMP("[%u]get still_running: %u, multi_handle: %p, numfds: %u, calc_num: %u, alloc_agent_num: %u\n",
                 thread_info->idx, thread_info->still_running, thread_info->multi_handle, thread_info->numfds, calc_num, thread_info->alloc_agent_num);
 
+        thread_info->proc_state = PS_CHECK_AVAILABLE;
+
         if (thread_info->numfds || check_available(thread_info->multi_handle, global_info, thread_info) > 0 || calc_num >= 30) {
             calc_num = 0;
 
+            thread_info->proc_state = PS_PERFORM;
             if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK) {
                 fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
                 break;
             }
 
 #if 1
+            thread_info->proc_state = PS_CHECK_AVAILABLE_AGAIN;
             if (check_available(thread_info->multi_handle, global_info, thread_info) > 0) {
+                thread_info->proc_state = PS_PERFORM_AGAIN;
                 if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK) {
                     fprintf(stderr, "[%u-%lu-%u]error when call curl_multi_perform\n", thread_info->idx, time(NULL), __LINE__);
                     break;
