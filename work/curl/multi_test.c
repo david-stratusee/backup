@@ -101,6 +101,9 @@ static CURL *curl_handle_init(global_info_t *global_info, work_info_t *work_info
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
     curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+    if (global_info->debug_level == DEBUG_LIBCURL) {
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    }
 
     if (global_info->is_https) {
         curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);

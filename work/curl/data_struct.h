@@ -39,6 +39,12 @@ typedef enum _DO_EXIT_EN {
     G_FORCE_EXIT
 } DO_EXIT_EN;   /* -- end of DO_EXIT_EN -- */
 
+typedef enum _DEBUG_LEVEL_EN {
+    NO_DEBUG,
+    DEBUG_LIBCURL,
+    DEBUG_SELF,
+} DEBUG_LEVEL_EN;   /* -- end of DEBUG_LEVEL_EN -- */
+
 #define MAX_URL_LEN 256
 #define DFT_PIPELINE_BATCH_LENGTH 8
 #define NO_PIPELINE_BATCH_LENGTH  1
@@ -59,7 +65,8 @@ typedef struct _global_info_t {
     uint16_t agent_num_per_sec_thread;
     char sample_error[128];
     char desc[128];
-    char output_filename[128];
+    char output_filename[127];
+    uint8_t debug_level;
 } global_info_t;   /* -- end of global_info_t -- */
 #define HAVE_WORK_AVAILABLE(global_info) \
     (global_info->do_exit == G_RUNNING && ((global_info)->work_num == 0 || (global_info)->read_work_idx < (global_info)->work_num))

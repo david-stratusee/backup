@@ -16,15 +16,16 @@ static void show_help(void)
     fprintf(stdout, "USAGE: \n\t-q for request num"
                   "\n\t-a for agent num"
                   "\n\t-b for pipeline length, default is %u"
-                  "\n\t-s for https test"
-                  "\n\t-f for config file"
                   "\n\t-d for desc"
-                  "\n\t-n for set thread num per cpu, default is %u"
                   "\n\t-D for daemon mode, and output to daemon_out.log"
+                  "\n\t-f for config file"
+                  "\n\t-n for set thread num per cpu, default is %u"
+                  "\n\t-o output file\n"
                   "\n\t-r for rampup, unit second"
+                  "\n\t-s for https test"
                   "\n\t-t for testing time, unit second"
-                  "\n\t-o output file\n",
-                  DFT_PIPELINE_BATCH_LENGTH, THREADNUM_PER_CPU);
+                  "\n\t-v for verbose debug, 0 for no debug, 1 for debug libcurl"
+                  , DFT_PIPELINE_BATCH_LENGTH, THREADNUM_PER_CPU);
 }
 
 #define PRINT_MEM_INT(__stru, __memb)    fprintf(stdout, "  %s: %u\n", #__memb, (__stru)->__memb)
@@ -51,6 +52,7 @@ void print_global_info(global_info_t *global_info)
     PRINT_MEM_STR(global_info, url[HTTP_TYPE]);
     PRINT_MEM_STR(global_info, url[HTTPS_TYPE]);
     PRINT_MEM_INT(global_info, is_https);
+    PRINT_MEM_INT(global_info, debug_level);
     fprintf(stdout, "----------------------\n");
 }
 
@@ -63,20 +65,8 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 
     while ((opt = getopt(argc, argv, "n:o:d:r:q:a:t:f:b:hsD")) != -1) {
         switch (opt) {
-            case 'D':
-                is_daemon = true;
-                break;
-
-            case 'o':
-                fix_strcpy_s(global_info->output_filename, optarg);
-                break;
-
-            case 'd':
-                fix_strcpy_s(global_info->desc, optarg);
-                break;
-
-            case 'r':
-                global_info->rampup = (uint16_t)atoi(optarg);
+            case 'a':
+                global_info->agent_num = atoi(optarg);
                 break;
 
             case 'b':
@@ -86,24 +76,12 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
                 }
                 break;
 
-            case 'q':
-                global_info->work_num = atoi(optarg);
+            case 'd':
+                fix_strcpy_s(global_info->desc, optarg);
                 break;
 
-            case 'a':
-                global_info->agent_num = atoi(optarg);
-                break;
-
-            case 'n':
-                threadnum_per_cpu = atoi(optarg);
-                break;
-
-            case 't':
-                global_info->during_time = atoi(optarg);
-                break;
-
-            case 's':
-                global_info->is_https = true;
+            case 'D':
+                is_daemon = true;
                 break;
 
             case 'f':
@@ -121,6 +99,39 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
 
                     break;
                 }
+
+            case 'n':
+                threadnum_per_cpu = atoi(optarg);
+                break;
+
+            case 'o':
+                fix_strcpy_s(global_info->output_filename, optarg);
+                break;
+
+            case 'q':
+                global_info->work_num = atoi(optarg);
+                break;
+
+            case 'r':
+                global_info->rampup = (uint16_t)atoi(optarg);
+                break;
+
+            case 's':
+                global_info->is_https = true;
+                break;
+
+            case 'v':
+                global_info->debug_level = atoi(optarg);
+                if (global_info->debug_level > DEBUG_LIBCURL) {
+                    fprintf(stdout, "error when parse debug level[%s], value must be less than %u\n", optarg, DEBUG_LIBCURL + 1);
+                    show_help();
+                    return -1;
+                }
+                break;
+
+            case 't':
+                global_info->during_time = atoi(optarg);
+                break;
 
             case 'h':
             default:
