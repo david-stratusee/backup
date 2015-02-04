@@ -64,7 +64,7 @@ int32_t parse_cmd(int argc, char **argv, global_info_t *global_info)
     int32_t threadnum_per_cpu = THREADNUM_PER_CPU;
     global_info->pipline_batch_length = DFT_PIPELINE_BATCH_LENGTH;
 
-    while ((opt = getopt(argc, argv, "n:o:d:r:q:a:t:f:b:hsD")) != -1) {
+    while ((opt = getopt(argc, argv, "a:b:d:f:n:o:q:r:t:v:hsD")) != -1) {
         switch (opt) {
             case 'a':
                 global_info->agent_num = atoi(optarg);
