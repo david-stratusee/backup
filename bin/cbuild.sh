@@ -39,13 +39,13 @@ function check_result()
 
 function cbuild_help()
 {
-    echo "Usage: $1 [-a (clean|install|uninstall)] [-d project_dir] [-g argument-for-cmake]"
+    echo "Usage: $1 [-a (clean|install|uninstall)] [-d project_dir] [-q] [-g argument-for-cmake]"
     echo "       default action is only make"
 
     exit 0
 }
 
-while getopts 'd:a:g:h' opt; do
+while getopts 'd:a:g:hq' opt; do
     case $opt in
         a) 
             case $OPTARG in
@@ -65,6 +65,9 @@ while getopts 'd:a:g:h' opt; do
             fi;;
         g)
             CMAKE_ARG=${CMAKE_ARG}" -D"$OPTARG
+            ;;
+        q)
+            CMAKE_ARG=${CMAKE_ARG}" -DVERBOSE=quiet"
             ;;
         h) cbuild_help `basename $0`; exit 0;;
         ?) cbuild_help `basename $0`; exit 1;;
