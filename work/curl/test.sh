@@ -21,6 +21,8 @@ agent=400
 rampup=10
 during=60
 
+ulimit -c unlimited
+
 list="ds_512.txt ds_100k.txt ds_1k.txt ds_10k.txt"
 
 echo ./multi_test -f data/ds_512.txt -a 400 -t 10 -d "preview"

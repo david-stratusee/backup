@@ -371,11 +371,11 @@ static void print_thread_info(thread_info_t *thread_list, global_info_t *global_
     PRINT("[%u-%lu]do_exit:%u, threads info:\n", print_thread_count++, time(NULL), global_info->do_exit);
     for (idx = 0; idx < global_info->thread_num; idx++) {
         if (thread_list[idx].error_num == 0) {
-            PRINT("  %u:S[%u]-R[%u]-D[%lu-%lu]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num);
+            PRINT("  %u:S[%u]-R[%u-%d]-D[%lu-%lu]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].numfds, thread_list[idx].work_num, thread_list[idx].succ_num);
         } else {
-            PRINT("  %u:S[%u]-R[%u]-D[%lu-%lu]-E[%lu]-ES[%s]\n",
-                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].work_num, thread_list[idx].succ_num,
+            PRINT("  %u:S[%u]-R[%u-%d]-D[%lu-%lu]-E[%lu]-ES[%s]\n",
+                    idx, thread_list[idx].work_done, thread_list[idx].still_running, thread_list[idx].numfds, thread_list[idx].work_num, thread_list[idx].succ_num,
                     thread_list[idx].error_num, thread_list[idx].sample_error);
             if (global_info->sample_error[0] == '\0') {
                 fix_strcpy_s(global_info->sample_error, thread_list[idx].sample_error);
@@ -407,7 +407,6 @@ static void *pull_one_url(void *arg)
     pthread_set_ignore_sig(ignore_sig, sizeof(ignore_sig) / sizeof(int));
 
     CURLMcode mc; /* curl_multi_wait() return code */
-    int numfds;
     int calc_num = 0;
 
     if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK || thread_info->still_running < 0) {
@@ -418,16 +417,17 @@ static void *pull_one_url(void *arg)
     DUMP("get still_running: %u, multi_handle: %p\n", thread_info->still_running, thread_info->multi_handle);
     do {
         /* wait for activity, timeout or "nothing" */
-        mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 100, &numfds);
+        thread_info->numfds = 0;
+        mc = curl_multi_wait(thread_info->multi_handle, NULL, 0, 100, &(thread_info->numfds));
         if (mc != CURLM_OK) {
             fprintf(stderr, "[%u]curl_multi_fdset() failed, code %d.\n", thread_info->idx, mc);
             break;
         }
 
         DUMP("[%u]get still_running: %u, multi_handle: %p, numfds: %u, calc_num: %u, alloc_agent_num: %u\n",
-                thread_info->idx, thread_info->still_running, thread_info->multi_handle, numfds, calc_num, thread_info->alloc_agent_num);
+                thread_info->idx, thread_info->still_running, thread_info->multi_handle, thread_info->numfds, calc_num, thread_info->alloc_agent_num);
 
-        if (numfds || check_available(thread_info->multi_handle, global_info, thread_info) > 0 || calc_num >= 30) {
+        if (thread_info->numfds || check_available(thread_info->multi_handle, global_info, thread_info) > 0 || calc_num >= 30) {
             calc_num = 0;
 
             if (curl_multi_perform_cont(thread_info->multi_handle, &(thread_info->still_running), global_info) != CURLM_OK) {
