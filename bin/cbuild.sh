@@ -19,6 +19,7 @@ UNINSTALL_FLAG=2
 INSTALL_FLAG=3
 GET_ACTION=0
 CUR_DIR=`pwd`
+CMAKE_ARG=""
 
 function cexit()
 {
@@ -38,13 +39,13 @@ function check_result()
 
 function cbuild_help()
 {
-    echo "Usage: $1 [-a (clean|install|uninstall)] [-d project_dir]"
+    echo "Usage: $1 [-a (clean|install|uninstall)] [-d project_dir] [-g argument-for-cmake]"
     echo "       default action is only make"
 
     exit 0
 }
 
-while getopts 'd:a:h' opt; do
+while getopts 'd:a:g:h' opt; do
     case $opt in
         a) 
             case $OPTARG in
@@ -62,6 +63,9 @@ while getopts 'd:a:h' opt; do
                 echo "the directory $OPTARG does not exist, exit ..."
                 exit 1
             fi;;
+        g)
+            CMAKE_ARG=$OPTARG
+            ;;
         h) cbuild_help `basename $0`; exit 0;;
         ?) cbuild_help `basename $0`; exit 1;;
     esac
@@ -127,7 +131,11 @@ else
 fi
 
 if [ $diff_count -gt 0 ]; then
-    cmake ..
+    if [ "${CMAKE_ARG}" == "" ]; then
+        cmake ..
+    else
+        cmake -D${CMAKE_ARG} ..
+    fi
     check_result $? cmake
 
     cp ../${CMAKE_LISTFILE} $BACKUP_CMAKELIST
