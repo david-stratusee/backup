@@ -16,4 +16,6 @@ if [ ! -f ./gprof/gprof-helper.so ]; then
     cd ..
 fi
 
+cbuild.sh -c
+cbuild.sh -q -g "TYPES=gprof"
 time LD_PRELOAD=./gprof/gprof-helper.so ./multi_test $@
