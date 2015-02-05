@@ -20,11 +20,11 @@ static void show_help(void)
                   "\n\t-D for daemon mode, and output to daemon_out.log"
                   "\n\t-f for config file"
                   "\n\t-n for set thread num per cpu, default is %u"
-                  "\n\t-o output file\n"
+                  "\n\t-o output file"
                   "\n\t-r for rampup, unit second"
                   "\n\t-s for https test"
                   "\n\t-t for testing time, unit second"
-                  "\n\t-v for verbose debug, 0 for no debug, 1 for debug libcurl"
+                  "\n\t-v for verbose debug, 0 for no debug, 1 for debug libcurl\n"
                   , DFT_PIPELINE_BATCH_LENGTH, THREADNUM_PER_CPU);
 }
 
