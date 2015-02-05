@@ -215,9 +215,7 @@ elif [ "${MODE}" == "normal" ]; then
         fi
     fi
 
-    echo start socks
     fill_and_run_proxy
-
     sudo networksetup -setautoproxystate ${ETH} on
 fi
 show_proxy
