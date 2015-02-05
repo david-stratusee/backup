@@ -1,7 +1,11 @@
-
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_C_FLAGS "-O2 -g -Wall -Werror -Wextra -finline-functions -Wno-unused-parameter -Wno-unused-result -Wno-override-init -Wformat-y2k -Wformat-security -Bsymbolic -fno-omit-frame-pointer -DUSE_JEMALLOC")
+if (${TYPES} MATCHES "debug")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DDEBUG")
+elseif (${TYPES} MATCHES "gprof")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pg -static-libgcc")
+endif()
 
 if (APPLE)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMACOS")
