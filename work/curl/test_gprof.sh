@@ -19,3 +19,5 @@ fi
 cbuild.sh -a clean
 cbuild.sh -q -g "TYPES=gprof"
 time LD_PRELOAD=./gprof/gprof-helper.so ./multi_test $@
+cbuild.sh -a clean
+cbuild.sh -q
