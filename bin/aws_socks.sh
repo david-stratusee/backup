@@ -31,8 +31,7 @@ function show_proxy()
     echo "pac_proxy state:"
     networksetup -getautoproxyurl ${ETH}
     echo ===========================
-    ps -ef | grep "ssh -D" | grep -v grep
-    ps -ef | grep "watch_socks" | grep -v grep
+    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|httpd)"
     echo ===========================
 }
 
@@ -48,8 +47,8 @@ function kill_process()
 {
     pidc=`ps -ef | grep -v grep | grep -c "$@"`
     if [ $pidc -gt 0 ]; then
-        echo "kill $@"
         sshpid=`ps -ef | grep "$@" | grep -v grep | awk '{print $2}'`
+        echo "kill $@, pid: ${sshpid}"
         kill $sshpid
     fi
 }
