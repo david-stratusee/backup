@@ -100,10 +100,25 @@ function update_pac()
     return 0
 }
 
+function aws_socks_help()
+{
+    echo "------------------------------------"
+    echo "Help Usage: "
+    echo "-c for clear socks proxy"
+    echo "-l for query socks proxy"
+    echo "-f for local file for pac, only for Safari"
+    echo "-i ip for set socks proxy and http proxy"
+    echo "-p to set socks proxy's host_port, format: proxy:port"
+    print_avail_host
+    echo "no args for set socks proxy and DIRECT"
+    echo "------------------------------------"
+}
+
 IP=""
 MODE="normal"
+restart=0
 use_local_web=1
-while getopts 'e:p:i:hclf' opt; do
+while getopts 'e:p:i:hcrlf' opt; do
     case $opt in
         e) 
             ETH=$OPTARG
@@ -119,11 +134,16 @@ while getopts 'e:p:i:hclf' opt; do
         f)
             use_local_web=0
             ;;
-        c)
+        c|r)
             if [ "${MODE}" == "normal" ]; then
                 MODE="clear"
+                if [ "$opt" == 'r' ]; then
+                    restart=1
+                fi
             else
                 echo "clear and query mode should not be used at same time"
+                aws_socks_help
+                exit 1
             fi
             ;;
         l)
@@ -131,6 +151,8 @@ while getopts 'e:p:i:hclf' opt; do
                 MODE="query"
             else
                 echo "clear and query mode should not be used at same time"
+                aws_socks_help
+                exit 1
             fi
             ;;
         p)
@@ -143,21 +165,13 @@ while getopts 'e:p:i:hclf' opt; do
                     host_port=$OPTARG
                 else
                     echo "invalid host_port format"
-                    $0 -h
+                    aws_socks_help
+                    exit 1
                 fi
             fi
             ;;
         h|*)
-            echo "------------------------------------"
-            echo "Help Usage: "
-            echo "-c for clear socks proxy"
-            echo "-l for query socks proxy"
-            echo "-f for local file for pac, only for Safari"
-            echo "-i ip for set socks proxy and http proxy"
-            echo "-p to set socks proxy's host_port, format: proxy:port"
-            print_avail_host
-            echo "no args for set socks proxy and DIRECT"
-            echo "------------------------------------"
+            aws_socks_help
             exit 0
     esac
 done
@@ -177,7 +191,13 @@ if [ "${MODE}" == "clear" ]; then
         sudo apachectl graceful-stop
     fi
     sudo networksetup -setautoproxystate ${ETH} off
-elif [ "${MODE}" == "normal" ]; then
+
+    if [ ${restart} -gt 0 ]; then
+        MODE="normal"
+    fi
+fi
+
+if [ "${MODE}" == "normal" ]; then
     which wget >/dev/null
     has_wget=$?
 
