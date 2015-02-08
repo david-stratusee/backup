@@ -642,7 +642,7 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
     PRINT("%16s : %lu\n", "request num", global_info->read_work_idx);
     PRINT("%16s : %lu\n", "error num", error_num);
     PRINT("%16s : %lu\n", "succ num", suc_num);
-    PRINT("%16s : %f\n", "total length", total_length);
+    PRINT("%16s : %.1f\n", "total length", total_length);
     PRINT("%16s : %lu\n", "total time(ms)", msdiff);
     PRINT("%16s : %.1fKB/s-%.1fMB/s\n", "throughput", (total_length) / (msdiff), (total_length) / (msdiff * 1024));
     PRINT("%16s : %lu/s\n", "request rate", (suc_num * 1000) / msdiff);
