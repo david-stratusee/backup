@@ -32,7 +32,7 @@ function check_result()
     fi
 }
 
-WGET_CMD="wget -c"
+WGET_CMD="wget -nv -c"
 
 function prepare_target_dir()
 {
