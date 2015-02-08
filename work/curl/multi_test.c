@@ -657,22 +657,30 @@ static void calc_stat(global_info_t *global_info, thread_info_t *thread_list, un
         if (fp) {
             if (!file_exist) {
                 fprintf(fp,
-                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
-                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\"\n",
-                        "desc", "req url", "agent num", "rampup", "req num", "err num", "suc num", "total len", "total ms", "perf KB", "perf MB",
-                        "req rate", "latency avg", "latency max", "latency min", "err str"
-                );
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
+                        "\"%s\"," "\"%s\"," "\"%s\"," "\"%s\","
+                        "\"%s\"," "\"%s\"\n",
+                        "desc", "url", "agentN", "pipeline",
+                        "threadN", "rampup", "reqN", "sucN",
+                        "Tlen", "Tms", "perf[K]", "perf[M]",
+                        "req[N/s]", "latency(a)", "latency(x)", "latency(n)",
+                        "errN", "estr"
+                       );
             }
 
             fprintf(fp,
-                    "\"%s\"," "\"%s\"," "\"%lu\"," "\"%u\"," "\"%lu\"," "\"%lu\"," "\"%lu\","
+                    "\"%s\"," "\"%s\"," "\"%lu\"," "\"%lu\","
+                    "\"%u\"," "\"%u\"," "\"%lu\"," "\"%lu\","
                     "\"%.1f\"," "\"%lu\"," "\"%.1f\"," "\"%.1f\","
-                    "\"%lu\"," "\"%lu\","
-                    "\"%u\"," "\"%u\"," "\"%s\"\n" ,
-                    global_info->desc, last_url, global_info->agent_num, global_info->rampup, global_info->read_work_idx, error_num, suc_num,
-                    total_length, msdiff, (total_length) / (msdiff), (total_length) / (msdiff * 1024),
-                    (suc_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0),
-                    max_latency, min_latency, global_info->sample_error
+                    "\"%lu\"," "\"%lu\"," "\"%u\"," "\"%u\","
+                    "\"%lu\"," "\"%s\"\n" ,
+                    global_info->desc, last_url, global_info->agent_num, global_info->pipline_batch_length,
+                    global_info->thread_num / global_info->cpu_num, global_info->rampup, global_info->read_work_idx, suc_num,
+                    total_length, msdiff, (total_length * 1000) / (msdiff * 1024), (total_length * 1000) / (msdiff * 1024 * 1024),
+                    (suc_num * 1000) / msdiff, (suc_num > 0 ? total_time / suc_num : 0), max_latency, min_latency,
+                    error_num, global_info->sample_error
                    );
             fclose(fp);
         }
