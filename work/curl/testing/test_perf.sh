@@ -9,6 +9,7 @@
 #===============================================================================
 
 set${userstr} -o nounset                              # Treat unset variables as an error
+ulimit -c unlimited
 
 args="-a 40 -n 8 -b 8 -t 600"
 #list="ds_512.txt ds_100k.txt ds_1k.txt ds_10k.txt"
