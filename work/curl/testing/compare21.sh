@@ -21,25 +21,25 @@ echo ${desc}
 
 ulimit -c unlimited
 
-~/add_route_2.sh del
+./add_route_2.sh del
 
-~/add_route_3.sh
+./add_route_3.sh
 ./test.sh $args -d "2c_"${desc}
-~/add_route_3.sh del
+./add_route_3.sh del
 
 ./test.sh $args -d "direct"
 
-~/add_route_2.sh
+./add_route_2.sh
 ./test.sh $args -d "1c_"${desc}
-~/add_route_2.sh del
+./add_route_2.sh del
 
-~/add_route_3.sh
+./add_route_3.sh
 ./test.sh $args -s -d "s_2c_"${desc}
-~/add_route_3.sh del
+./add_route_3.sh del
 
 ./test.sh $args -d "s_direct" -s
 
-~/add_route_2.sh
+./add_route_2.sh
 ./test.sh $args -s -d "s_1c_"${desc}
-~/add_route_2.sh del
+./add_route_2.sh del
 
