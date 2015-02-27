@@ -33,6 +33,11 @@ function show_proxy()
     echo ===========================
     ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|httpd)"
     echo ===========================
+    if [ -f /tmp/watch_socks.log ]; then
+        echo "/tmp/watch_socks.log:"
+        cat /tmp/watch_socks.log
+        echo ===========================
+    fi
 }
 
 function fill_and_run_proxy()
