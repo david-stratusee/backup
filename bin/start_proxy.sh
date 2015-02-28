@@ -103,16 +103,16 @@ while getopts 'p:hcl' opt; do
     esac
 done
 
-rm -f /tmp/proxy.pac
-wget --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
-sudo cp -f /tmp/proxy.pac /etc/polipo/proxy.pac
+clear_proxy
+
+#rm -f /tmp/proxy.pac
+#wget --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
+#sudo cp -f /tmp/proxy.pac /etc/polipo/proxy.pac
 
 remote_host=`echo ${host_port} | awk -F":" '{print $1}'`
 remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
 ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} >>/tmp/watch_socks.log 2>&1 &
-
-sudo pkill polipo
+#sudo /usr/local/bin/polipo logLevel=0xFF
 sudo /usr/local/bin/polipo
 
-sudo /usr/local/squid/sbin/squid -k kill
 sudo nohup proxychains4 /usr/local/squid/sbin/squid -d 3 -N 1>/dev/null 2>&1 &
