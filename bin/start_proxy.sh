@@ -115,4 +115,4 @@ sudo pkill polipo
 sudo /usr/local/bin/polipo
 
 sudo /usr/local/squid/sbin/squid -k kill
-sudo proxychains4 /usr/local/squid/sbin/squid -d 3 -N 1>/dev/null 2>&1 &
+sudo nohup proxychains4 /usr/local/squid/sbin/squid -d 3 -N 1>/dev/null 2>&1 &
