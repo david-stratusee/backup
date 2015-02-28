@@ -14,6 +14,11 @@ username=david
 available_host_port=("dev-aie.stratusee.com:22" "dev-aie3.stratusee.com:22" "us.stratusee.com:2221")
 host_port=${available_host_port[0]}
 
+function show_proxy_stat()
+{
+    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|polipo|squid)"
+}
+
 function kill_process()
 {
     pidc=`ps -ef | grep -v grep | grep -c "$@"`
@@ -78,7 +83,7 @@ while getopts 'p:hcl' opt; do
             exit 0
             ;;
         l)
-            ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|polipo|squid)"
+            show_proxy_stat
             exit 0
             ;;
         p)
@@ -115,4 +120,7 @@ ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} >>/tmp/watc
 #sudo /usr/local/bin/polipo logLevel=0xFF
 sudo /usr/local/bin/polipo
 
+sudo /usr/local/squid/sbin/squid -k kill
 sudo nohup proxychains4 /usr/local/squid/sbin/squid -d 3 -N 1>/dev/null 2>&1 &
+
+show_proxy_stat
