@@ -10,7 +10,7 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-cp -f hosts hosts.all
+rm -f hosts.all
 while read line; do
     echo $line
     ipslist=`dig $line | grep -E "[	 ]A[	 ]" | awk '{print $5}'`
