@@ -47,8 +47,12 @@
 127.0.0.1        daviddeMacBook-Air
 255.255.255.255	broadcasthost
 ::1             localhost 
-
 # Section End: Localhost
+#
+# self-defined
+192.168.101.101 aie.centos
+192.168.101.102 aie.ubuntu
+54.174.83.125   dev-perf.stratusee.com
 
 # Section Start: huhamhire-hosts
 192.184.89.121   hosts.huhamhire.com
