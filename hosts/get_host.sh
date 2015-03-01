@@ -17,11 +17,3 @@ else
 fi
 
 grep -v "^#" ${hostname} | grep -v 127.0.0.1 | grep -v "::1" | grep -v "^$" | grep -v "255.255.255.255" | grep -v "aie\." | grep -v "stratusee" | awk '{print $2}' | uniq >domain.list
-
-while read line; do
-    echo $line
-    ipslist=`dig $line | grep "	A	" | awk '{print $5}'`
-	for ip in ${ipslist}; do
-		echo -e "$ip\t$line" >>hosts.new
-	done
-done <domain.list
