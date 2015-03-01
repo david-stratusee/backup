@@ -16,4 +16,5 @@ else
     hostname=$1
 fi
 
+dos2unix ${hostname}
 grep -v "^#" ${hostname} | grep -v 127.0.0.1 | grep -v "::1" | grep -v "^$" | grep -v "255.255.255.255" | grep -v "aie\." | grep -v "stratusee" | awk '{print $2}' | uniq >domain.list
