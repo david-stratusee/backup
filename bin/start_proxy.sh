@@ -11,8 +11,8 @@
 set -o nounset                              # Treat unset variables as an error
 
 username=david
-available_host_port=("dev-aie.stratusee.com:22" "dev-aie3.stratusee.com:22" "us.stratusee.com:2221")
-host_port=${available_host_port[0]}
+available_host_port=("dev-aie.stratusee.com:22" "dev-aie2.stratusee.com:22" "us.stratusee.com:2221")
+host_port=${available_host_port[2]}
 
 function show_proxy_stat()
 {
@@ -121,6 +121,8 @@ ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} >>/tmp/watc
 sudo /usr/local/bin/polipo
 
 sudo /usr/local/squid/sbin/squid -k kill
-sudo nohup proxychains4 /usr/local/squid/sbin/squid -d 3 -N 1>/dev/null 2>&1 &
+sudo nohup proxychains4 /usr/local/squid/sbin/squid -d 3 -N 1>>/tmp/squid.log 2>&1 &
 
+echo "show state:"
+sleep 2
 show_proxy_stat
