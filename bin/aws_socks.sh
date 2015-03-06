@@ -21,6 +21,7 @@ available_host_port=("dev-aie.stratusee.com:22" "dev-aie2.stratusee.com:22" "us.
 host_port=${available_host_port[2]}
 
 ETH="Wi-Fi"
+aliveinterval=0
 #-------------------------------------------------------------------------------
 # config end
 #-------------------------------------------------------------------------------
@@ -46,7 +47,7 @@ function fill_and_run_proxy()
     remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
 
     nslookup ${remote_host} >/tmp/watch_socks.log
-    ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} >>/tmp/watch_socks.log 2>&1 &
+    ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
 }
 
 function kill_process()
@@ -62,7 +63,7 @@ function kill_process()
 function print_avail_host()
 {
     nhost=0
-    echo "available socks host:port is:[${#available_host_port[*]}]"
+    echo "available socks host-port is:[${#available_host_port[*]}]"
     for node in ${available_host_port[*]}; do
         if [ "${host_port}" == "${node}" ]; then
             echo " [${nhost}] $node [***]"
@@ -109,12 +110,15 @@ function update_pac()
 function aws_socks_help()
 {
     echo "------------------------------------"
-    echo "Help Usage: "
-    echo "-c for clear socks proxy"
-    echo "-l for query socks proxy"
-    echo "-f for local file for pac, only for Safari"
-    echo "-i ip for set socks proxy and http proxy"
-    echo "-p to set socks proxy's host_port, format: proxy:port"
+    echo "Help Usage     : "
+    echo "-a NUM         : set ServerAliveInterval for sshtunnel, default 0, recommand 7200"
+    echo "-c             : for clear socks proxy"
+    echo "-r             : for reboot socks proxy"
+    echo "-e ETH         : for ETH-TYPE, default Wi-Fi, only used by MacOS"
+    echo "-f             : for local file for pac, only for Safari"
+    echo "-l             : for query socks proxy"
+    echo "-i IP          : for set socks proxy and http proxy"
+    echo "-p NUM|IP:PORT : set socks proxy's host_port"
     print_avail_host
     echo "no args for set socks proxy and DIRECT"
     echo "------------------------------------"
@@ -124,10 +128,16 @@ IP=""
 MODE="normal"
 restart=0
 use_local_web=1
-while getopts 'e:p:i:hcrlf' opt; do
+while getopts 'a:e:p:i:hcrlf' opt; do
     case $opt in
+        a)
+            aliveinterval=$OPTARG
+            ;;
         e) 
             ETH=$OPTARG
+            ;;
+        f)
+            use_local_web=0
             ;;
         i)  
             IP=$OPTARG
@@ -136,9 +146,6 @@ while getopts 'e:p:i:hcrlf' opt; do
                 echo "${IP} is unreachable"
                 exit 1
             fi
-            ;;
-        f)
-            use_local_web=0
             ;;
         c|r)
             if [ "${MODE}" == "normal" ]; then
