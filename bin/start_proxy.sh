@@ -14,6 +14,8 @@ username=david
 available_host_port=("dev-aie.stratusee.com:22" "dev-aie2.stratusee.com:22" "us.stratusee.com:2221")
 host_port=${available_host_port[2]}
 
+aliveinterval=0
+
 function show_proxy_stat()
 {
     ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|polipo|squid)"
@@ -74,16 +76,20 @@ function start_proxy_help()
 {
     echo "------------------------------------"
     echo "Help Usage: "
-    echo "-c for clear proxy"
-    echo "-l for query proxy"
-    echo "-p to set socks proxy's host_port, format: proxy:port"
+    echo "-a NUM         : set ServerAliveInterval for sshtunnel, default 0, recommand 7200"
+    echo "-c             : for clear socks proxy"
+    echo "-l             : for query socks proxy"
+    echo "-p NUM|IP:PORT : set socks proxy's host_port"
     print_avail_host
     echo "no args for set proxy"
     echo "------------------------------------"
 }
 
-while getopts 'p:hcl' opt; do
+while getopts 'a:p:hcl' opt; do
     case $opt in
+        a)
+            aliveinterval=$OPTARG
+            ;;
         c)
             clear_proxy
             exit 0
@@ -123,7 +129,7 @@ clear_proxy
 remote_host=`echo ${host_port} | awk -F":" '{print $1}'`
 remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
 nslookup ${remote_host} >/tmp/watch_socks.log
-${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} >>/tmp/watch_socks.log 2>&1 &
+${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
 #sudo /usr/local/bin/polipo logLevel=0xFF
 sudo /usr/local/bin/polipo
 
