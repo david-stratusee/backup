@@ -17,6 +17,12 @@ host_port=${available_host_port[2]}
 function show_proxy_stat()
 {
     ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|polipo|squid)"
+    echo ===========================
+    if [ -f /tmp/watch_socks.log ]; then
+        echo "/tmp/watch_socks.log:"
+        grep "ssh -D" /tmp/watch_socks.log
+        echo ===========================
+    fi
 }
 
 function kill_process()
@@ -116,6 +122,7 @@ clear_proxy
 
 remote_host=`echo ${host_port} | awk -F":" '{print $1}'`
 remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
+nslookup ${remote_host} >/tmp/watch_socks.log
 ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} >>/tmp/watch_socks.log 2>&1 &
 #sudo /usr/local/bin/polipo logLevel=0xFF
 sudo /usr/local/bin/polipo
