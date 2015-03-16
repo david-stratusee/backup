@@ -10,13 +10,13 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-rm -f hosts.all
 while read line; do
     echo $line
     ipslist=`dig $line | grep -E "[	 ]A[	 ]" | awk '{print $5}'`
 	for ip in ${ipslist}; do
-		echo -e "$ip\t$line" >>hosts.all
+		echo -e "$ip\t$line" >>hosts.all.bak
 	done
 done <$1
 
-
+sort hosts.all.bak >hosts.all
+rm -f hosts.all.bak
