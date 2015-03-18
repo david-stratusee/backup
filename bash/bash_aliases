@@ -5,6 +5,7 @@ alias pss='ps axfo user,pid,pcpu,pmem,rss,nlwp,psr,stat,start_time,bsdtime,wchan
 alias psm='pss | grep -v grep | egrep --color=auto "(squid|resmgr|icap|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|COMMAND)"'
 alias pst='pidstat -t | egrep --color=auto "(squid|resmgr|icap|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|CPU)"'
 alias pstree='pstree -ap'
+alias tcpdump='tcpdump -nK -s 0'
 
 alias echo='echo -e'
 alias yacc='yacc -d -l'
