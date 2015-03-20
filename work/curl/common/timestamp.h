@@ -120,7 +120,7 @@ do {    \
 #include <unistd.h>
 #define sec_sleep(sec_num) time_sleep(sec_num, 0)
 #define ms_sleep(ms_num) time_sleep(0, PLUS1000(ms_num))
-#define ns_sleep(ns_num) time_sleep(0, us_num)
+#define us_sleep(us_num) time_sleep(0, us_num)
 
 #endif    // _TIMESTAMP_H
 
