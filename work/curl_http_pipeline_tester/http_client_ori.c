@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
         }
 #endif
 
-        snprintf(header_buf, sizeof header_buf, "Connection: keep-alive");            // The requests are numbered 0 through NRREQUESTS - 1.
+        snprintf(header_buf, sizeof header_buf, "Connection: Keep-Alive");            // The requests are numbered 0 through NRREQUESTS - 1.
         headers[i] = curl_slist_append(headers[i], header_buf);
 
         snprintf(header_buf, sizeof header_buf, "X-Request: %d", i);            // The requests are numbered 0 through NRREQUESTS - 1.

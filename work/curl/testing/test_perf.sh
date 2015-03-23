@@ -26,12 +26,12 @@ for file in $list; do
     sleep 60
 
     ./add_route_3.sh
-    ../multi_test -f ../data/ds_${file}.txt -d 2c{userstr} -o ../result/aie_10min${userstr}.csv ${args} >>../result/aie_10min${userstr}.log 2>&1
+    ../multi_test -f ../data/ds_${file}.txt -d 2c${userstr} -o ../result/aie_10min${userstr}.csv ${args} >>../result/aie_10min${userstr}.log 2>&1
     ./add_route_3.sh del
     sleep 60
 
     ./add_route_2.sh
-    ../multi_test -f ../data/ds_${file}.txt -d 1c{userstr} -o ../result/aie_10min${userstr}.csv ${args} >>../result/aie_10min${userstr}.log 2>&1
+    ../multi_test -f ../data/ds_${file}.txt -d 1c${userstr} -o ../result/aie_10min${userstr}.csv ${args} >>../result/aie_10min${userstr}.log 2>&1
     ./add_route_2.sh del
     sleep 60
 
@@ -39,12 +39,12 @@ for file in $list; do
     sleep 60
 
     ./add_route_3.sh
-    ../multi_test -f ../data/ds_${file}.txt -d s_2c{userstr} -o ../result/aie_10min${userstr}.csv -s ${args} >>../result/aie_10min${userstr}.log 2>&1
+    ../multi_test -f ../data/ds_${file}.txt -d s_2c${userstr} -o ../result/aie_10min${userstr}.csv -s ${args} >>../result/aie_10min${userstr}.log 2>&1
     ./add_route_3.sh del
     sleep 60
 
     ./add_route_2.sh
-    ../multi_test -f ../data/ds_${file}.txt -d s_1c{userstr} -o ../result/aie_10min${userstr}.csv -s ${args} >>../result/aie_10min${userstr}.log 2>&1
+    ../multi_test -f ../data/ds_${file}.txt -d s_1c${userstr} -o ../result/aie_10min${userstr}.csv -s ${args} >>../result/aie_10min${userstr}.log 2>&1
     ./add_route_2.sh del
     sleep 60
 done

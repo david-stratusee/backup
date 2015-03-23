@@ -95,7 +95,7 @@ void process_results(CURLM *multi_handle, CURL *handles[], struct curl_slist *he
 			//usleep(1);
 			CURLMcode ret = curl_multi_add_handle(multi_handle, easy);
 			printf(", And Request    #%d added, ret: %d", found, ret);
-		} 
+		}
 #if 0
 else {
 			printf("Request    #%d reserved", found);
@@ -177,8 +177,8 @@ int main(int argc, char *argv[])
     }
 
     char url[256];
-    snprintf(url, sizeof(url), "http://%s:%d/10k.js", hostname, port);
-    //snprintf(url, sizeof(url), "http://%s:%d/images/sample1.jpg", hostname, port);
+    //snprintf(url, sizeof(url), "http://%s:%d/10k.js", hostname, port);
+    snprintf(url, sizeof(url), "http://%s:%d/images/sample1.jpg", hostname, port);
     printf("Connecting to '%s'...\n", url);
     // Initialize the CURL multi handle.
     CURLM *multi_handle = curl_multi_init();
