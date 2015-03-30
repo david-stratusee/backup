@@ -9,6 +9,9 @@
 192.168.101.101 aie.centos
 192.168.101.102 aie.ubuntu
 54.174.83.125   dev-perf.stratusee.com
+54.174.130.103  dev-aie.stratusee.com
+52.0.79.52      dev-aie2.stratusee.com
+54.175.97.54    dev-cms.stratusee.com
 # self-defined end
 
 # wall ip begin
