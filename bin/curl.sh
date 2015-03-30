@@ -13,24 +13,27 @@ if [ $# -eq 0 ] || [ "$1" == "-h" ]; then
     exit
 fi
 
-<< BLOCK
 localip=`ifconfig | grep "inet " | grep -v "127.0.0.1" | grep -v "192.168.101." | awk '{print $2}' | awk -F. '{print $1"."$2"."$3}'`
 echo local ip: $localip--
 
 if [ "$localip" == "192.168.2" ]; then
     ip=192.168.2.41
 elif [ "$localip" == "192.168.1" ]; then
-    ip=192.168.1.65
+    ip=192.168.1.228
 elif [ "$localip" == "192.168.54" ]; then
     ip=192.168.54.102
 else
     exit 1
 fi
+
+<< BLOCK
+ips=`~/bin/set_proxy.sh -l | grep Server | uniq | awk '{print $2}'`
+for ip in $ips; do
+    break
+done
 BLOCK
 
-ip=`~/bin/set_proxy.sh -l | grep Server | uniq | awk '{print $2}'`
-
-port=3127
+port=3128
 common_arg="-s -o /tmp/test.log -v --trace-time"
 
 if [ "$1" == "-s" ]; then
@@ -43,13 +46,15 @@ fi
 
 rm -f /tmp/test.log
 
+echo curl -w "\\n" --proxy ${ip}:${port} ${common_arg} $@
+
 echo =============================================================
 echo curl -w "\\n" --proxy ${ip}:${port} ${common_arg} $@
 time curl -w "\n" --proxy ${ip}:${port} ${common_arg} $@
 
-echo -------------------------------------------------------------
+#echo -------------------------------------------------------------
 
-echo curl -w "\\n" ${common_arg} $@
+#echo curl -w "\\n" ${common_arg} $@
 #time curl -w "\n" ${common_arg} $@
 echo =============================================================
 

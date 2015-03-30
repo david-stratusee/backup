@@ -18,7 +18,7 @@ set -o nounset                              # Treat unset variables as an error
 username=david
 
 available_host_port=("dev-aie.stratusee.com:22" "dev-aie2.stratusee.com:22" "us.stratusee.com:2221")
-host_port=${available_host_port[2]}
+host_port=${available_host_port[0]}
 
 ETH="Wi-Fi"
 aliveinterval=0
@@ -63,7 +63,7 @@ function kill_process()
 function print_avail_host()
 {
     nhost=0
-    echo "available socks host:port is:[${#available_host_port[*]}]"
+    echo "available socks host-port is:[${#available_host_port[*]}]"
     for node in ${available_host_port[*]}; do
         if [ "${host_port}" == "${node}" ]; then
             echo " [${nhost}] $node [***]"
