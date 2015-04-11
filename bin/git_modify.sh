@@ -50,13 +50,17 @@ while getopts 'f:mdh' opt; do
         d)
             show_modify=false
             ;;
-        h)  
+        h|*)
             echo "Usage: `basename $0` [-f logfile] [-m] [-d]"
             echo "       -h for help"
-            exit 0;;
-        ?) ;;
+            exit 0
+            ;;
     esac
 done
+
+if [ $need_log == true ]; then
+    echo get logfile: $logfile
+fi
 
 count=`echo $LANG | grep -i "zh_cn" | wc -l`
 if [ $count -eq 0 ]; then
