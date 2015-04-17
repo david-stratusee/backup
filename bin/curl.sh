@@ -18,10 +18,10 @@ echo local ip: $localip--
 
 if [ "$localip" == "192.168.2" ]; then
     ip=192.168.2.41
-elif [ "$localip" == "192.168.1" ]; then
-    ip=192.168.1.228
+elif [ "$localip" == "192.168.3" ]; then
+    ip=192.168.3.35
 elif [ "$localip" == "192.168.54" ]; then
-    ip=192.168.54.102
+    ip=192.168.54.103
 else
     exit 1
 fi
@@ -37,7 +37,7 @@ port=3128
 common_arg="-s -o /tmp/test.log -v --trace-time"
 
 if [ "$1" == "-s" ]; then
-    common_arg=${common_arg}" --ssl"
+    common_arg=${common_arg}" --ssl -k"
     port=3128
     shift
 fi

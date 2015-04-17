@@ -12,13 +12,14 @@ set -o nounset                              # Treat unset variables as an error
 
 function gohelp()
 {
-    echo -e "Usage: \n\t-m for module(c|u|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file"
+    echo -e "Usage: \n\t-m for module(c|u|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command"
 }
 
 dsthost=""
 local_file=""
 remote_file=""
-while getopts 'm:f:r:h' opt; do
+cmd=""
+while getopts 'm:f:r:c:h' opt; do
     case $opt in
         m) 
             case $OPTARG in
@@ -38,6 +39,9 @@ while getopts 'm:f:r:h' opt; do
             ;;
         r)
             remote_file=$OPTARG
+            ;;
+        c)
+            cmd=$OPTARG
             ;;
         h|*)
             gohelp
@@ -68,6 +72,6 @@ elif [ "${local_file}" != "" ]; then
     echo scp ${local_file} ${dsthost}:/home/david/
     scp ${local_file} ${dsthost}:/home/david/
 else
-    echo ssh ${dsthost}
-    ssh ${dsthost}
+    echo ssh ${dsthost} ${cmd}
+    ssh ${dsthost} ${cmd}
 fi

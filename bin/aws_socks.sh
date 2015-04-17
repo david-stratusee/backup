@@ -107,6 +107,20 @@ function update_pac()
     return 0
 }
 
+function stop_apache()
+{
+    httpd_count=`ps -ef | grep -v grep | grep -c httpd`
+    if [ ${httpd_count} -gt 0 ]; then
+        sudo apachectl graceful-stop
+    fi
+}
+
+function start_apache()
+{
+    stop_apache
+    sudo apachectl start
+}
+
 function aws_socks_help()
 {
     echo "------------------------------------"
@@ -199,10 +213,7 @@ if [ "${MODE}" == "clear" ]; then
     kill_process "watch_socks"
     kill_process "ssh -D"
 
-    httpd_count=`ps -ef | grep -v grep | grep -c httpd`
-    if [ ${httpd_count} -gt 0 ]; then
-        sudo apachectl graceful-stop
-    fi
+    stop_apache
     sudo networksetup -setautoproxystate ${ETH} off
 
     if [ ${restart} -gt 0 ]; then
@@ -225,7 +236,7 @@ if [ "${MODE}" == "normal" ]; then
             sudo networksetup -setautoproxyurl ${ETH} "https://david-stratusee.github.io/proxy.pac"
         else
             if [ ${use_local_web} -gt 0 ]; then
-                sudo apachectl start
+                start_apache
                 sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy.pac"
             else
                 sudo networksetup -setautoproxyurl ${ETH} "file://localhost${local_proxydir}/proxy.pac"
@@ -240,7 +251,7 @@ if [ "${MODE}" == "normal" ]; then
         sudo cp -f ${local_proxydir}/proxy.pac ${local_proxydir}/proxy_aie.pac
         sudo sed -i "" -e "s/'DIRECT'/'PROXY ${IP}:3128'/g" ${local_proxydir}/proxy_aie.pac
         if [ ${use_local_web} -gt 0 ]; then
-            sudo apachectl start
+            start_apache
             sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
         else
             sudo networksetup -setautoproxyurl ${ETH} "file://localhost${local_proxydir}/proxy_aie.pac"
