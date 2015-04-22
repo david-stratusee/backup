@@ -111,9 +111,13 @@ if __name__ == '__main__':
                     noresultip.add(ip)
 
     if len(ipset) > 0:
-        print "RESULT:[%d]" % len(ipset)
+        resultfile=host + "_result.log"
+        print "RESULT:[%d] %s" % (len(ipset), resultfile)
+        fp = open(resultfile, "w")
         for ip in ipset:
-            print ip
+            fp.write(ip + "\n")
+            #print ip
+        fp.close()
 
     print "-------------"
     if len(failedip) > 0:
