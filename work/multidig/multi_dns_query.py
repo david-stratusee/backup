@@ -90,7 +90,7 @@ if __name__ == '__main__':
     noresultip=set()
     usefulip=set()
     if valid_ip(host):
-        re_hdl = re.compile("^.*IN[ \t]+NS[\t ]+(.*)$", re.MULTILINE)
+        re_hdl = re.compile("^.*IN[ \t]+PTR[\t ]+(.*)$", re.MULTILINE)
     else:
         re_hdl = re.compile("^.*IN[ \t]+A[\t ]+(.*)$", re.MULTILINE)
 
