@@ -37,9 +37,11 @@ function get_host_str()
         fi
     done </tmp/sq1.log;
 
-    #rm -f /tmp/sq.log /tmp/sq1.log
+    rm -f /tmp/sq.log /tmp/sq1.log
+    echo "==========" >>${inquire_resultfile}
 }
 
+rm ${inquire_resultfile}
 while read checkip; do
     echo $checkip
     get_host_str $checkip
