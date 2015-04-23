@@ -57,7 +57,7 @@ if __name__ == '__main__':
     for myip in lines:
         thread = myThread(globalid, thread_result, myip, host)
         thread_hdl.append(thread)
-        thread_result.insert(globalid, None)
+        thread_result.insert(globalid, (globalid, myip, 0, "Initial"))
 
         threadID += 1
         globalid += 1
