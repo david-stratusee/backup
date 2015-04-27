@@ -1,0 +1,17 @@
+credit card:
+
+1. minsheng:  -22229.90		5.4
+2. jiaotong:  -9622.44		5.14
+3. zhaoshang: -460.8		5.3
+total: -32313.14
+
+bank:
+1. jiaotong: 24662.54
+2. zhaoshang: 393.49
+3. zhifubao: 2427
+total: 27483.03
+
+diff: -4830.11
+
+gongzi:
+1. gongzi:   8874.59
