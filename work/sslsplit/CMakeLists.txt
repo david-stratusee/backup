@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(sslsplit)
 
-set(UPPERDIR ${CMAKE_CURRENT_SOURCE_DIR}/../AIE)
+set(UPPERDIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../AIE)
 include(${UPPERDIR}/script/CMakeLists_common.txt)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 string(TIMESTAMP CURDATE "%Y-%m-%d")
