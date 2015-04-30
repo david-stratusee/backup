@@ -27,6 +27,5 @@ rm -rf ./log_data
 mkdir ./log_data
 rm -f connections.log
 
-#sslsplit -D -l connections.log -S ./log_data/ -k /home/david/work/keys/squid_cert/holonet.key -c /home/david/work/keys/squid_cert/holonet.pem -C /home/david/work/keys/squid_cert/holonet_ca.pem ssl 0.0.0.0 8443 tcp 0.0.0.0 8080
-#sslsplit -l connections.log -S ./log_data/ -k /home/david/work/keys/squid_cert/holonet.key -c /home/david/work/keys/squid_cert/holonet.pem -C /home/david/work/keys/squid_cert/holonet_ca.pem ssl 0.0.0.0 8443 tcp 0.0.0.0 8080
-./sslsplit -P -l connections.log -S ./log_data/ -k /home/david/work/keys/squid_cert/holonet.key -c /home/david/work/keys/squid_cert/holonet.pem -C /home/david/work/keys/squid_cert/holonet_ca.pem ssl 0.0.0.0 8443 tcp 0.0.0.0 8080
+CERT_DIR=/home/david/work/keys/squid_cert
+./sslsplit -P -l connections.log -S ./log_data/ -k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet.pem -C ${CERT_DIR}/holonet_ca.pem ssl 0.0.0.0 8443 tcp 0.0.0.0 8080
