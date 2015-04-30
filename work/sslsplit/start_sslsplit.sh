@@ -28,4 +28,8 @@ mkdir ./log_data
 rm -f connections.log
 
 CERT_DIR=/home/david/work/keys/squid_cert
-./sslsplit -P -l connections.log -S ./log_data/ -k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet.pem -C ${CERT_DIR}/holonet_ca.pem ssl 0.0.0.0 8443 tcp 0.0.0.0 8080
+if [ $# -eq 0 ]; then
+    ./sslsplit -P -l connections.log -S ./log_data/ -k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet.pem -C ${CERT_DIR}/holonet_ca.pem ssl 0.0.0.0 8443 tcp 0.0.0.0 8080
+else
+    ./sslsplit -P -l connections.log -S ./log_data/ -k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet.pem -C ${CERT_DIR}/holonet_ca.pem ssl 0.0.0.0 8443 tcp 0.0.0.0 8080 >$1 2>&1
+fi
