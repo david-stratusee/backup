@@ -72,7 +72,7 @@ logger_new(logger_open_func_t openfunc, logger_close_func_t closefunc,
 {
 	logger_t *logger;
 
-	logger = malloc(sizeof(logger_t));
+	logger = umalloc(sizeof(logger_t));
 	if (!logger)
 		return NULL;
 	logger_clear(logger);

@@ -44,9 +44,9 @@ dynbuf_new_alloc(size_t sz)
 {
 	dynbuf_t *db;
 
-	if (!(db = malloc(sizeof(dynbuf_t))))
+	if (!(db = umalloc(sizeof(dynbuf_t))))
 		return NULL;
-	if (!(db->buf = malloc(sz))) {
+	if (!(db->buf = umalloc(sz))) {
 		free(db);
 		return NULL;
 	}
@@ -62,9 +62,9 @@ dynbuf_new_copy(const unsigned char *buf, const size_t sz)
 {
 	dynbuf_t *db;
 
-	if (!(db = malloc(sizeof(dynbuf_t))))
+	if (!(db = umalloc(sizeof(dynbuf_t))))
 		return NULL;
-	if (!(db->buf = malloc(sz))) {
+	if (!(db->buf = umalloc(sz))) {
 		free(db);
 		return NULL;
 	}
@@ -83,7 +83,7 @@ dynbuf_new_file(const char *filename)
 	dynbuf_t *db;
 	FILE *f;
 
-	if (!(db = malloc(sizeof(dynbuf_t))))
+	if (!(db = umalloc(sizeof(dynbuf_t))))
 		return NULL;
 
 	f = fopen(filename, "rb");
@@ -94,7 +94,7 @@ dynbuf_new_file(const char *filename)
 	fseek(f, 0, SEEK_END);
 	db->sz = ftell(f);
 	fseek(f, 0, SEEK_SET);
-	if (!(db->buf = malloc(db->sz))) {
+	if (!(db->buf = umalloc(db->sz))) {
 		free(db);
 		fclose(f);
 		return NULL;
@@ -118,7 +118,7 @@ dynbuf_new(unsigned char *buf, size_t sz)
 {
 	dynbuf_t *db;
 
-	if (!(db = malloc(sizeof(dynbuf_t))))
+	if (!(db = umalloc(sizeof(dynbuf_t))))
 		return NULL;
 	db->buf = buf;
 	db->sz = sz;

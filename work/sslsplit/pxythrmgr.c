@@ -99,7 +99,7 @@ pxy_thrmgr_new(UNUSED opts_t *opts)
 {
 	pxy_thrmgr_ctx_t *ctx;
 
-	if (!(ctx = malloc(sizeof(pxy_thrmgr_ctx_t))))
+	if (!(ctx = umalloc(sizeof(pxy_thrmgr_ctx_t))))
 		return NULL;
 	memset(ctx, 0, sizeof(pxy_thrmgr_ctx_t));
 
@@ -123,14 +123,14 @@ pxy_thrmgr_run(pxy_thrmgr_ctx_t *ctx)
 
 	pthread_mutex_init(&ctx->mutex, NULL);
 
-	if (!(ctx->thr = malloc(ctx->num_thr * sizeof(pxy_thr_ctx_t*)))) {
+	if (!(ctx->thr = umalloc(ctx->num_thr * sizeof(pxy_thr_ctx_t*)))) {
 		log_dbg_printf("Failed to allocate memory\n");
 		goto leave;
 	}
 	memset(ctx->thr, 0, ctx->num_thr * sizeof(pxy_thr_ctx_t*));
 
 	for (idx = 0; idx < ctx->num_thr; idx++) {
-		if (!(ctx->thr[idx] = malloc(sizeof(pxy_thr_ctx_t)))) {
+		if (!(ctx->thr[idx] = umalloc(sizeof(pxy_thr_ctx_t)))) {
 			log_dbg_printf("Failed to allocate memory\n");
 			goto leave;
 		}

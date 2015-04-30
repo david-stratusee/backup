@@ -41,7 +41,7 @@ cert_new(void)
 {
 	cert_t *c;
 
-	if (!(c = malloc(sizeof(cert_t))))
+	if (!(c = umalloc(sizeof(cert_t))))
 		return NULL;
 	memset(c, 0, sizeof(cert_t));
 	c->references = 1;
@@ -58,7 +58,7 @@ cert_new3(EVP_PKEY *key, X509 *crt, STACK_OF(X509) *chain)
 {
 	cert_t *c;
 
-	if (!(c = malloc(sizeof(cert_t))))
+	if (!(c = umalloc(sizeof(cert_t))))
 		return NULL;
 	c->key = key;
 	c->crt = crt;
@@ -78,7 +78,7 @@ cert_new3_copy(EVP_PKEY *key, X509 *crt, STACK_OF(X509) *chain)
 	cert_t *c;
 	int i = 0;
 
-	if (!(c = malloc(sizeof(cert_t))))
+	if (!(c = umalloc(sizeof(cert_t))))
 		return NULL;
 	c->key = key;
 	ssl_key_refcount_inc(c->key);
@@ -101,7 +101,7 @@ cert_new_load(const char *filename)
 {
 	cert_t *c;
 
-	if (!(c = malloc(sizeof(cert_t))))
+	if (!(c = umalloc(sizeof(cert_t))))
 		return NULL;
 	memset(c, 0, sizeof(cert_t));
 

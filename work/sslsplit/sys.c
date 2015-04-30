@@ -218,7 +218,7 @@ sys_user_str(uid_t uid)
 	int rv;
 	char *name;
 
-	if (!(buf = malloc(bufsize)))
+	if (!(buf = umalloc(bufsize)))
 		return NULL;
 
 	do {
@@ -271,7 +271,7 @@ sys_group_str(gid_t gid)
 	int rv;
 	char *name;
 
-	if (!(buf = malloc(bufsize)))
+	if (!(buf = umalloc(bufsize)))
 		return NULL;
 
 	do {
@@ -347,7 +347,7 @@ sys_sockaddr_str(struct sockaddr *addr, socklen_t addrlen)
 	size_t bufsz;
 
 	bufsz = sizeof(host) + sizeof(serv) + 3;
-	buf = malloc(bufsz);
+	buf = umalloc(bufsz);
 	if (!buf) {
 		log_err_printf("Cannot allocate memory\n");
 		return NULL;

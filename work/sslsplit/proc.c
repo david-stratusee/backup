@@ -87,7 +87,7 @@ proc_freebsd_getfiles(struct xfile **pxfiles, int *pnxfiles)
 			*pxfiles = NULL;
 			return -1;
 		}
-		if (!(*pxfiles = malloc(sz))) {
+		if (!(*pxfiles = umalloc(sz))) {
 			return -1;
 		}
 		if (sysctl(mib, 2, *pxfiles, &sz, NULL, 0) < 0) {
@@ -133,7 +133,7 @@ proc_freebsd_gettcppcblist(struct xinpgen **pxig, struct xinpgen **pexig)
 				*pxig = NULL;
 				return -1;
 			}
-			if (!(*pxig = malloc(sz))) {
+			if (!(*pxig = umalloc(sz))) {
 				return -1;
 			}
 			if (sysctl(mib, 4, *pxig, &sz, NULL, 0) < 0) {
@@ -317,7 +317,7 @@ proc_darwin_pid_for_addr(pid_t *result, struct sockaddr *src_addr,
 
 	/* iterate over all pids to find a matching socket */
 	int pid_count = proc_listallpids(NULL, 0);
-	pids = malloc(sizeof(pid_t) * pid_count);
+	pids = umalloc(sizeof(pid_t) * pid_count);
 	if (!pids) {
 		goto errout1;
 	}
@@ -337,7 +337,7 @@ proc_darwin_pid_for_addr(pid_t *result, struct sockaddr *src_addr,
 		if (fds) {
 			free(fds);
 		}
-		fds = malloc(PROC_PIDLISTFD_SIZE * fd_count);
+		fds = umalloc(PROC_PIDLISTFD_SIZE * fd_count);
 		if (!fds) {
 			goto errout2;
 		}
@@ -428,7 +428,7 @@ proc_darwin_get_info(pid_t pid, char **path, uid_t *uid, gid_t *gid) {
 	*gid = bsd_info.pbi_gid;
 
 	/* fetch process path */
-	*path = malloc(PROC_PIDPATHINFO_MAXSIZE);
+	*path = umalloc(PROC_PIDPATHINFO_MAXSIZE);
 	if (!*path) {
 		return -1;
 	}

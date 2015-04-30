@@ -29,6 +29,9 @@
 #ifndef ATTRIB_H
 #define ATTRIB_H
 
+#include "common/types.h"
+#include "common/umemory.h"
+
 /*
  * GCC attributes and built-ins for improved compile-time error checking
  * and performance optimization.
@@ -61,12 +64,14 @@
  * These serve to tell the compiler which of the branches is more likely.
  */
 
+#ifndef likely
 #if !defined(__GNUC__) && !defined(__clang__)
 #define likely(expr)    (expr)
 #define unlikely(expr)  (expr)
 #else
 #define likely(expr)    __builtin_expect((expr), 1)
 #define unlikely(expr)  __builtin_expect((expr), 0)
+#endif
 #endif
 
 #endif /* !ATTRIB_H */

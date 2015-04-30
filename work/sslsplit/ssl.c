@@ -233,7 +233,7 @@ ssl_thr_dyn_create_cb(UNUSED const char *file, UNUSED int line)
 {
 	struct CRYPTO_dynlock_value *dl;
 
-	if ((dl = malloc(sizeof(struct CRYPTO_dynlock_value)))) {
+	if ((dl = umalloc(sizeof(struct CRYPTO_dynlock_value)))) {
 		pthread_mutex_init(&dl->mutex, NULL);
 	}
 	return dl;
@@ -302,7 +302,7 @@ ssl_init(void)
 	/* general initialization */
 	SSL_library_init();
 #ifdef PURIFY
-	CRYPTO_malloc_init();
+	CRYPTO_umalloc_init();
 	CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
 #endif /* PURIFY */
 	SSL_load_error_strings();
@@ -311,7 +311,7 @@ ssl_init(void)
 	/* thread-safety */
 #ifdef OPENSSL_THREADS
 	ssl_mutex_num = CRYPTO_num_locks();
-	ssl_mutex = malloc(ssl_mutex_num * sizeof(*ssl_mutex));
+	ssl_mutex = umalloc(ssl_mutex_num * sizeof(*ssl_mutex));
 	int i;
 	for (i = 0; i < ssl_mutex_num; i++) {
 		pthread_mutex_init(&ssl_mutex[i], NULL);
@@ -1056,7 +1056,7 @@ ssl_x509_subject(X509 *crt)
 
 /*
  * Parse the common name from the subject distinguished name.
- * Returns string allocated using malloc(), caller must free().
+ * Returns string allocated using umalloc(), caller must free().
  * Returns NULL on errors.
  */
 char *
@@ -1070,7 +1070,7 @@ ssl_x509_subject_cn(X509 *crt, size_t *psz)
 	if (!ptr)
 		return NULL;
 	sz = X509_NAME_get_text_by_NID(ptr, NID_commonName, NULL, 0) + 1;
-	if ((sz == 0) || !(cn = malloc(sz)))
+	if ((sz == 0) || !(cn = umalloc(sz)))
 		return NULL;
 	if (X509_NAME_get_text_by_NID(ptr, NID_commonName, cn, sz) == -1) {
 		free(cn);
@@ -1202,7 +1202,7 @@ ssl_wildcardify(const char *hostname)
 	if (!(dot = strchr(hostname, '.')))
 		return strdup("*");
 	dotsz = strlen(dot);
-	if (!(wildcarded = malloc(dotsz + 2)))
+	if (!(wildcarded = umalloc(dotsz + 2)))
 		return NULL;
 	wildcarded[0] = '*';
 	strncpy(wildcarded + 1, dot, dotsz);
@@ -1280,7 +1280,7 @@ ssl_x509_names(X509 *crt)
 	altnames = X509_get_ext_d2i(crt, NID_subject_alt_name, NULL, NULL);
 
 	count = (altnames ? sk_GENERAL_NAME_num(altnames) : 0) + (cn ? 2 : 1);
-	res = malloc(count * sizeof(char*));
+	res = umalloc(count * sizeof(char*));
 	if (!res)
 		return NULL;
 	p = res;
@@ -1306,7 +1306,7 @@ ssl_x509_names(X509 *crt)
 				OPENSSL_free((char*)altname);
 				break;
 			}
-			*p = malloc(altnamesz + 1);
+			*p = umalloc(altnamesz + 1);
 			if (!*p) {
 				OPENSSL_free((char*)altname);
 				GENERAL_NAMES_free(altnames);
@@ -1355,7 +1355,7 @@ ssl_x509_names_to_str(X509 *crt)
 		goto out1;
 	}
 
-	if (!(buf = malloc(sz)))
+	if (!(buf = umalloc(sz)))
 		goto out2;
 	next = buf;
 	for (p = names; *p; p++) {
@@ -1385,7 +1385,7 @@ ssl_ia5string_strdup(ASN1_IA5STRING *ia5)
 
 	if (!ia5 || !ia5->length)
 		return NULL;
-	str = malloc(ia5->length + 1);
+	str = umalloc(ia5->length + 1);
 	if (!str)
 		return NULL;
 	memcpy(str, ia5->data, ia5->length);
@@ -1409,7 +1409,7 @@ ssl_x509_aias(X509 *crt, const int type)
 	if (!aias || !(count = sk_ACCESS_DESCRIPTION_num(aias)))
 		return NULL;
 
-	res = malloc((count + 1) * sizeof(char *));
+	res = umalloc((count + 1) * sizeof(char *));
 	if (!res) {
 		sk_ACCESS_DESCRIPTION_pop_free(aias, ACCESS_DESCRIPTION_free);
 		return NULL;
@@ -1474,7 +1474,7 @@ ssl_x509_to_str(X509 *crt)
 		return NULL;
 	X509_print(bio, crt);
 	sz = BIO_get_mem_data(bio, &p);
-	if (!(ret = malloc(sz + 1))) {
+	if (!(ret = umalloc(sz + 1))) {
 		BIO_free(bio);
 		return NULL;
 	}
@@ -1501,7 +1501,7 @@ ssl_x509_to_pem(X509 *crt)
 		return NULL;
 	PEM_write_bio_X509(bio, crt);
 	sz = BIO_get_mem_data(bio, &p);
-	if (!(ret = malloc(sz + 1))) {
+	if (!(ret = umalloc(sz + 1))) {
 		BIO_free(bio);
 		return NULL;
 	}
@@ -1528,7 +1528,7 @@ ssl_session_to_str(SSL_SESSION *sess)
 		return NULL;
 	SSL_SESSION_print(bio, sess);
 	sz = BIO_get_mem_data(bio, &p); /* sets p to internal buffer */
-	if (!(ret = malloc(sz + 1))) {
+	if (!(ret = umalloc(sz + 1))) {
 		BIO_free(bio);
 		return NULL;
 	}
@@ -1780,7 +1780,7 @@ ssl_tls_clienthello_parse_sni(const unsigned char *buf, ssize_t *sz)
 					if (snlen > TLSEXT_MAXLEN_host_name)
 						goto out;
 					if (sntype == 0) {
-						servername = malloc(snlen + 1);
+						servername = umalloc(snlen + 1);
 						memcpy(servername, extp, snlen);
 						servername[snlen] = '\0';
 						/* deliberately not checking

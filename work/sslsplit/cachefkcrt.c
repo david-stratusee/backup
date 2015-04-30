@@ -167,7 +167,7 @@ cachefkcrt_mkkey(X509 *keycrt)
 {
 	unsigned char *fpr;
 
-	if (!(fpr = malloc(SSL_X509_FPRSZ)))
+	if (!(fpr = umalloc(SSL_X509_FPRSZ)))
 		return NULL;
 	ssl_x509_fingerprint_sha1(keycrt, fpr);
 	return fpr;

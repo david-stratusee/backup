@@ -57,9 +57,9 @@ thrqueue_new(size_t sz)
 {
 	thrqueue_t *queue;
 
-	if (!(queue = malloc(sizeof(thrqueue_t))))
+	if (!(queue = umalloc(sizeof(thrqueue_t))))
 		goto out0;
-	if (!(queue->data = malloc(sz * sizeof(void*))))
+	if (!(queue->data = umalloc(sz * sizeof(void*))))
 		goto out1;
 	if (0 != pthread_mutex_init(&queue->mutex, NULL))
 		goto out2;

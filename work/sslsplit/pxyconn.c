@@ -188,7 +188,7 @@ static pxy_conn_ctx_t *
 pxy_conn_ctx_new(proxyspec_t *spec, opts_t *opts,
                  pxy_thrmgr_ctx_t *thrmgr, evutil_socket_t fd)
 {
-    pxy_conn_ctx_t *ctx = malloc(sizeof(pxy_conn_ctx_t));
+    pxy_conn_ctx_t *ctx = umalloc(sizeof(pxy_conn_ctx_t));
 
     if (!ctx) {
         return NULL;
@@ -1292,7 +1292,7 @@ pxy_http_reqhdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
             /* not HTTP */
             ctx->seen_req_header = 1;
         } else {
-            ctx->http_method = malloc(space1 - line + 1);
+            ctx->http_method = umalloc(space1 - line + 1);
 
             if (ctx->http_method) {
                 memcpy(ctx->http_method, line, space1 - line);
@@ -1310,7 +1310,7 @@ pxy_http_reqhdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
                 space2 = space1 + strlen(space1);
             }
 
-            ctx->http_uri = malloc(space2 - space1 + 1);
+            ctx->http_uri = umalloc(space2 - space1 + 1);
 
             if (ctx->http_uri) {
                 memcpy(ctx->http_uri, space1, space2 - space1);
@@ -1400,8 +1400,8 @@ pxy_http_resphdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
                 len_text = 0;
             }
 
-            ctx->http_status_code = malloc(len_code + 1);
-            ctx->http_status_text = malloc(len_text + 1);
+            ctx->http_status_code = umalloc(len_code + 1);
+            ctx->http_status_text = umalloc(len_text + 1);
 
             if (!ctx->http_status_code || !ctx->http_status_text) {
                 ctx->enomem = 1;
@@ -1624,13 +1624,12 @@ pxy_bev_readcb(struct bufferevent *bev, void *arg)
 {
     pxy_conn_ctx_t *ctx = arg;
     pxy_conn_desc_t *other = (bev == ctx->src.bev) ? &ctx->dst : &ctx->src;
-#ifdef DEBUG_PROXY
 
+#ifdef DEBUG_PROXY
     if (OPTS_DEBUG(ctx->opts)) {
         log_dbg_printf("%p %p %s readcb\n", arg, (void *)bev,
                        (bev == ctx->src.bev) ? "src" : "dst");
     }
-
 #endif /* DEBUG_PROXY */
 
     if (!ctx->connected) {

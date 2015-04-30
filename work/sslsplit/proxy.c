@@ -86,7 +86,7 @@ static proxy_listener_ctx_t *
 proxy_listener_ctx_new(pxy_thrmgr_ctx_t *thrmgr, proxyspec_t *spec,
                        opts_t *opts)
 {
-	proxy_listener_ctx_t *ctx = malloc(sizeof(proxy_listener_ctx_t));
+	proxy_listener_ctx_t *ctx = umalloc(sizeof(proxy_listener_ctx_t));
 	if (!ctx)
 		return NULL;
 	memset(ctx, 0, sizeof(proxy_listener_ctx_t));
@@ -293,7 +293,7 @@ proxy_new(opts_t *opts)
 	}
 #endif /* PURIFY */
 
-	ctx = malloc(sizeof(proxy_ctx_t));
+	ctx = umalloc(sizeof(proxy_ctx_t));
 	if (!ctx) {
 		log_err_printf("Error allocating memory\n");
 		goto leave0;

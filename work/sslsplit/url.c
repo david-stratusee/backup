@@ -26,6 +26,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "common/umemory.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -92,7 +93,7 @@ url_dec(const char *in, size_t insz, size_t *outsz)
 	}
 	*outsz = insz - (2 * o);
 
-	if (!(out = malloc((*outsz) + 1))) {
+	if (!(out = umalloc((*outsz) + 1))) {
 		*outsz = 0;
 		return NULL;
 	}

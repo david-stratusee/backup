@@ -63,7 +63,7 @@ pxy_ssl_shutdown_ctx_new(opts_t *opts, struct event_base *evbase, SSL *ssl)
 {
 	pxy_ssl_shutdown_ctx_t *ctx;
 
-	ctx = malloc(sizeof(pxy_ssl_shutdown_ctx_t));
+	ctx = umalloc(sizeof(pxy_ssl_shutdown_ctx_t));
 	if (!ctx)
 		return NULL;
 	ctx->opts = opts;

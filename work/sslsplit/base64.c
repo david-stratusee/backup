@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "common/umemory.h"
 
 /*
  * Base64 encoding functions.
@@ -95,7 +96,7 @@ base64_dec(const char *in, size_t insz, size_t *outsz)
 		*outsz = ((insz / 4) * 3) - 1;
 	else
 		*outsz = (insz / 4) * 3;
-	if (!(out = malloc((*outsz) + 1))) {
+	if (!(out = umalloc((*outsz) + 1))) {
 		*outsz = 0;
 		return NULL;
 	}
@@ -161,7 +162,7 @@ base64_enc(const unsigned char *in, size_t insz, size_t *outsz)
 	}
 
 	*outsz = ((insz + 2) / 3) * 4;
-	if (!(out = malloc((*outsz) + 1))) {
+	if (!(out = umalloc((*outsz) + 1))) {
 		*outsz = 0;
 		return NULL;
 	}

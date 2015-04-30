@@ -45,7 +45,7 @@ cache_new(cache_init_cb_t init_cb)
 {
 	cache_t *cache;
 
-	if (!(cache = malloc(sizeof(cache_t))))
+	if (!(cache = umalloc(sizeof(cache_t))))
 		return NULL;
 
 	init_cb(cache);

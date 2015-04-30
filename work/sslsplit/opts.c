@@ -45,7 +45,7 @@ opts_new(void)
 {
 	opts_t *opts;
 
-	opts = malloc(sizeof(opts_t));
+	opts = umalloc(sizeof(opts_t));
 	memset(opts, 0, sizeof(opts_t));
 
 	opts->sslcomp = 1;
@@ -272,7 +272,7 @@ proxyspec_parse(int *argc, char **argv[], const char *natengine)
 			default:
 			case 0:
 				/* tcp | ssl | http | https */
-				curspec = malloc(sizeof(proxyspec_t));
+				curspec = umalloc(sizeof(proxyspec_t));
 				memset(curspec, 0, sizeof(proxyspec_t));
 				curspec->next = spec;
 				spec = curspec;

@@ -48,7 +48,7 @@ logbuf_new(void *buf, size_t sz, void *fh, logbuf_t *next)
 {
 	logbuf_t *lb;
 
-	if (!(lb = malloc(sizeof(logbuf_t))))
+	if (!(lb = umalloc(sizeof(logbuf_t))))
 		return NULL;
 	lb->buf = buf;
 	lb->sz = sz;
@@ -66,9 +66,9 @@ logbuf_new_alloc(size_t sz, void *fh, logbuf_t *next)
 {
 	logbuf_t *lb;
 
-	if (!(lb = malloc(sizeof(logbuf_t))))
+	if (!(lb = umalloc(sizeof(logbuf_t))))
 		return NULL;
-	if (!(lb->buf = malloc(sz))) {
+	if (!(lb->buf = umalloc(sz))) {
 		free(lb);
 		return NULL;
 	}
@@ -87,9 +87,9 @@ logbuf_new_copy(const void *buf, size_t sz, void *fh, logbuf_t *next)
 {
 	logbuf_t *lb;
 
-	if (!(lb = malloc(sizeof(logbuf_t))))
+	if (!(lb = umalloc(sizeof(logbuf_t))))
 		return NULL;
-	if (!(lb->buf = malloc(sz))) {
+	if (!(lb->buf = umalloc(sz))) {
 		free(lb);
 		return NULL;
 	}
@@ -110,7 +110,7 @@ logbuf_new_printf(void *fh, logbuf_t *next, const char *fmt, ...)
 	va_list ap;
 	logbuf_t *lb;
 
-	if (!(lb = malloc(sizeof(logbuf_t))))
+	if (!(lb = umalloc(sizeof(logbuf_t))))
 		return NULL;
 	va_start(ap, fmt);
 	lb->sz = vasprintf((char**)&lb->buf, fmt, ap);

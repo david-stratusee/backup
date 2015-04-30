@@ -301,7 +301,7 @@ log_content_format_pathspec(const char *logspec, char *srcaddr, char *dstaddr,
 {
     /* set up buffer to hold our generated file path */
     size_t path_buflen = PATH_BUF_INC;
-    char *path_buf = malloc(path_buflen);
+    char *path_buf = umalloc(path_buflen);
 
     if (path_buf == NULL) {
         log_err_printf("failed to allocate path buffer\n");
@@ -444,7 +444,7 @@ log_content_open(log_content_ctx_t **pctx, opts_t *opts,
         return 0;
     }
 
-    *pctx = malloc(sizeof(log_content_ctx_t));
+    *pctx = umalloc(sizeof(log_content_ctx_t));
 
     if (!*pctx) {
         return -1;
@@ -535,12 +535,14 @@ _log_content_submit(log_content_ctx_t *ctx, logbuf_t *lb, int is_request, const 
         prepflags |= PREPFLAG_REQUEST;
     }
 
+#if 0
 	logbuf_t *tmp = lb;
 	int32_t idx = 0;
 	while (tmp) {
 		print_buf(tmp->buf, tmp->sz, "(%u:%lu:%d)[%s-%u] ctx:%p is_request:%s", getpid(), (unsigned long)pthread_self(), idx++, func, line, ctx, BOOL_DESC(is_request));
 		tmp = tmp->next;
 	}
+#endif
 
     return logger_submit(content_log, ctx, prepflags, lb);
 }
