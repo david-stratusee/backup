@@ -618,7 +618,7 @@ log_content_spec_opencb(UNUSED void *fh)
 {
     log_content_ctx_t *ctx = fh;
     char *filedir, *filename2;
-    filename2 = strdup(ctx->u.spec.filename);
+    filename2 = ustrdup(ctx->u.spec.filename);
 
     if (!filename2) {
         log_err_printf("Could not duplicate filname: %s (%i)\n",

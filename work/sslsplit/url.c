@@ -81,17 +81,17 @@ url_dec(const char *in, size_t insz, size_t *outsz)
 
 	if (insz == 0) {
 		*outsz = 0;
-		return strdup("");
+		return ustrdup_fix("");
 	}
 
 	for (i = 0, o = 0; i < insz; i++)
 		if (in[i] == '%')
 			o++;
-	if (2 * o > insz) {
+	if ((o << 1) > insz) {
 		*outsz = 0;
 		return NULL;
 	}
-	*outsz = insz - (2 * o);
+	*outsz = insz - (o << 1);
 
 	if (!(out = umalloc((*outsz) + 1))) {
 		*outsz = 0;

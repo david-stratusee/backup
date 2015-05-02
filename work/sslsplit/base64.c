@@ -87,7 +87,7 @@ base64_dec(const char *in, size_t insz, size_t *outsz)
 
 	if (insz == 0) {
 		*outsz = 0;
-		return (unsigned char *)strdup("");
+		return (unsigned char *)ustrdup_fix("");
 	}
 
 	if (in[insz - 2] == '=')
@@ -158,7 +158,7 @@ base64_enc(const unsigned char *in, size_t insz, size_t *outsz)
 
 	if (insz == 0) {
 		*outsz = 0;
-		return strdup("");
+		return ustrdup_fix("");
 	}
 
 	*outsz = ((insz + 2) / 3) * 4;

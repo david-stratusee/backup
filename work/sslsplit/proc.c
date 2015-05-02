@@ -274,7 +274,7 @@ proc_freebsd_get_info(pid_t pid, char **path, uid_t *uid, gid_t *gid) {
 		}
 		*path = NULL;
 	} else {
-		*path = strdup(buf);
+		*path = ustrdup(buf);
 	}
 
 	mib[0] = CTL_KERN;
@@ -291,7 +291,7 @@ proc_freebsd_get_info(pid_t pid, char **path, uid_t *uid, gid_t *gid) {
 		*gid = -1;
 	} else {
 		if (*path == NULL)
-			*path = strdup(proc.ki_comm);
+			*path = ustrdup(proc.ki_comm);
 		*uid = proc.ki_uid;
 		*gid = proc.ki_groups[0];
 	}

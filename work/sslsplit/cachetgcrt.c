@@ -148,7 +148,7 @@ cachetgcrt_init_cb(cache_t *cache)
 cache_key_t
 cachetgcrt_mkkey(const char *keycn)
 {
-	return strdup(keycn);
+	return ustrdup(keycn);
 }
 
 cache_val_t

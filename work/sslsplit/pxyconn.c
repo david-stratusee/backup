@@ -1325,14 +1325,14 @@ pxy_http_reqhdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
         char *newhdr;
 
         if (!ctx->http_host && !strncasecmp(line, "Host:", 5)) {
-            ctx->http_host = strdup(util_skipws(line + 5));
+            ctx->http_host = ustrdup(util_skipws(line + 5));
 
             if (!ctx->http_host) {
                 ctx->enomem = 1;
                 return NULL;
             }
         } else if (!strncasecmp(line, "Content-Type:", 13)) {
-            ctx->http_content_type = strdup(util_skipws(line + 13));
+            ctx->http_content_type = ustrdup(util_skipws(line + 13));
 
             if (!ctx->http_content_type) {
                 ctx->enomem = 1;
@@ -1341,7 +1341,7 @@ pxy_http_reqhdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
         } else if (!strncasecmp(line, "Connection:", 11)) {
             ctx->sent_http_conn_close = 1;
 
-            if (!(newhdr = strdup("Connection: close"))) {
+            if (!(newhdr = ustrdup_fix("Connection: close"))) {
                 ctx->enomem = 1;
                 return NULL;
             }
@@ -1354,7 +1354,7 @@ pxy_http_reqhdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
             ctx->seen_req_header = 1;
 
             if (!ctx->sent_http_conn_close) {
-                newhdr = strdup("Connection: close\r\n");
+                newhdr = ustrdup_fix("Connection: close\r\n");
 
                 if (!newhdr) {
                     ctx->enomem = 1;
@@ -1423,7 +1423,7 @@ pxy_http_resphdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
         if (!ctx->http_content_length &&
                 !strncasecmp(line, "Content-Length:", 15)) {
             ctx->http_content_length =
-                strdup(util_skipws(line + 15));
+                ustrdup(util_skipws(line + 15));
 
             if (!ctx->http_content_length) {
                 ctx->enomem = 1;

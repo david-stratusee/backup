@@ -225,7 +225,7 @@ sys_user_str(uid_t uid)
 		rv = getpwuid_r(uid, &pwd, buf, bufsize, &result);
 		if (rv == 0) {
 			if (result) {
-				name = strdup(pwd.pw_name);
+				name = ustrdup(pwd.pw_name);
 				free(buf);
 				return name;
 			}
@@ -278,7 +278,7 @@ sys_group_str(gid_t gid)
 		rv = getgrgid_r(gid, &grp, buf, bufsize, &result);
 		if (rv == 0) {
 			if (result) {
-				name = strdup(grp.gr_name);
+				name = ustrdup(grp.gr_name);
 				free(buf);
 				return name;
 			}
@@ -441,7 +441,7 @@ sys_dir_eachfile(const char *dirname, sys_dir_eachfile_cb_t cb, void *arg)
 	char * paths[2];
 
 	paths[1] = NULL;
-	paths[0] = strdup(dirname);
+	paths[0] = ustrdup(dirname);
 	if (!paths[0])
 		return -1;
 

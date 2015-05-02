@@ -12,6 +12,8 @@ add_definitions(-D_GNU_SOURCE -DBNAME="${PROGRAM_NAME}" -DPNAME="${PROGRAM_NAME}
 
 set(source_list 
 	${CMAKE_CURRENT_SOURCE_DIR}/attrib.h
+	${CMAKE_CURRENT_SOURCE_DIR}/app_service.c
+	${CMAKE_CURRENT_SOURCE_DIR}/app_service.h
 	${CMAKE_CURRENT_SOURCE_DIR}/base64.c
 	${CMAKE_CURRENT_SOURCE_DIR}/base64.h
 	${CMAKE_CURRENT_SOURCE_DIR}/cache.c
