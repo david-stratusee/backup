@@ -29,8 +29,8 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include "logbuf.h"
 #include "attrib.h"
+#include "common/logbuf.h"
 
 #include <unistd.h>
 #include <pthread.h>

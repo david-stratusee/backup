@@ -30,13 +30,20 @@ echo =================================
 rm -rf ./log_data
 mkdir ./log_data
 
-CERT_DIR=/home/david/work/keys/squid_cert
-ARGUMENTS="-P -l ./log_data/connections.log -S ./log_data/"
+debug_mode=""
+if [ $# -gt 0 ] && [ "$1" == "-D" ]; then
+    debug_mode="-D"
+    shift
+fi
+CERT_DIR="/home/david/work/keys/squid_cert"
+ARGUMENTS="-P -l ./log_data/connections.log -S ./log_data/ ${debug_mode} -f ssee_svc"
+PEM_ARGS="-k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet.pem -C ${CERT_DIR}/holonet_ca.pem"
+#PEM_ARGS="-k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet_all.pem"
 
-echo ./sslsplit ${ARGUMENTS} -k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet.pem -C ${CERT_DIR}/holonet_ca.pem ssl 0.0.0.0 ${SSL_PORT} tcp 0.0.0.0 ${TRANS_PORT}
+echo ./sslsplit ${ARGUMENTS} ${PEM_ARGS} ssl 0.0.0.0 ${SSL_PORT} tcp 0.0.0.0 ${TRANS_PORT}
 echo -----------
 if [ $# -eq 0 ]; then
-    ./sslsplit ${ARGUMENTS} -k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet.pem -C ${CERT_DIR}/holonet_ca.pem ssl 0.0.0.0 ${SSL_PORT} tcp 0.0.0.0 ${TRANS_PORT}
+    sudo ./sslsplit ${ARGUMENTS} ${PEM_ARGS} ssl 0.0.0.0 ${SSL_PORT} tcp 0.0.0.0 ${TRANS_PORT}
 else
-    ./sslsplit ${ARGUMENTS} -k ${CERT_DIR}/holonet.key -c ${CERT_DIR}/holonet.pem -C ${CERT_DIR}/holonet_ca.pem ssl 0.0.0.0 ${SSL_PORT} tcp 0.0.0.0 ${TRANS_PORT} >$1 2>&1
+    sudo ./sslsplit ${ARGUMENTS} ${PEM_ARGS} ssl 0.0.0.0 ${SSL_PORT} tcp 0.0.0.0 ${TRANS_PORT} >$1 2>&1
 fi

@@ -33,7 +33,7 @@
 #include "nat.h"
 #include "ssl.h"
 #include "attrib.h"
-#include "app_service_interface.h"
+#include "app_service.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -102,8 +102,7 @@ typedef struct opts {
 #endif /* !OPENSSL_NO_ECDH */
 	proxyspec_t *spec;
 
-	void *srv_so_handle;
-	app_service_t *srv_handle;
+	app_service_opts_t app_service_list[ASI_MAX];
 } opts_t;
 
 opts_t *opts_new(void) MALLOC;

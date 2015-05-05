@@ -342,17 +342,14 @@ char *
 sys_sockaddr_str(struct sockaddr *addr, socklen_t addrlen)
 {
 	char host[INET6_ADDRSTRLEN], serv[6];
-	char *buf;
-	int rv;
-	size_t bufsz;
 
-	bufsz = sizeof(host) + sizeof(serv) + 3;
-	buf = umalloc(bufsz);
-	if (!buf) {
+	size_t bufsz = sizeof(host) + sizeof(serv) + 3;
+	char *buf = umalloc(bufsz);
+	if (PTR_NULL(buf)) {
 		log_err_printf("Cannot allocate memory\n");
 		return NULL;
 	}
-	rv = getnameinfo(addr, addrlen, host, sizeof(host), serv, sizeof(serv),
+	int rv = getnameinfo(addr, addrlen, host, sizeof(host), serv, sizeof(serv),
 	                 NI_NUMERICHOST | NI_NUMERICSERV);
 	if (rv != 0) {
 		log_err_printf("Cannot get nameinfo for socket address: %s\n",
@@ -360,7 +357,7 @@ sys_sockaddr_str(struct sockaddr *addr, socklen_t addrlen)
 		free(buf);
 		return NULL;
 	}
-	snprintf(buf, bufsz, "[%s]:%s", host, serv);
+	snprintf(buf, bufsz, "%s:%s", host, serv);
 	return buf;
 }
 

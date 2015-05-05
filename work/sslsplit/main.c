@@ -148,6 +148,7 @@ main_usage(void)
             "  -m group    when using -u, override group (default: primary group of user)\n"
             "  -j jaildir  chroot() to jaildir (impacts -S/-F and sni, see manual page)\n"
             "  -p pidfile  write pid to pidfile (default: no pid file)\n"
+			"  -f srv_name set one srv_name\n"
             "  -l logfile  connect log: log one line summary per connection to logfile\n"
             "  -L logfile  content log: full data to file or named pipe (excludes -S/-F)\n"
             "  -S logdir   content log: full data to separate files in dir (excludes -L/-F)\n"
@@ -291,7 +292,7 @@ main(int argc, char *argv[])
         natengine = NULL;
     }
 
-	char *service_so_path = NULL;
+	bool get_service = false;
     while ((ch = getopt(argc, argv, OPT_g OPT_G OPT_Z OPT_i
                         "k:c:C:K:t:OPs:r:R:e:Eu:m:j:p:l:L:S:F:f:dDVh")) != -1) {
         switch (ch) {
@@ -674,7 +675,7 @@ main(int argc, char *argv[])
                 break;
 
 			case 'f':
-				service_so_path = ustrdup(optarg);
+				get_service = true;
 				break;
 
             case 'V':
@@ -696,9 +697,8 @@ main(int argc, char *argv[])
     argv += optind;
     opts->spec = proxyspec_parse(&argc, &argv, natengine);
 
-	if (service_so_path) {
-		load_service_module(opts, service_so_path);
-		free(service_so_path);
+	if (get_service) {
+		load_all_service(opts->app_service_list);
 	}
 
     /* usage checks before defaults */
@@ -930,12 +930,9 @@ main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-	if (opts->srv_handle && opts->srv_handle->mod_init_service) {
-		if (opts->srv_handle->mod_init_service() < 0) {
-			fprintf(stderr, "Error when init service: %s\n", opts->srv_handle->name);
-			unload_service_module(opts);
-			exit(EXIT_FAILURE);
-		}
+	int32_t service_init_ret = FUNC_RET_ALL_SERVICE(opts->app_service_list, mod_init_service);
+	if (unlikely(service_init_ret < 0)) {
+		exit(EXIT_FAILURE);
 	}
 
     if (opts->detach) {
@@ -954,12 +951,9 @@ main(int argc, char *argv[])
         ssl_reinit();
     }
 
-	if (opts->srv_handle && opts->srv_handle->mod_post_init_service) {
-		if (opts->srv_handle->mod_post_init_service() < 0) {
-			fprintf(stderr, "Error when post init service: %s\n", opts->srv_handle->name);
-			unload_service_module(opts);
-			goto out_log_failed;
-		}
+	service_init_ret = FUNC_RET_ALL_SERVICE(opts->app_service_list, mod_post_init_service);
+	if (unlikely(service_init_ret < 0)) {
+		exit(EXIT_FAILURE);
 	}
 
     /* Post-privdrop/chroot/detach initialization, thread spawning */
@@ -1000,7 +994,7 @@ out_cachemgr_failed:
 out_pidwrite_failed:
     log_fini();
 out_log_failed:
-	unload_service_module(opts);
+	unload_all_service(opts->app_service_list);
     opts_free(opts);
     ssl_fini();
     return rv;
