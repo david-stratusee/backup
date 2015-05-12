@@ -87,7 +87,6 @@ if __name__ == '__main__':
                 print "ERR",domain,status,msg
                 faileddomain.add(domain)
             else:
-                usefuldomain.add(domain)
                 m = re_hdl.findall(msg)
                 if m is not None and len(m) > 0:
                     for dstip in m:
@@ -95,7 +94,8 @@ if __name__ == '__main__':
                             domainset[dstip] = domainset[dstip] + " " + domain
                         else:
                             domainset[dstip] = domain
-                    print domain + ": " + str(m)
+                    #print domain + ": " + str(m)
+                    usefuldomain.add(domain)
                 else:
                     print domain,msg
                     noresultdomain.add(domain)
@@ -111,20 +111,26 @@ if __name__ == '__main__':
     print "-------------"
     if len(faileddomain) > 0:
         print "FAILED DNS:[%d]" % len(faileddomain)
-#        for domain in faileddomain:
-#            print domain
-#
+        fp = open('fail.txt', "w")
+        for domain in faileddomain:
+            fp.write(domain + "\n")
+        fp.close()
+
     print "-------------"
     if len(noresultdomain) > 0:
         print "NO RESULT DNS:[%d]" % len(noresultdomain)
-#        for domain in noresultdomain:
-#            print domain
-#
+        fp = open('noresult.txt', "w")
+        for domain in noresultdomain:
+            fp.write(domain + "\n")
+        fp.close()
+
     print "-------------"
     if len(usefuldomain) > 0:
         print "VALID DNS:[%d]" % len(usefuldomain)
-#        for domain in usefuldomain:
-#            print domain
+        fp = open('valid.txt', "w")
+        for domain in usefuldomain:
+            fp.write(domain + "\n")
+        fp.close();
 
     print "-------------"
 
