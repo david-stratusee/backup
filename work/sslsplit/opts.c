@@ -46,6 +46,9 @@ opts_new(void)
 	opts_t *opts;
 
 	opts = umalloc(sizeof(opts_t));
+	if (PTR_NULL(opts)) {
+		return NULL;
+	}
 	memset(opts, 0, sizeof(opts_t));
 
 	opts->sslcomp = 1;
@@ -321,7 +324,7 @@ proxyspec_parse(int *argc, char **argv[], const char *natengine)
 					exit(EXIT_FAILURE);
 				}
 				if (natengine) {
-					spec->natengine = strdup(natengine);
+					spec->natengine = ustrdup(natengine);
 					if (!spec->natengine) {
 						fprintf(stderr,
 						        "Out of memory"
@@ -359,7 +362,7 @@ proxyspec_parse(int *argc, char **argv[], const char *natengine)
 				if (nat_exist(**argv)) {
 					/* natengine */
 					free(spec->natengine);
-					spec->natengine = strdup(**argv);
+					spec->natengine = ustrdup(**argv);
 					if (!spec->natengine) {
 						fprintf(stderr,
 						        "Out of memory"

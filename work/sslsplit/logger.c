@@ -29,7 +29,7 @@
 #include "logger.h"
 
 #include "thrqueue.h"
-#include "logbuf.h"
+#include "common/logbuf.h"
 
 #include <stdio.h>
 #include <stdlib.h>

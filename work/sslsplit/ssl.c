@@ -1200,7 +1200,7 @@ ssl_wildcardify(const char *hostname)
 	size_t dotsz;
 
 	if (!(dot = strchr(hostname, '.')))
-		return strdup("*");
+		return ustrdup_fix("*");
 	dotsz = strlen(dot);
 	if (!(wildcarded = umalloc(dotsz + 2)))
 		return NULL;

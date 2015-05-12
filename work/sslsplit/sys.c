@@ -225,7 +225,7 @@ sys_user_str(uid_t uid)
 		rv = getpwuid_r(uid, &pwd, buf, bufsize, &result);
 		if (rv == 0) {
 			if (result) {
-				name = strdup(pwd.pw_name);
+				name = ustrdup(pwd.pw_name);
 				free(buf);
 				return name;
 			}
@@ -278,7 +278,7 @@ sys_group_str(gid_t gid)
 		rv = getgrgid_r(gid, &grp, buf, bufsize, &result);
 		if (rv == 0) {
 			if (result) {
-				name = strdup(grp.gr_name);
+				name = ustrdup(grp.gr_name);
 				free(buf);
 				return name;
 			}
@@ -342,17 +342,14 @@ char *
 sys_sockaddr_str(struct sockaddr *addr, socklen_t addrlen)
 {
 	char host[INET6_ADDRSTRLEN], serv[6];
-	char *buf;
-	int rv;
-	size_t bufsz;
 
-	bufsz = sizeof(host) + sizeof(serv) + 3;
-	buf = umalloc(bufsz);
-	if (!buf) {
+	size_t bufsz = sizeof(host) + sizeof(serv) + 3;
+	char *buf = umalloc(bufsz);
+	if (PTR_NULL(buf)) {
 		log_err_printf("Cannot allocate memory\n");
 		return NULL;
 	}
-	rv = getnameinfo(addr, addrlen, host, sizeof(host), serv, sizeof(serv),
+	int rv = getnameinfo(addr, addrlen, host, sizeof(host), serv, sizeof(serv),
 	                 NI_NUMERICHOST | NI_NUMERICSERV);
 	if (rv != 0) {
 		log_err_printf("Cannot get nameinfo for socket address: %s\n",
@@ -360,7 +357,7 @@ sys_sockaddr_str(struct sockaddr *addr, socklen_t addrlen)
 		free(buf);
 		return NULL;
 	}
-	snprintf(buf, bufsz, "[%s]:%s", host, serv);
+	snprintf(buf, bufsz, "%s:%s", host, serv);
 	return buf;
 }
 
@@ -441,7 +438,7 @@ sys_dir_eachfile(const char *dirname, sys_dir_eachfile_cb_t cb, void *arg)
 	char * paths[2];
 
 	paths[1] = NULL;
-	paths[0] = strdup(dirname);
+	paths[0] = ustrdup(dirname);
 	if (!paths[0])
 		return -1;
 

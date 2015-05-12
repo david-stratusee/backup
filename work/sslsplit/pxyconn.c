@@ -119,15 +119,16 @@ typedef struct pxy_conn_ctx {
     struct pxy_conn_desc dst;
 
     /* status flags */
-    unsigned int immutable_cert : 1;  /* 1 if the cert cannot be changed */
-    unsigned int connected : 1;       /* 0 until both ends are connected */
-    unsigned int seen_req_header : 1; /* 0 until request header complete */
-    unsigned int seen_resp_header : 1;  /* 0 until response hdr complete */
-    unsigned int sent_http_conn_close : 1;   /* 0 until Conn: close sent */
-    unsigned int passthrough : 1;      /* 1 if SSL passthrough is active */
-    unsigned int ocsp_denied : 1;                /* 1 if OCSP was denied */
-    unsigned int enomem : 1;                       /* 1 if out of memory */
-    unsigned int sni_peek_retries : 6;       /* max 64 SNI parse retries */
+    unsigned int immutable_cert       : 1, /* 1 if the cert cannot be changed */
+				 connected            : 1, /* 0 until both ends are connected */
+				 seen_req_header      : 1, /* 0 until request header complete */
+				 seen_resp_header     : 1, /* 0 until response hdr complete   */
+				 sent_http_conn_close : 1, /* 0 until Conn:close sent         */
+				 passthrough          : 1, /* 1 if SSL passthrough is active  */
+				 ocsp_denied          : 1, /* 1 if OCSP was denied            */
+				 enomem               : 1, /* 1 if out of memory              */
+				 sni_peek_retries     : 6, /* max 64 SNI parse retries        */
+				 app_service_idx	  : 8; /* index in opts' app_service_list */
 
     /* server name indicated by client in SNI TLS extension */
     char *sni;
@@ -175,6 +176,9 @@ typedef struct pxy_conn_ctx {
     pxy_thrmgr_ctx_t *thrmgr;
     proxyspec_t *spec;
     opts_t *opts;
+
+	/* for app service */
+	void *app_sess_handle;
 } pxy_conn_ctx_t;
 
 #define WANT_CONNECT_LOG(ctx)   ((ctx)->opts->connectlog||!(ctx)->opts->detach)
@@ -188,13 +192,11 @@ static pxy_conn_ctx_t *
 pxy_conn_ctx_new(proxyspec_t *spec, opts_t *opts,
                  pxy_thrmgr_ctx_t *thrmgr, evutil_socket_t fd)
 {
-    pxy_conn_ctx_t *ctx = umalloc(sizeof(pxy_conn_ctx_t));
-
-    if (!ctx) {
+    pxy_conn_ctx_t *ctx = ucalloc_type(1, pxy_conn_ctx_t);
+    if (PTR_NULL(ctx)) {
         return NULL;
     }
 
-    memset(ctx, 0, sizeof(pxy_conn_ctx_t));
     ctx->spec = spec;
     ctx->opts = opts;
     ctx->fd = fd;
@@ -228,6 +230,12 @@ pxy_conn_ctx_free(pxy_conn_ctx_t *ctx)
 
 #endif /* DEBUG_PROXY */
     pxy_thrmgr_detach(ctx->thrmgr, ctx->thridx);
+
+	if (ctx->app_sess_handle && ctx->opts->app_service_list[ctx->app_service_idx].srv_handle
+			&& ctx->opts->app_service_list[ctx->app_service_idx].srv_handle->mod_release_sess) {
+		ctx->opts->app_service_list[ctx->app_service_idx].srv_handle->mod_release_sess(ctx->app_sess_handle);
+		ctx->app_sess_handle = NULL;
+	}
 
     if (ctx->src_str) {
         free(ctx->src_str);
@@ -1325,14 +1333,14 @@ pxy_http_reqhdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
         char *newhdr;
 
         if (!ctx->http_host && !strncasecmp(line, "Host:", 5)) {
-            ctx->http_host = strdup(util_skipws(line + 5));
+            ctx->http_host = ustrdup(util_skipws(line + 5));
 
             if (!ctx->http_host) {
                 ctx->enomem = 1;
                 return NULL;
             }
         } else if (!strncasecmp(line, "Content-Type:", 13)) {
-            ctx->http_content_type = strdup(util_skipws(line + 13));
+            ctx->http_content_type = ustrdup(util_skipws(line + 13));
 
             if (!ctx->http_content_type) {
                 ctx->enomem = 1;
@@ -1341,7 +1349,7 @@ pxy_http_reqhdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
         } else if (!strncasecmp(line, "Connection:", 11)) {
             ctx->sent_http_conn_close = 1;
 
-            if (!(newhdr = strdup("Connection: close"))) {
+            if (!(newhdr = ustrdup_fix("Connection: close"))) {
                 ctx->enomem = 1;
                 return NULL;
             }
@@ -1354,7 +1362,7 @@ pxy_http_reqhdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
             ctx->seen_req_header = 1;
 
             if (!ctx->sent_http_conn_close) {
-                newhdr = strdup("Connection: close\r\n");
+                newhdr = ustrdup_fix("Connection: close\r\n");
 
                 if (!newhdr) {
                     ctx->enomem = 1;
@@ -1423,7 +1431,7 @@ pxy_http_resphdr_filter_line(const char *line, pxy_conn_ctx_t *ctx)
         if (!ctx->http_content_length &&
                 !strncasecmp(line, "Content-Length:", 15)) {
             ctx->http_content_length =
-                strdup(util_skipws(line + 15));
+                ustrdup(util_skipws(line + 15));
 
             if (!ctx->http_content_length) {
                 ctx->enomem = 1;
@@ -1650,13 +1658,13 @@ pxy_bev_readcb(struct bufferevent *bev, void *arg)
     struct evbuffer *outbuf = bufferevent_get_output(other->bev);
 
     /* request header munging */
-    if (ctx->spec->http && !ctx->seen_req_header && (bev == ctx->src.bev)
-            && !ctx->passthrough) {
+    if (ctx->spec->http && !ctx->seen_req_header && (bev == ctx->src.bev) && !ctx->passthrough) {
         logbuf_t *lb = NULL, *tail = NULL;
         char *line;
 
-        while ((line = evbuffer_readln(inbuf, NULL,
-                                       EVBUFFER_EOL_CRLF))) {
+		printf("get request\n");
+
+        while ((line = evbuffer_readln(inbuf, NULL, EVBUFFER_EOL_CRLF))) {
             char *replace;
 
             if (WANT_CONTENT_LOG(ctx)) {
@@ -1696,11 +1704,9 @@ pxy_bev_readcb(struct bufferevent *bev, void *arg)
         }
 
         if (lb && WANT_CONTENT_LOG(ctx)) {
-            if (log_content_submit(ctx->logctx, lb,
-                                   1/*req*/) == -1) {
+            if (log_content_submit(ctx->logctx, lb, 1/*req*/) == -1) {
                 logbuf_free(lb);
-                log_err_printf("Warning: Content log "
-                               "submission failed\n");
+                log_err_printf("Warning: Content log submission failed\n");
             }
         }
 
@@ -1708,10 +1714,10 @@ pxy_bev_readcb(struct bufferevent *bev, void *arg)
             return;
         }
     } else {
-
         /* response header munging */
-        if (ctx->spec->http && !ctx->seen_resp_header && (bev == ctx->dst.bev)
-                && !ctx->passthrough) {
+        if (ctx->spec->http && !ctx->seen_resp_header && (bev == ctx->dst.bev) && !ctx->passthrough) {
+			printf("get response\n");
+
             logbuf_t *lb = NULL, *tail = NULL;
             char *line;
 
@@ -1781,17 +1787,21 @@ pxy_bev_readcb(struct bufferevent *bev, void *arg)
         return;
     }
 
-    if (WANT_CONTENT_LOG(ctx)) {
+    if (WANT_CONTENT_LOG(ctx) || (ctx->opts->app_service_list[ctx->app_service_idx].srv_handle
+				&& ctx->opts->app_service_list[ctx->app_service_idx].srv_handle->mod_data_handle)) {
         logbuf_t *lb;
         lb = logbuf_new_alloc(evbuffer_get_length(inbuf), NULL, NULL);
 
         if (lb && (evbuffer_copyout(inbuf, lb->buf, lb->sz) != -1)) {
-            if (log_content_submit(ctx->logctx, lb,
-                                   (bev == ctx->src.bev)) == -1) {
-                logbuf_free(lb);
-                log_err_printf("Warning: Content log "
-                               "submission failed\n");
-            }
+			if (ctx->app_sess_handle && ctx->opts->app_service_list[ctx->app_service_idx].srv_handle
+					&& ctx->opts->app_service_list[ctx->app_service_idx].srv_handle->mod_data_handle) {
+				ctx->opts->app_service_list[ctx->app_service_idx].srv_handle->mod_data_handle(ctx->app_sess_handle, lb, (bev == ctx->src.bev));
+			}
+
+			if (WANT_CONTENT_LOG(ctx) && log_content_submit(ctx->logctx, lb, (bev == ctx->src.bev)) < 0) {
+				logbuf_free(lb);
+				log_err_printf("Warning: Content log submission failed\n");
+			}
         }
     }
 
@@ -1962,6 +1972,12 @@ pxy_bev_eventcb(struct bufferevent *bev, short events, void *arg)
 
 #endif /* HAVE_LOCAL_PROCINFO */
         }
+
+		ctx->app_service_idx = ASI_HTTP;
+		if (ctx->opts->app_service_list[ctx->app_service_idx].srv_handle
+				&& ctx->opts->app_service_list[ctx->app_service_idx].srv_handle->mod_init_sess) {
+			ctx->app_sess_handle = ctx->opts->app_service_list[ctx->app_service_idx].srv_handle->mod_init_sess(ctx->src_str, ctx->dst_str);
+		}
 
         if (WANT_CONTENT_LOG(ctx)) {
             if (log_content_open(&ctx->logctx, ctx->opts,
@@ -2382,7 +2398,6 @@ pxy_conn_setup(evutil_socket_t fd,
     pxy_conn_ctx_t *ctx;
     /* create per connection pair state and attach to thread */
     ctx = pxy_conn_ctx_new(spec, opts, thrmgr, fd);
-
     if (!ctx) {
         log_err_printf("Error allocating memory\n");
         evutil_closesocket(fd);
@@ -2423,7 +2438,6 @@ pxy_conn_setup(evutil_socket_t fd,
     /* prepare logging, part 1 */
     if (WANT_CONNECT_LOG(ctx) || WANT_CONTENT_LOG(ctx)) {
         ctx->src_str = sys_sockaddr_str(peeraddr, peeraddrlen);
-
         if (!ctx->src_str) {
             goto memout;
         }
