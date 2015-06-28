@@ -11,7 +11,7 @@ function clear_tag_files()
     find . -name "udtags" -type f -exec rm -f {} \;
 }
 
-except_name="-e squid -e aie_icap_module/include/c_icap"
+except_name=""
 include_dir=""
 while getopts 'e:i:hc' opt; do
     case $opt in

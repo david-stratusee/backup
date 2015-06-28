@@ -1,5 +1,5 @@
 
-PATH=$PATH:$HOME/.local/bin:/usr/games:$HOME/bin:/usr/local/stratusee/scripts
+PATH=$PATH:$HOME/.local/bin:/usr/games:$HOME/bin:/usr/local/holonet/scripts
 export PATH
 
 # Set MANPATH so it includes users' private man if it exists
@@ -8,7 +8,7 @@ if [ -d "${HOME}/man" ]; then
 fi
 
 #export PS1='\n[\A]\[\e[36m\]\u@\[\e[33m\]\W\[\e[0m\]\$ '
-export PS1='\n[\t]\[\e[36m\]\u@\[\e[35m\]\W\[\e[0m\]\$ '
+export PS1='\n[\A]\[\e[36m\]\u-C@\[\e[35m\]\W\[\e[0m\]\$ '
 export CSCOPE_EDITOR="vim"
 
 # History Options
@@ -27,3 +27,4 @@ export HISTTIMEFORMAT='%y-%m-%d %T	'
 # Whenever displaying the prompt, write the previous line to disk
 # export PROMPT_COMMAND="history -a"
 
+export wdir="/usr/local/stratusee"

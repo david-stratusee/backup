@@ -11,6 +11,6 @@
 set -o nounset                              # Treat unset variables as an error
 
 sudo ifdown enp0s3 && sudo ifup enp0s3
-sudo /usr/local/squid/sbin/squid -k kill
+sudo kill `ps -ef | grep "sslsplit " | grep -v grep | awk '{print $2}'`
 
 ifconfig

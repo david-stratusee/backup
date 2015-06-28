@@ -29,7 +29,6 @@ $%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/types.h>
 #include <stdint.h>
 
 /************************************************
@@ -103,18 +102,16 @@ assert(<CURSOR>);
 $%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 == idioms.open-input-file ==
 char *|?FILEPOINTER|_filename = <CURSOR>;    /* input-file name    */
+FILE *fp_|FILEPOINTER| = fopen((const char *)|FILEPOINTER|_filename, "r");
+if (fp_|FILEPOINTER| == NULL) {
+    fprintf(stderr, "couldn't open file '%s'; %s\n", |FILEPOINTER|_filename, strerror(errno));
+    goto err;
+}
+
 #define |FILEPOINTER:u|_LINE_LEN 1024
 char readline[|FILEPOINTER:u|_LINE_LEN] = {0};
 char *pline = readline;
 char *pline_end = NULL;
-
-FILE *fp_|FILEPOINTER| = fopen((const char *)|FILEPOINTER|_filename, "r");
-if (fp_|FILEPOINTER| == NULL) {
-    fprintf (stderr, "couldn't open file '%s'; %s\n",
-                |FILEPOINTER|_filename, strerror(errno));
-    goto err;
-}
-
 while (memset(readline, 0, |FILEPOINTER:u|_LINE_LEN) && fgets(readline, |FILEPOINTER:u|_LINE_LEN, fp_|FILEPOINTER|)) {
     pline = readline;
     while (*pline == ' ' || *pline == '\t' || *pline == '\r' || *pline == '\n') {
@@ -129,7 +126,7 @@ while (memset(readline, 0, |FILEPOINTER:u|_LINE_LEN) && fgets(readline, |FILEPOI
     while ((*pline_end == '\r' || *pline_end == '\n') && pline_end >= pline) {
         pline_end--;
     }
-    *(pline_end + 1) = '\0';
+    *(++pline_end) = '\0';
 
     /***************************************************
      * TODO: use pline here, filtered # and empty lines
@@ -154,8 +151,7 @@ char *|FILEPOINTER|_filename = "<CURSOR>";    /* output-file name    */
 
 fp_|FILEPOINTER| = fopen((const char *)|FILEPOINTER|_filename, "w");
 if (fp_|FILEPOINTER| == NULL) {
-    fprintf (stderr, "couldn't open file '%s'; %s\n",
-            |FILEPOINTER|_filename, strerror(errno));
+    fprintf(stderr, "couldn't open file '%s'; %s\n", |FILEPOINTER|_filename, strerror(errno));
     goto err;
 }
 

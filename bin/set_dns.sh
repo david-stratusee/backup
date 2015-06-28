@@ -51,7 +51,7 @@ if [ $# -gt 0 ] && [ "$1" == "-l" ]; then
     exit 0
 fi
 
-setdns="10.0.0.2"
+setdns="192.168.0.2"
 if [ $# -gt 0 ]; then
     setdns=$@
 fi

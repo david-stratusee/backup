@@ -7,7 +7,7 @@ function fill_cscope_file()
 {
     this_dir=$1
     lname=$2
-    find ${this_dir} \( -name "*.c" -o -name "*.h" -o -name "*.cc" -o -name "*.cpp" -o -name "*.hpp" \) -type f | egrep -v "(demo|pclint|backup|\\ut\\|utcode|ut_${except_name})" >>$lname
+    find ${this_dir} \( -name "*.c" -o -name "*.h" -o -name "*.cc" -o -name "*.cpp" -o -name "*.hpp" \) -type f | egrep -v "(demo|pclint|\/temp\/|\/tmp\/|\/ut\/|utcode|ut_${except_name})" >>$lname
 }
 
 while getopts 'e:i:' opt; do
@@ -31,4 +31,11 @@ if [ "$include_dir" != "" ]; then
     fill_cscope_file ${include_dir} "cscope.files"
 fi
 
-#ls /usr/include/*.h | grep -v db >> cscope.files
+~/bin/cgrep.sh -o "#include <(.*)>" | sort -u | grep -v "\-\-" | sed -e 's/#include </\/usr\/include\//g' | sed -e 's/>//g' >/tmp/csfile.list
+~/bin/cgrep.sh -o "#include <(.*)>" | sort -u | grep -v "\-\-" | sed -e 's/#include </\/usr\/local\/include\//g' | sed -e 's/>//g' >>/tmp/csfile.list
+while read line; do
+    if [ -f $line ] && [ ! -h $line ]; then
+        echo $line >>cscope.files
+    fi
+done </tmp/csfile.list
+rm -f /tmp/csfile.list
