@@ -15,7 +15,7 @@
 static int32_t load_service_module(app_service_opts_t *app_service_opts, const char *srv_name)
 {
     char so_path[128];
-    fix_snprintf(so_path, "/usr/local/stratusee/lib/lib%s.so", srv_name);
+    fix_snprintf(so_path, "/usr/local/holonet/lib/lib%s.so", srv_name);
 
     printf("get srv_name: %s, so_path: %s\n", srv_name, so_path);
     void *so_handle = dlopen(so_path, RTLD_NOW | RTLD_GLOBAL);
