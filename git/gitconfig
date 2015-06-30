@@ -22,5 +22,5 @@
 	last = log -5 HEAD
 	wdiff = diff --ignore-space-at-eol --ignore-space-change --ignore-all-space
     sparse = read-tree -m -u HEAD
-[http]
+[http "https://github.com"]
 	sslVerify = false
