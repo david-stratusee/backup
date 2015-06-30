@@ -26,5 +26,3 @@ export HISTTIMEFORMAT='%y-%m-%d %T	'
 #
 # Whenever displaying the prompt, write the previous line to disk
 # export PROMPT_COMMAND="history -a"
-
-export wdir="/usr/local/stratusee"
