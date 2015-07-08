@@ -62,15 +62,15 @@ if [ "${remote_file}" != "" ]; then
     fi
 
     if [ "${local_file}" != "" ]; then
-        echo scp ${local_file} ${dsthost}:${start_dir}${remote_file}
-        scp ${local_file} ${dsthost}:${start_dir}${remote_file}
+        echo scp -r ${local_file} ${dsthost}:${start_dir}${remote_file}
+        scp -r ${local_file} ${dsthost}:${start_dir}${remote_file}
     else
-        echo scp ${dsthost}:${start_dir}${remote_file} .
-        scp ${dsthost}:${start_dir}${remote_file} .
+        echo scp -r ${dsthost}:${start_dir}${remote_file} .
+        scp -r ${dsthost}:${start_dir}${remote_file} .
     fi
 elif [ "${local_file}" != "" ]; then
-    echo scp ${local_file} ${dsthost}:/home/david/
-    scp ${local_file} ${dsthost}:/home/david/
+    echo scp -r ${local_file} ${dsthost}:/home/david/
+    scp -r ${local_file} ${dsthost}:/home/david/
 else
     echo ssh ${dsthost} ${cmd}
     ssh ${dsthost} ${cmd}
