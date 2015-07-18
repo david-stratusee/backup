@@ -6,6 +6,7 @@ alias psm='pss | grep -v grep | egrep --color=auto "(sslsplit|squid|resmgr|icap|
 alias pst='pidstat -t | egrep --color=auto "(sslsplit|squid|resmgr|icap|http|redis|logstash|LogDaemon|_watchdog\b|ssl_crtd|main.js|CPU)"'
 alias pstree='pstree -ap'
 alias tcpdump='tcpdump -nK -s 0'
+alias hcheck='ls holonet/hfile/* | grep '
 
 alias echo='echo -e'
 alias yacc='yacc -d -l'
