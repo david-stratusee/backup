@@ -12,7 +12,7 @@ set -o nounset                              # Treat unset variables as an error
 
 function gohelp()
 {
-    echo -e "Usage: \n\t-m for module(c|u|g|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit"
+    echo -e "Usage: \n\t-m for module(c|u|g|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit\n\e-s show session"
 }
 
 dsthost=""
@@ -20,8 +20,12 @@ local_file=""
 remote_file=""
 cmd=""
 do_exit=0
-while getopts 'm:f:r:c:eh' opt; do
+while getopts 'm:f:r:c:esh' opt; do
     case $opt in
+        s)
+            ps -ef | grep -v grep | grep sockets
+            exit 0
+            ;;
         e)
             do_exit=1
             ;;
