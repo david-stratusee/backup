@@ -12,15 +12,19 @@ set -o nounset                              # Treat unset variables as an error
 
 function gohelp()
 {
-    echo -e "Usage: \n\t-m for module(c|u|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command"
+    echo -e "Usage: \n\t-m for module(c|u|g|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit"
 }
 
 dsthost=""
 local_file=""
 remote_file=""
 cmd=""
-while getopts 'm:f:r:c:h' opt; do
+do_exit=0
+while getopts 'm:f:r:c:eh' opt; do
     case $opt in
+        e)
+            do_exit=1
+            ;;
         m) 
             case $OPTARG in
                 "c")
@@ -28,6 +32,9 @@ while getopts 'm:f:r:c:h' opt; do
                     ;;
                 "u")
                     dsthost="aie.ubuntu"
+                    ;;
+                "g")
+                    dsthost="github.com"
                     ;;
                 *)
                     dsthost="dev-${OPTARG}.stratusee.com"
@@ -55,6 +62,11 @@ if [ "${dsthost}" == "" ]; then
     exit 0
 fi
 
+if [ ${do_exit} -ne 0 ]; then
+    ssh -O exit ${dsthost}
+    exit 0
+fi
+
 if [ "${remote_file}" != "" ]; then
     start_dir="/home/david/"
     if [ "${remote_file:0:1}" == "/" ]; then
@@ -72,6 +84,6 @@ elif [ "${local_file}" != "" ]; then
     echo scp -r ${local_file} ${dsthost}:/home/david/
     scp -r ${local_file} ${dsthost}:/home/david/
 else
-    echo ssh ${dsthost} ${cmd}
-    ssh ${dsthost} ${cmd}
+    echo ssh -q ${dsthost} ${cmd}
+    ssh -q ${dsthost} ${cmd}
 fi
