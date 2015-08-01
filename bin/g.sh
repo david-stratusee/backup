@@ -63,7 +63,15 @@ if [ "${dsthost}" == "" ]; then
 fi
 
 if [ ${do_exit} -ne 0 ]; then
-    ssh -O exit ${dsthost}
+    ssh -O stop ${dsthost}
+    ps_count=`ps -ef | grep -v grep | grep -c ${dsthost}`
+    if [ ${ps_count} -gt 0 ]; then
+        sleep 1
+        ps_count=`ps -ef | grep -v grep | grep -c ${dsthost}`
+        if [ ${ps_count} -gt 0 ]; then
+            ssh -O exit ${dsthost}
+        fi
+    fi
     exit 0
 fi
 
