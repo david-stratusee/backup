@@ -96,6 +96,6 @@ elif [ "${local_file}" != "" ]; then
     echo scp -r ${local_file} ${dsthost}:/home/david/
     scp -r ${local_file} ${dsthost}:/home/david/
 else
-    echo ssh -q ${dsthost} ${cmd}
-    ssh -q ${dsthost} ${cmd}
+    echo ssh ${dsthost} ${cmd}
+    ssh ${dsthost} ${cmd}
 fi

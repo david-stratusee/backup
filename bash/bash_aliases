@@ -7,6 +7,7 @@ alias pst='pidstat -t | egrep --color=auto "(sslsplit|squid|resmgr|icap|http|red
 alias pstree='pstree -ap'
 alias tcpdump='tcpdump -nK -s 0'
 alias hcheck='ls holonet/hfile/* | grep '
+alias hram='ls holonet/hfile_ram/* | grep '
 
 alias echo='echo -e'
 alias yacc='yacc -d -l'
