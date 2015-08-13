@@ -29,6 +29,7 @@ aliveinterval=0
 function show_proxy()
 {
     echo ===========================
+    echo proxy.pac: ${local_proxydir}
     echo "pac_proxy state:"
     networksetup -getautoproxyurl ${ETH}
     echo ===========================
