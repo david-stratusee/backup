@@ -21,8 +21,7 @@ while getopts 'd:p:h' opt; do
     esac
 done
 
-#echo find $curdir $prunedir -path $curdir/build -prune -o \\\( -name \"*.c\" -o -name \"*.h\" -o -name \"*.cc\" -o -name \"*.cpp\" \\\) -type f -printf \"%P \"
-filelist=`find $curdir $prunedir -path $curdir/build -prune -o \( -name "*.c" -o -name "*.h" -o -name "*.cc" -o -name "*.cpp" \) -type f -printf "%P\n" | sort -u`
+filelist=`find $curdir $prunedir -path $curdir/cbuild -prune -o \( -name "*.c" -o -name "*.h" -o -name "*.cc" -o -name "*.cpp" \) -type f -printf "%P\n" | sort -u`
 for file in $filelist
 do
 	echo "	\${CMAKE_CURRENT_SOURCE_DIR}/$file"

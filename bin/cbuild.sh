@@ -136,6 +136,7 @@ else
 fi
 
 if [ $diff_count -gt 0 ]; then
+    echo cmake${CMAKE_ARG} ..
     cmake${CMAKE_ARG} ..
     check_result $? cmake
 

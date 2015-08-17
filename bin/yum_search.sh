@@ -1,13 +1,13 @@
 #!/bin/bash -
 #===============================================================================
-#          FILE: get_aie_code.sh
-#         USAGE: ./get_aie_code.sh
+#          FILE: yum_search.sh
+#         USAGE: ./yum_search.sh
 #   DESCRIPTION:
 #        AUTHOR: dengwei
-#       CREATED: 2014年08月25日 13:53
+#       CREATED: 2015年08月15日 00:28
 #      REVISION:  ---
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
 
-git clone https://github.com/stratusee/AIE.git $@
+yum provides */$1
