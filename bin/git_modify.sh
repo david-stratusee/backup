@@ -58,6 +58,11 @@ while getopts 'f:mdh' opt; do
     esac
 done
 
+if [ ! -d .git ] && [ ! -d ../.git ] && [ ! -d ../../.git ] && [ ! -d ../../../.git ] && [ ! -d ../../../../.git ] && [ ! -d ../../../../../.git ]; then
+    echo "You are not in one git repository"
+    exit 0
+fi
+
 if [ $need_log == true ]; then
     echo get logfile: $logfile
 fi

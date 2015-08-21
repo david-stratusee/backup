@@ -26,6 +26,11 @@ if [ "$2" != "-m" ] && [ "$2" != "-F" ]; then
     exit
 fi
 
+if [ ! -d .git ] && [ ! -d ../.git ] && [ ! -d ../../.git ] && [ ! -d ../../../.git ] && [ ! -d ../../../../.git ] && [ ! -d ../../../../../.git ]; then
+    echo "You are not in one git repository"
+    exit 0
+fi
+
 action=$1
 msgact=$2
 msg=$3
