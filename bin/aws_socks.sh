@@ -56,8 +56,10 @@ function kill_process()
     pidc=`ps -ef | grep -v grep | grep -c "$@"`
     if [ $pidc -gt 0 ]; then
         sshpid=`ps -ef | grep "$@" | grep -v grep | awk '{print $2}'`
-        echo "kill $@, pid: ${sshpid}"
-        kill $sshpid
+        for p in $sshpid; do
+            echo "kill $@, pid: ${p}"
+            sudo kill $p
+        done
     fi
 }
 
@@ -97,7 +99,6 @@ function update_pac()
         wget -T 10 --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
         if [ $? -eq 0 ]; then
             sudo mv /tmp/proxy.pac ${local_proxydir}/
-            echo proxy.pac is in ${local_proxydir}
         elif [ ! -f ${local_proxydir}/proxy.pac ]; then
             echo "can not get proxy.pac, exit..."
             return 1
