@@ -10,4 +10,6 @@
 
 set -o nounset                              # Treat unset variables as an error
 
+yum search $1
+echo ========================
 yum provides */$1

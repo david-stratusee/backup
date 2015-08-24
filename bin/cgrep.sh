@@ -8,7 +8,7 @@ fi
 
 echo "------------------------------"
 
-grep -r -H -E -n "$@" . --include="*.c" --include="*.h" --include="*.cc" --include="*.cpp" --include="*.hpp" | sed -e 's/:/ +/' | grep -E --color "$@"
+grep -r -H -E -n "$@" . --exclude-dir=tmp --exclude-dir=temp --include="*.c" --include="*.h" --include="*.cc" --include="*.cpp" --include="*.hpp" | sed -e 's/:/ +/' | grep -E --color "$@"
 
 echo "------------------------------"
 
