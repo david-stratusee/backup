@@ -55,8 +55,13 @@ function clear_proxy()
 {
     kill_process "watch_socks"
     kill_process "ssh -D"
-    kill_process "ttdnsd"
+    #kill_process "ttdnsd"
     kill_sslsplit
+
+    #ttdns_nat=`sudo iptables-save | grep 5353`
+    #if [ ${ttdns_nat} -ne 0 ]; then
+    #    sudo iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
+    #fi
 }
 
 function check_host_port()
@@ -148,7 +153,11 @@ if [ ${ssh_num} -eq 0 ]; then
     ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
     #sudo /usr/local/bin/polipo logLevel=0xFF
 
-    sudo TSOCKS_CONF_FILE=tsocks.conf ttdnsd -b 0.0.0.0 -p 53 -P /var/lib/ttdnsd/pid -f /etc/ttdnsd.conf
+    #ttdns_nat=`sudo iptables-save | grep 5353`
+    #if [ ${ttdns_nat} -eq 0 ]; then
+    #    sudo iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
+    #fi
+    #sudo TSOCKS_CONF_FILE=tsocks.conf ttdnsd -b 127.0.0.1 -p 5353 -P /var/lib/ttdnsd/pid -f /etc/ttdnsd.conf
 fi
 
 kill_process "aie_watchdog"
