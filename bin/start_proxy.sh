@@ -12,13 +12,13 @@ set -o nounset                              # Treat unset variables as an error
 
 username=david
 available_host_port=("dev-aie.stratusee.com:22" "dev-aie2.stratusee.com:22" "us.stratusee.com:2221")
-host_port=${available_host_port[2]}
+host_port=${available_host_port[0]}
 
 aliveinterval=0
 
 function show_proxy_stat()
 {
-    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|polipo|squid)"
+    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|sslsplit)"
     echo ===========================
     if [ -f /tmp/watch_socks.log ]; then
         echo "/tmp/watch_socks.log:"
@@ -32,8 +32,10 @@ function kill_process()
     pidc=`ps -ef | grep -v grep | grep -c "$@"`
     if [ $pidc -gt 0 ]; then
         sshpid=`ps -ef | grep "$@" | grep -v grep | awk '{print $2}'`
-        echo "kill $@, pid: ${sshpid}"
-        sudo kill $sshpid
+        for p in $sshpid; do
+            echo "kill $@, pid: ${p}"
+            sudo kill $p
+        done
     fi
 }
 
@@ -41,8 +43,7 @@ function clear_proxy()
 {
     kill_process "watch_socks"
     kill_process "ssh -D"
-    kill_process polipo
-    sudo /usr/local/squid/sbin/squid -k kill
+    kill_process "sslsplit"
 }
 
 function check_host_port()
@@ -131,10 +132,14 @@ remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
 nslookup ${remote_host} >/tmp/watch_socks.log
 ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
 #sudo /usr/local/bin/polipo logLevel=0xFF
-sudo /usr/local/bin/polipo
+#sudo /usr/local/bin/polipo
 
-sudo /usr/local/squid/sbin/squid -k kill
-sudo nohup proxychains4 /usr/local/squid/sbin/squid -d 3 -N 1>>/tmp/squid.log 2>&1 &
+kill_process "aie_watchdog"
+kill_process "sslsplit"
+sleep 1
+sudo /usr/bin/proxychains4 /usr/local/holonet/bin/sslsplit ssl 0.0.0.0 8443 tcp 0.0.0.0 8081 autossl 0.0.0.0 8082 1>>/tmp/sslsplit.log 2>&1 &
+sleep 1
+sudo /usr/local/holonet/bin/aie_watchdog
 
 echo "show state:"
 sleep 2
