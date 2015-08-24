@@ -109,7 +109,6 @@ base2.googlehosted.com
 base3.googlehosted.com
 base4.googlehosted.com
 base5.googlehosted.com
-bbs.operachina.com
 beta-chat-01-05-ash3.facebook.com
 betaspike.appspot.com
 betastream.twitter.com
@@ -1140,7 +1139,6 @@ mars.google.com
 mediafire.com
 mediawiki.org
 meta.wikimedia.org
-mini.operachina.com
 mobile-gtalk.l.google.com
 mobile.l.google.com
 mobile.twitter.com
@@ -1448,13 +1446,11 @@ play.google.com
 plus.google.com
 plus.url.google.com
 plusone.google.com
-portal.operachina.com
 pr.comet.yahoo.com
 premium.avira-update.com
 premium.avira-update.net
 premium.de.avira-update.com
 prempeak.avira-update.com
-press.operachina.com
 productforums.google.com
 productideas.appspot.com
 profile.ak.fbcdn.net
@@ -1475,7 +1471,6 @@ r7647-dot-latest-dot-project-slingshot-hr.appspot.com
 raw.github.com
 rbjhe237k979f79d87gmenp3gejfonu9-a-oz-opensocial.googleusercontent.com
 reader.google.com
-redir.operachina.com
 redirector-bigcache.googleapis.com
 s-static.ak.facebook.com
 s.gravatar.com
@@ -1550,7 +1545,6 @@ ssl.gstatic.com
 static.ak.facebook.com
 static.ak.fbcdn.net
 static.googleusercontent.com
-static.operachina.com
 static.panoramio.com
 static.thefacebook.com
 static.twitter.com
@@ -2030,7 +2024,6 @@ wenda.google.com.hk
 wifi.google.com
 wifi.l.google.com
 wiki.huhamhire-hosts.googlecode.com
-wiki.operachina.com
 wikibooks.org
 wikimedia.org
 wikimediafoundation.org
@@ -2156,3 +2149,5 @@ app.box.com
 www.box.com
 dl.boxcloud.com
 upload.box.com
+google-perftools.googlecode.com
+gperftools.googlecode.com
