@@ -18,7 +18,7 @@ aliveinterval=0
 
 function show_proxy_stat()
 {
-    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|sslsplit)"
+    ps axf | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|sslsplit)"
     echo ===========================
     if [ -f /tmp/watch_socks.log ]; then
         echo "/tmp/watch_socks.log:"
@@ -29,11 +29,23 @@ function show_proxy_stat()
 
 function kill_process()
 {
-    pidc=`ps -ef | grep -v grep | grep -c "$@"`
+    pidc=`ps -ef | grep -v "grep" | grep -c "$@"`
     if [ $pidc -gt 0 ]; then
-        sshpid=`ps -ef | grep "$@" | grep -v grep | awk '{print $2}'`
+        sshpid=`ps -ef | grep -v "grep" | grep "$@" | awk '{print $2}'`
         for p in $sshpid; do
             echo "kill $@, pid: ${p}"
+            sudo kill $p
+        done
+    fi
+}
+
+function kill_sslsplit()
+{
+    pidc=`ps -ef | grep -v "proxychains" | grep -v "grep" | grep -c "sslsplit"`
+    if [ $pidc -gt 0 ]; then
+        sshpid=`ps -ef | grep -v "proxychains" | grep -v "grep" | grep "sslsplit" | awk '{print $2}'`
+        for p in $sshpid; do
+            echo "kill sslsplit, pid: ${p}"
             sudo kill $p
         done
     fi
@@ -43,7 +55,7 @@ function clear_proxy()
 {
     kill_process "watch_socks"
     kill_process "ssh -D"
-    kill_process "sslsplit"
+    kill_sslsplit
 }
 
 function check_host_port()
@@ -121,26 +133,33 @@ while getopts 'a:p:hcl' opt; do
     esac
 done
 
-clear_proxy
+ssh_num=`ps -ef | grep -v grep | grep -c "ssh -D"`
+if [ ${ssh_num} -eq 0 ]; then
+    clear_proxy
 
-#rm -f /tmp/proxy.pac
-#wget --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
-#sudo cp -f /tmp/proxy.pac /etc/polipo/proxy.pac
+    #rm -f /tmp/proxy.pac
+    #wget --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
+    #sudo cp -f /tmp/proxy.pac /etc/polipo/proxy.pac
 
-remote_host=`echo ${host_port} | awk -F":" '{print $1}'`
-remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
-nslookup ${remote_host} >/tmp/watch_socks.log
-${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
-#sudo /usr/local/bin/polipo logLevel=0xFF
-#sudo /usr/local/bin/polipo
+    remote_host=`echo ${host_port} | awk -F":" '{print $1}'`
+    remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
+    nslookup ${remote_host} >/tmp/watch_socks.log
+    ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
+    #sudo /usr/local/bin/polipo logLevel=0xFF
+fi
 
 kill_process "aie_watchdog"
-kill_process "sslsplit"
+kill_sslsplit
+sudo mv -f /tmp/sslsplit.log /tmp/sslsplit.log.bak
+#sudo mv -f /tmp/memtm_ssl.heap /tmp/memtm_ssl.heap.bak
 sleep 1
-sudo /usr/bin/proxychains4 /usr/local/holonet/bin/sslsplit ssl 0.0.0.0 8443 tcp 0.0.0.0 8081 autossl 0.0.0.0 8082 1>>/tmp/sslsplit.log 2>&1 &
+tcmalloc_path=`whereis libtcmalloc.so | awk '{for (i=1;i<=NF;i++) print $i}' | grep libtcmalloc.so`
+#script_prefix="LD_PRELOAD=${tcmalloc_path} HEAPCHECK=normal HEAPPROFILE=/tmp/memtm_ssl.heap PPROF_PATH=/usr/bin/pprof HEAP_CHECK_TEST_POINTER_ALIGNMENT=1 HEAP_CHECK_MAX_LEAKS=100"
+script_prefix="LD_PRELOAD=${tcmalloc_path} HEAPCHECK=normal PPROF_PATH=/usr/bin/pprof HEAP_CHECK_TEST_POINTER_ALIGNMENT=1 HEAP_CHECK_MAX_LEAKS=100"
+sudo ${script_prefix} /usr/bin/proxychains4 /usr/local/holonet/bin/sslsplit ssl 0.0.0.0 8443 tcp 0.0.0.0 8081 autossl 0.0.0.0 8082 1>/tmp/sslsplit.log 2>&1 &
 sleep 1
 sudo /usr/local/holonet/bin/aie_watchdog
 
 echo "show state:"
-sleep 2
+sleep 1
 show_proxy_stat
