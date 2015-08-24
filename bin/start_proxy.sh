@@ -18,7 +18,7 @@ aliveinterval=0
 
 function show_proxy_stat()
 {
-    ps axf | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|sslsplit)"
+    ps auxf | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|sslsplit|ttdnsd)"
     echo ===========================
     if [ -f /tmp/watch_socks.log ]; then
         echo "/tmp/watch_socks.log:"
@@ -55,6 +55,7 @@ function clear_proxy()
 {
     kill_process "watch_socks"
     kill_process "ssh -D"
+    kill_process "ttdnsd"
     kill_sslsplit
 }
 
@@ -146,6 +147,8 @@ if [ ${ssh_num} -eq 0 ]; then
     nslookup ${remote_host} >/tmp/watch_socks.log
     ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
     #sudo /usr/local/bin/polipo logLevel=0xFF
+
+    sudo TSOCKS_CONF_FILE=tsocks.conf ttdnsd -b 0.0.0.0 -p 53 -P /var/lib/ttdnsd/pid -f /etc/ttdnsd.conf
 fi
 
 kill_process "aie_watchdog"
