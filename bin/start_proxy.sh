@@ -18,7 +18,7 @@ aliveinterval=0
 
 function show_proxy_stat()
 {
-    ps auxf | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|sslsplit|ttdnsd)"
+    ps auxf | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|sslsplit|ttdnsd|dnschef)"
     echo ===========================
     if [ -f /tmp/watch_socks.log ]; then
         echo "/tmp/watch_socks.log:"
@@ -51,12 +51,25 @@ function kill_sslsplit()
     fi
 }
 
+function kill_dnschef()
+{
+    pidc=`ps -ef | grep -v "nohup" | grep -v "grep" | grep -c "dnschef.py"`
+    if [ $pidc -gt 0 ]; then
+        sshpid=`ps -ef | grep -v "nohup" | grep -v "grep" | grep "dnschef.py" | awk '{print $2}'`
+        for p in $sshpid; do
+            echo "kill dnschef.py, pid: ${p}"
+            sudo kill $p
+        done
+    fi
+}
+
 function clear_proxy()
 {
     kill_process "watch_socks"
     kill_process "ssh -D"
-    #kill_process "ttdnsd"
+    kill_dnschef
     kill_sslsplit
+    #kill_process "ttdnsd"
 
     #ttdns_nat=`sudo iptables-save | grep 5353`
     #if [ ${ttdns_nat} -ne 0 ]; then
@@ -158,6 +171,8 @@ if [ ${ssh_num} -eq 0 ]; then
     #    sudo iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
     #fi
     #sudo TSOCKS_CONF_FILE=tsocks.conf ttdnsd -b 127.0.0.1 -p 5353 -P /var/lib/ttdnsd/pid -f /etc/ttdnsd.conf
+
+    dnschef.sh
 fi
 
 kill_process "aie_watchdog"
