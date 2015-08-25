@@ -43,6 +43,7 @@ if [ $# -gt 0 ] && [ "$1" == "-c" ]; then
 fi
 
 if [ $# -gt 0 ] && [ "$1" == "-l" ]; then
+    echo -n "Show DNS: "
     if [ ${is_mac} -ne 0 ]; then
         networksetup -getdnsservers Wi-Fi
     else
