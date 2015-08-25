@@ -56,7 +56,7 @@ if [ "$1" == "-c" ]; then
     gw=`echo $local_ip | awk -F"." '{print $1"."$2"."$3".1"}'`
     echo ${gw}
     reset_gw ${gw}
-    use_proxy.sh -c
+    set_dns.sh -c
 
     if [ -f /etc/sysconfig/network-scripts/ifcfg-${netname} ]; then
         sudo sed -i -e 's/^DEFROUTE=.*/DEFROUTE="yes"/g' /etc/sysconfig/network-scripts/ifcfg-${netname}
@@ -68,7 +68,7 @@ if [ "$1" == "-c" ]; then
     fi
 elif [ ${is_linux} -eq 0 ] && [ "$1" == "-v" ]; then
     reset_gw 192.168.66.128
-    use_proxy.sh 192.168.66.128
+    set_dns.sh 192.168.66.128
 elif [ "$1" == "-b" ]; then
     if [ -f /etc/sysconfig/network-scripts/ifcfg-${netname} ]; then
         sudo sed -i -e 's/^DEFROUTE=.*/DEFROUTE="no"/g' /etc/sysconfig/network-scripts/ifcfg-${netname}
@@ -80,7 +80,7 @@ elif [ "$1" == "-b" ]; then
     fi
 
     reset_gw 192.168.3.119
-    use_proxy.sh 192.168.3.119
+    set_dns.sh 192.168.3.119
 elif [ "$1" != "-l" ]; then
     echo "unknown argument"
     proxy_help `basename $0`
@@ -88,4 +88,4 @@ elif [ "$1" != "-l" ]; then
 fi
 
 netstat -nr
-use_proxy.sh -l
+set_dns.sh -l
