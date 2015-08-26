@@ -18,7 +18,7 @@ set -o nounset                              # Treat unset variables as an error
 username=david
 
 available_host_port=("dev-aie.stratusee.com:22" "dev-aie2.stratusee.com:22" "us.stratusee.com:2221")
-host_port=${available_host_port[0]}
+host_port=${available_host_port[2]}
 
 ETH="Wi-Fi"
 aliveinterval=0
