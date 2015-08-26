@@ -236,10 +236,11 @@ class DNSHandler():
 
                 # Proxy the request
                 else:
-                    print "[%s] %s: proxying the response of type '%s' for %s" % (time.strftime("%H:%M:%S"), self.client_address[0], qtype, qname)
-                    if self.server.log: self.server.log.write( "[%s] %s: proxying the response of type '%s' for %s\n" % (time.strftime("%d/%b/%Y:%H:%M:%S %z"), self.client_address[0], qtype, qname) )
+                    l_nameserver = random.choice(self.server.nameservers)
+                    print "[%s] %s: proxying the response of type '%s' for %s, ns: %s" % (time.strftime("%H:%M:%S"), self.client_address[0], qtype, qname, l_nameserver)
+                    if self.server.log: self.server.log.write( "[%s] %s: proxying the response of type '%s' for %s, ns: %s\n" % (time.strftime("%d/%b/%Y:%H:%M:%S %z"), self.client_address[0], qtype, qname, l_nameserver) )
 
-                    nameserver_tuple = random.choice(self.server.nameservers).split('#')               
+                    nameserver_tuple = l_nameserver.split('#')               
                     response = self.proxyrequest(data,*nameserver_tuple)
                 
         return response         
@@ -280,46 +281,62 @@ class DNSHandler():
     # Obtain a response from a real DNS server.
     def proxyrequest(self, request, host, port="53", protocol="udp"):
         reply = None
-        try:
-            if self.server.ipv6:
-
-                if protocol == "udp":
+        if protocol == "udp":
+            try:
+                if self.server.ipv6:
                     sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-                elif protocol == "tcp":
-                    sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-
-            else:
-                if protocol == "udp":
+                else:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                elif protocol == "tcp":
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-            sock.settimeout(3.0)
-
-            # Send the proxy request to a randomly chosen DNS server
-
-            if protocol == "udp":
                 sock.sendto(request, (host, int(port)))
                 reply = sock.recv(1024)
                 sock.close()
+            except Exception, e:
+                print "[!] Could not proxy request: %s" % e
+            else:
+                return reply 
+        else:
+            length = binascii.unhexlify("%04x" % len(request)) 
+            if self.server.ns_handles.has_key(host):
+                sock = self.server.ns_handles[host]
+                try:
+                    sock.sendall(length+request)
 
-            elif protocol == "tcp":
+                    # Strip length from the response
+                    reply = sock.recv(1024)
+                    reply = reply[2:]
+
+                except Exception, e:
+                    print 'sock in cache is bad, for host: %s' % host
+                    if self.server.log:
+                        self.server.log.write('sock in cache is bad, for host: %s' % host)
+                    del self.server.ns_handles[host]
+                else:
+                    return reply
+
+            try:
+                if self.server.ipv6:
+                    sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+                else:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(3.0)
+
+                # Send the proxy request to a randomly chosen DNS server
                 sock.connect((host, int(port)))
 
                 # Add length for the TCP request
-                length = binascii.unhexlify("%04x" % len(request)) 
                 sock.sendall(length+request)
 
                 # Strip length from the response
                 reply = sock.recv(1024)
                 reply = reply[2:]
 
-                sock.close()
+                self.server.ns_handles[host] = sock
+            except Exception, e:
+                print "[!] Could not proxy request: %s" % e
+            else:
+                return reply 
 
-        except Exception, e:
-            print "[!] Could not proxy request: %s" % e
-        else:
-            return reply 
 
 # UDP DNS Handler for incoming requests
 class UDPHandler(DNSHandler, SocketServer.BaseRequestHandler):
@@ -357,6 +374,7 @@ class ThreadedUDPServer(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
         self.ipv6        = ipv6
         self.address_family = socket.AF_INET6 if self.ipv6 else socket.AF_INET
         self.log = log
+        self.ns_handles={}
 
         SocketServer.UDPServer.__init__(self,server_address,RequestHandlerClass) 
 
@@ -372,6 +390,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
         self.ipv6        = ipv6
         self.address_family = socket.AF_INET6 if self.ipv6 else socket.AF_INET
         self.log = log
+        self.ns_handles={}
 
         SocketServer.TCPServer.__init__(self,server_address,RequestHandlerClass) 
         
@@ -407,6 +426,10 @@ def start_cooking(interface, nametodns, nameservers, tcp=False, ipv6=False, port
         if log:
             log.write("[%s] DNSChef is shutting down.\n" % (time.strftime("%d/%b/%Y:%H:%M:%S %z")) )
             log.close()
+
+        if len(server.ns_handles) > 0:
+            for (host,sock) in server.ns_handles.items():
+                sock.close()
 
         server.shutdown()
         print "[*] DNSChef is shutting down."
