@@ -12,7 +12,7 @@ set -o nounset                              # Treat unset variables as an error
 
 function gohelp()
 {
-    echo -e "Usage: \n\t-m for module(c|u|g|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit\n\e-l show session"
+    echo -e "Usage: \n\t-m for module(b|c|u|g|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit\n\e-l show session"
 }
 
 dsthost=""
@@ -39,6 +39,9 @@ while getopts 'm:f:r:c:elh' opt; do
                     ;;
                 "g")
                     dsthost="github.com"
+                    ;;
+                "b")
+                    dsthost="aie.box"
                     ;;
                 *)
                     dsthost="dev-${OPTARG}.stratusee.com"
