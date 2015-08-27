@@ -10,7 +10,7 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-function kill_dnschef_1
+function kill_dnschef_1()
 {
     local val=0
     pidc=`ps -ef | grep -v "nohup" | grep -v "grep" | grep -c "dnschef.py"`
@@ -26,6 +26,16 @@ function kill_dnschef_1
     return $val
 }
 
+function prepare_dns_list()
+{
+    wget -T 10 --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
+    grep "1,$" /tmp/proxy.pac | grep -v "\/" | awk -F "\"" '{print $2}' >/tmp/whitelist.log
+
+    echo "google" >> /tmp/whitelist.log
+    echo "facebook" >> /tmp/whitelist.log
+    echo "dropbox" >> /tmp/whitelist.log
+}
+
 echo pkill dnschef.py
 kill_dnschef_1
 result=$?
@@ -38,9 +48,16 @@ if [ $result -gt 0 ]; then
     sleep 1
 fi
 
+localdns=`grep nameserver /etc/resolv.conf | awk '{print $2"#53,"}'`
+localdns=`echo $localdns | sed -e 's/ //g'`
+echo $localdns
+
+prepare_dns_list
+
 echo start dnschef.py
-#sudo nohup ${HOME}/bin/dnschef.py --file ${HOME}/bin/dnschef.ini --logfile /tmp/dnschef.log --nameservers 208.67.220.220#53#tcp,208.67.222.222#53#tcp,209.244.0.3#53#tcp,209.244.0.4#53#tcp -i 0.0.0.0 -q 1>/dev/null 2>&1 &
-sudo nohup ${HOME}/bin/dnschef.py --file ${HOME}/bin/dnschef.ini --nameservers 208.67.220.220#53#tcp,208.67.222.222#53#tcp,209.244.0.3#53#tcp,209.244.0.4#53#tcp -i 0.0.0.0 -q 1>/dev/null 2>&1 &
+echo ${HOME}/bin/dnschef.py --file ${HOME}/bin/dnschef.ini --dnsfile /tmp/whitelist.log --logfile /tmp/dnschef.log --nameservers ${localdns}208.67.220.220#53#tcp,208.67.222.222#53#tcp,209.244.0.3#53#tcp,209.244.0.4#53#tcp -i 0.0.0.0 -q
+sudo nohup ${HOME}/bin/dnschef.py --file ${HOME}/bin/dnschef.ini --dnsfile /tmp/whitelist.log --logfile /tmp/dnschef.log --nameservers ${localdns}208.67.220.220#53#tcp,208.67.222.222#53#tcp,209.244.0.3#53#tcp,209.244.0.4#53#tcp -i 0.0.0.0 -q 1>/dev/null 2>&1 &
+#sudo nohup ${HOME}/bin/dnschef.py --file ${HOME}/bin/dnschef.ini --dnsfile /tmp/whitelist.log --nameservers ${localdns}208.67.220.220#53#tcp,208.67.222.222#53#tcp,209.244.0.3#53#tcp,209.244.0.4#53#tcp -i 0.0.0.0 -q 1>/dev/null 2>&1 &
 sleep 1
 echo show result
 
