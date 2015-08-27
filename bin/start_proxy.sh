@@ -66,6 +66,7 @@ function kill_dnschef()
 function clear_proxy()
 {
     kill_process "watch_socks"
+    kill_process `echo $host_port | awk -F":" '{print $1}'`
     kill_process "ssh -D"
     kill_dnschef
     kill_sslsplit
