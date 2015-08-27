@@ -17,7 +17,7 @@ function kill_dnschef_1()
     if [ $pidc -gt 0 ]; then
         sshpid=`ps -ef | grep -v "nohup" | grep -v "grep" | grep "dnschef.py" | awk '{print $2}'`
         for p in $sshpid; do
-            echo "kill $@, pid: ${p}"
+            echo "kill dnschef.py, pid: ${p}"
             sudo kill $p
             val=1
         done
@@ -28,8 +28,11 @@ function kill_dnschef_1()
 
 function prepare_dns_list()
 {
+    if [ -f /tmp/proxy.pac ]; then
+        rm -f /tmp/proxy.pac
+    fi
     wget -T 10 --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
-    grep "1,$" /tmp/proxy.pac | grep -v "\/" | awk -F "\"" '{print $2}' >/tmp/whitelist.log
+    grep "1,$" /tmp/proxy.pac | grep -v "\/" | awk -F "\"" '{print $2}' | sed -e 's/\./\\\./g' >/tmp/whitelist.log
 
     echo "google" >> /tmp/whitelist.log
     echo "facebook" >> /tmp/whitelist.log

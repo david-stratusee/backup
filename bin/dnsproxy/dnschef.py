@@ -44,7 +44,7 @@ import SocketServer, socket, sys, os
 import binascii
 import string
 import base64
-import time
+import time, re
 
 def log_print(logptr, verbose, msg):
     if logptr:
@@ -245,7 +245,7 @@ class DNSHandler():
 
                 # Proxy the request
                 else:
-                    if qname in self.server.tcpdomain:
+                    if self.server.tcpdomain is not None and self.server.tcpdomain.search(qname) is not None:
                         l_nameserver = random.choice(self.server.tcp_nameservers)
                     else:
                         l_nameserver = random.choice(self.server.udp_nameservers)
@@ -546,25 +546,35 @@ if __name__ == "__main__":
 
     # Use alternative DNS servers
     if options.nameservers:
-        tcp_nameservers = set()
-        udp_nameservers = set()
+        tcp_nameservers = []
+        udp_nameservers = []
         nameservers = options.nameservers.split(',')
         print "[*] Using the following nameservers: %s" % ", ".join(nameservers)
 
         for nameserver in nameservers:
             if nameserver.find("#tcp") != -1:
-                tcp_nameservers.add(nameserver)
-            else:
-                udp_nameservers.add(nameserver)
+                tcp_nameservers.append(nameserver)
+            elif nameserver.find("192.168.66") == -1:
+                udp_nameservers.append(nameserver)
 
-    tcpdomain=set()
+    tcpdomain = ""
+    tcpdomain_prog = None
     if options.dnsfile:
         dnsfp = open(options.dnsfile)
         if dnsfp:
             lines = dnsfp.readlines()
             dnsfp.close()
+
             for line in lines:
-                tcpdomain.add(line)
+                line = line.strip()
+                if tcpdomain == "":
+                    tcpdomain = "(" + line
+                else:
+                    tcpdomain += "|" + line
+            tcpdomain += ")"
+
+            #print "tcpdomain: ", tcpdomain
+            tcpdomain_prog = re.compile(tcpdomain, re.IGNORECASE)
 
     # External file definitions
     if options.file:
@@ -681,4 +691,4 @@ if __name__ == "__main__":
         print "[*] No parameters were specified. Running in full proxy mode"
 
     # Launch DNSChef
-    start_cooking(interface=options.interface, nametodns=nametodns, tcpdomain=tcpdomain, tcp_nameservers=tcp_nameservers, udp_nameservers=udp_nameservers, tcp=options.tcp, ipv6=options.ipv6, port=options.port, logfile=options.logfile, verbose=options.verbose)
+    start_cooking(interface=options.interface, nametodns=nametodns, tcpdomain=tcpdomain_prog, tcp_nameservers=tcp_nameservers, udp_nameservers=udp_nameservers, tcp=options.tcp, ipv6=options.ipv6, port=options.port, logfile=options.logfile, verbose=options.verbose)
