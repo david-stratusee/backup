@@ -38,8 +38,8 @@ while getopts 'm:f:r:c:elh' opt; do
                     ;;
                 "u")
                     dsthost="us.stratusee.com"
-                    ssh_dstport=" -p 2221"
-                    scp_dstport=" -P 2221"
+                    ssh_dstport=" -p 2226"
+                    scp_dstport=" -P 2226"
                     ;;
                 "g")
                     dsthost="github.com"
