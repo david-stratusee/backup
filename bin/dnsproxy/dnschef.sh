@@ -53,7 +53,7 @@ fi
 
 localdns=`grep nameserver /etc/resolv.conf | awk '{print $2"#53,"}'`
 localdns=`echo $localdns | sed -e 's/ //g'`
-echo $localdns
+#echo $localdns
 
 prepare_dns_list
 
@@ -62,6 +62,6 @@ echo ${HOME}/bin/dnschef.py --file ${HOME}/bin/dnschef.ini --dnsfile /tmp/whitel
 sudo nohup ${HOME}/bin/dnschef.py --file ${HOME}/bin/dnschef.ini --dnsfile /tmp/whitelist.log --logfile /tmp/dnschef.log --nameservers ${localdns}208.67.220.220#53#tcp,208.67.222.222#53#tcp,209.244.0.3#53#tcp,209.244.0.4#53#tcp -i 0.0.0.0 -q 1>/dev/null 2>&1 &
 #sudo nohup ${HOME}/bin/dnschef.py --file ${HOME}/bin/dnschef.ini --dnsfile /tmp/whitelist.log --nameservers ${localdns}208.67.220.220#53#tcp,208.67.222.222#53#tcp,209.244.0.3#53#tcp,209.244.0.4#53#tcp -i 0.0.0.0 -q 1>/dev/null 2>&1 &
 sleep 1
-echo show result
+echo show result:
 
 ps axf | grep dnschef

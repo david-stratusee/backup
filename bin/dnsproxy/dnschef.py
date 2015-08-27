@@ -306,37 +306,39 @@ class DNSHandler():
                 reply = sock.recv(1024)
                 sock.close()
             except Exception, e:
-                log_print(self.server.log, self.server.verbose, ("[!] Could not proxy request for %s with dns %s: %s\n" % (qname, host, e)))
+                log_print(self.server.log, self.server.verbose, ("[!] Could not proxy request for %s with dns %s#%s: %s\n" % (qname, host, protocol, e)))
             else:
                 return reply
         else:
             length = binascii.unhexlify("%04x" % len(request))
-            if self.server.ns_handles.has_key(host):
-                sock = self.server.ns_handles[host]
-                try:
-                    sock.sendall(length+request)
 
-                    # Strip length from the response
-                    reply = sock.recv(1024)
-                    reply = reply[2:]
-
-                except Exception, e:
-                    log_print(self.server.log, self.server.verbose, ("sock of dns %s in cache is bad when process %s: %s\n" % (host, qname, e)))
-                else:
-                    return reply
-
-                try:
-                    sock = self.server.ns_handles.pop(host)
-                    sock.close()
-                except Exception, e:
-                    log_print(self.server.log, self.server.verbose, ("error when delete sock of dns %s from cache when process %s: %s\n" % (host, qname, e)))
+#            if self.server.ns_handles.has_key(host):
+#                sock = self.server.ns_handles[host]
+#                try:
+#                    sock.sendall(length+request)
+#
+#                    # Strip length from the response
+#                    reply = sock.recv(1024)
+#                    reply = reply[2:]
+#
+#                except Exception, e:
+#                    log_print(self.server.log, self.server.verbose, ("sock of dns %s in cache is bad when process %s: %s\n" % (host, qname, e)))
+#                else:
+#                    return reply
+#
+#                try:
+#                    sock = self.server.ns_handles.pop(host)
+#                    sock.close()
+#                except Exception, e:
+#                    log_print(self.server.log, self.server.verbose, ("error when delete sock of dns %s from cache when process %s: %s\n" % (host, qname, e)))
 
             try:
                 if self.server.ipv6:
                     sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
                 else:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(3.0)
+                #sock.settimeout(3.0)
+                sock.settimeout(10.0)
 
                 # Send the proxy request to a randomly chosen DNS server
                 sock.connect((host, int(port)))
@@ -347,17 +349,22 @@ class DNSHandler():
                 # Strip length from the response
                 reply = sock.recv(1024)
                 reply = reply[2:]
+
+                # add block
+                sock.close()
+
             except Exception, e:
-                log_print(self.server.log, self.server.verbose, ("[!] Could not proxy request %s with dns %s: %s\n" % (qname, host, e)))
+                log_print(self.server.log, self.server.verbose, ("[!] Could not proxy request %s with dns %s#%s: %s\n" % (qname, host, protocol, e)))
+
             else:
-                try:
-                    if not self.server.ns_handles.has_key(host):
-                        self.server.ns_handles[host] = sock
-                        log_print(self.server.log, self.server.verbose, ("add sock with dns %s into cache when process %s\n" % (host, qname)))
-                    else:
-                        sock.close()
-                except Exception, e:
-                    log_print(self.server.log, self.server.verbose, ("[!] get exception when delete dns %s from cache, process %s: %s\n" % (host, qname, e)))
+#                try:
+#                    if not self.server.ns_handles.has_key(host):
+#                        self.server.ns_handles[host] = sock
+#                        log_print(self.server.log, self.server.verbose, ("add sock with dns %s into cache when process %s\n" % (host, qname)))
+#                    else:
+#                        sock.close()
+#                except Exception, e:
+#                    log_print(self.server.log, self.server.verbose, ("[!] get exception when delete dns %s from cache, process %s: %s\n" % (host, qname, e)))
 
                 return reply
 
@@ -458,9 +465,9 @@ def start_cooking(interface, nametodns, tcpdomain, tcp_nameservers, udp_nameserv
             log.write("DNSChef is shutting down.\n")
             log.close()
 
-        if len(server.ns_handles) > 0:
-            for (host,sock) in server.ns_handles.items():
-                sock.close()
+#        if len(server.ns_handles) > 0:
+#            for (host,sock) in server.ns_handles.items():
+#                sock.close()
 
         server.shutdown()
         print "[*] DNSChef is shutting down."
