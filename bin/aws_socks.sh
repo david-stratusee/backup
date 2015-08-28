@@ -17,8 +17,8 @@ set -o nounset                              # Treat unset variables as an error
 #-------------------------------------------------------------------------------
 username=david
 
-available_host_port=("dev-aie.stratusee.com:22" "dev-aie2.stratusee.com:22" "us.stratusee.com:2226")
-host_port=${available_host_port[2]}
+available_host_port=("david:dev-aie.stratusee.com:22" "david:dev-aie2.stratusee.com:22" "david:us.stratusee.com:2226", "55dff01689f5cf34c30000e0:python-crazyman.rhcloud.com:22")
+host_port=${available_host_port[3]}
 
 ETH="Wi-Fi"
 aliveinterval=0
@@ -44,8 +44,9 @@ function show_proxy()
 
 function fill_and_run_proxy()
 {
-    remote_host=`echo ${host_port} | awk -F":" '{print $1}'`
-    remote_port=`echo ${host_port} | awk -F":" '{print $2}'`
+    username=`echo ${host_port} | awk -F":" '{print $1}'`
+    remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
+    remote_port=`echo ${host_port} | awk -F":" '{print $3}'`
 
     nslookup ${remote_host} >/tmp/watch_socks.log
     ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
@@ -212,9 +213,10 @@ else
     local_proxydir="/Applications/Safari.app/Contents/Resources"
 fi
 
-if [ "${MODE}" == "clear" ]; then
+if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
     kill_process "watch_socks"
     kill_process "ssh -D"
+    kill_process `echo $host_port | awk -F":" '{print $2}'`
 
     stop_apache
     sudo networksetup -setautoproxystate ${ETH} off
