@@ -245,8 +245,11 @@ class DNSHandler():
 
                 # Proxy the request
                 else:
+                    isTCP = False
+
                     if self.server.tcpdomain is not None and self.server.tcpdomain.search(qname) is not None:
                         l_nameserver = random.choice(self.server.tcp_nameservers)
+                        isTCP = True
                     else:
                         l_nameserver = random.choice(self.server.udp_nameservers)
 
@@ -257,8 +260,15 @@ class DNSHandler():
                     nameserver_tuple = l_nameserver.split('#')
                     response = self.proxyrequest(data, qname, *nameserver_tuple)
 
-        return response
+                    if response is None and isTCP:
+                        l_nameserver = random.choice(self.server.tcp_nameservers)
+                        if self.server.verbose:
+                            log_print(self.server.log, self.server.verbose,
+                                      ("%s: proxying the response of type '%s' for %s, ns: %s\n" % (self.client_address[0], qtype, qname, l_nameserver)))
+                        nameserver_tuple = l_nameserver.split('#')
+                        response = self.proxyrequest(data, qname, *nameserver_tuple)
 
+        return response
 
     # Find appropriate ip address to use for a queried name. The function can
     def findnametodns(self,qname,nametodns):
@@ -301,6 +311,8 @@ class DNSHandler():
                     sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
                 else:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                
+                sock.settimeout(5.0)
 
                 sock.sendto(request, (host, int(port)))
                 reply = sock.recv(1024)
@@ -337,7 +349,7 @@ class DNSHandler():
                     sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
                 else:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                #sock.settimeout(3.0)
+                #sock.settimeout(5.0)
                 sock.settimeout(10.0)
 
                 # Send the proxy request to a randomly chosen DNS server
