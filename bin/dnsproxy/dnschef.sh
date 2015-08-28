@@ -38,6 +38,7 @@ function prepare_dns_list()
     echo "facebook" >> /tmp/whitelist.log
     echo "dropbox" >> /tmp/whitelist.log
     echo "twitter" >> /tmp/whitelist.log
+    echo "rubygems" >> /tmp/whitelist.log
     echo ".box.com" >> /tmp/whitelist.log
     echo "boxcloud.com" >> /tmp/whitelist.log
 
