@@ -10,6 +10,8 @@
 
 set -o nounset                              # Treat unset variables as an error
 
+. tools.sh
+
 username=david
 available_host_port=("david:dev-aie.stratusee.com:22" "david:dev-aie2.stratusee.com:22" "david:us.stratusee.com:2226", "55dff01689f5cf34c30000e0:python-crazyman.rhcloud.com:22")
 host_port=${available_host_port[3]}
@@ -66,8 +68,12 @@ function kill_dnschef()
 
 function clear_proxy()
 {
+    remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
+    remote_ip=`get_dnsip ${remote_host}`
+
     kill_process "watch_socks"
-    kill_process `echo $host_port | awk -F":" '{print $2}'`
+    kill_process $remote_host
+    kill_process $remote_ip
     kill_process "ssh -D"
     kill_dnschef
     kill_sslsplit
@@ -120,14 +126,14 @@ function start_proxy_help()
     echo "------------------------------------"
 }
 
+clear_mode=0
 while getopts 'a:p:hclm' opt; do
     case $opt in
         a)
             aliveinterval=$OPTARG
             ;;
         c)
-            clear_proxy
-            exit 0
+            clear_mode=1
             ;;
         l)
             show_proxy_stat
@@ -158,6 +164,11 @@ while getopts 'a:p:hclm' opt; do
     esac
 done
 
+if [ $clear_mode -ne 0 ]; then
+    clear_proxy
+    exit 0
+fi
+
 ssh_num=`ps -ef | grep -v grep | grep -c "ssh -D"`
 if [ ${ssh_num} -eq 0 ]; then
     clear_proxy
@@ -169,8 +180,9 @@ if [ ${ssh_num} -eq 0 ]; then
     username=`echo ${host_port} | awk -F":" '{print $1}'`
     remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
     remote_port=`echo ${host_port} | awk -F":" '{print $3}'`
-    nslookup ${remote_host} >/tmp/watch_socks.log
-    ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
+    remote_ip=`get_dnsip ${remote_host}`
+    echo "get host: $remote_host - $remote_ip" >/tmp/watch_socks.log
+    ${HOME}/bin/watch_socks.sh ${username} ${remote_ip} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
     #sudo /usr/local/bin/polipo logLevel=0xFF
 
     #ttdns_nat=`sudo iptables-save | grep 5353`

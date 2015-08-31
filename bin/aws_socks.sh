@@ -9,6 +9,7 @@
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
+. tools.sh
 
 #-------------------------------------------------------------------------------
 # config here
@@ -47,9 +48,10 @@ function fill_and_run_proxy()
     username=`echo ${host_port} | awk -F":" '{print $1}'`
     remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
     remote_port=`echo ${host_port} | awk -F":" '{print $3}'`
+    remote_ip=`get_dnsip ${remote_host}`
 
-    nslookup ${remote_host} >/tmp/watch_socks.log
-    ${HOME}/bin/watch_socks.sh ${username} ${remote_host} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
+    echo "get host: $remote_host - $remote_ip" >/tmp/watch_socks.log
+    ${HOME}/bin/watch_socks.sh ${username} ${remote_ip} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
 }
 
 function kill_process()
@@ -214,7 +216,12 @@ else
 fi
 
 if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
+    remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
+    remote_ip=`get_dnsip ${remote_host}`
+
     kill_process "watch_socks"
+    kill_process $remote_host
+    kill_process $remote_ip
     kill_process "ssh -D"
     kill_process `echo $host_port | awk -F":" '{print $2}'`
 

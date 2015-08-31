@@ -9,13 +9,15 @@
 #===============================================================================
 
 set -o nounset                              # Treat unset variables as an error
+. tools.sh
 
 function gohelp()
 {
-    echo -e "Usage: \n\t-m for module(b|c|u|g|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit\n\e-l show session"
+    echo -e "Usage: \n\t-m for module(b|c|u|g|r|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit\n\e-l show session"
 }
 
 dsthost=""
+dstip=""
 ssh_dstport=""
 scp_dstport=""
 local_file=""
@@ -47,6 +49,9 @@ while getopts 'm:f:r:c:elh' opt; do
                 "b")
                     dsthost="aie.box"
                     ;;
+                "r")
+                    dsthost="python-crazyman.rhcloud.com"
+                    ;;
                 *)
                     dsthost="dev-${OPTARG}.stratusee.com"
                     ;;
@@ -72,15 +77,16 @@ if [ "${dsthost}" == "" ]; then
     gohelp
     exit 0
 fi
+dstip=`get_dnsip ${dsthost}`
 
 if [ ${do_exit} -ne 0 ]; then
-    ssh -O stop ${dsthost}${ssh_dstport}
-    ps_count=`ps -ef | grep -v grep | grep -c ${dsthost}`
+    ssh -O stop ${dstip}${ssh_dstport}
+    ps_count=`ps -ef | grep -v grep | grep -c ${dstip}`
     if [ ${ps_count} -gt 0 ]; then
         sleep 1
-        ps_count=`ps -ef | grep -v grep | grep -c ${dsthost}`
+        ps_count=`ps -ef | grep -v grep | grep -c ${dstip}`
         if [ ${ps_count} -gt 0 ]; then
-            ssh -O exit ${dsthost}${ssh_dstport}
+            ssh -O exit ${dstip}${ssh_dstport}
         fi
     fi
     exit 0
@@ -93,16 +99,16 @@ if [ "${remote_file}" != "" ]; then
     fi
 
     if [ "${local_file}" != "" ]; then
-        echo scp -r${scp_dstport} ${local_file} ${dsthost}:${start_dir}${remote_file}
-        scp -r${scp_dstport} ${local_file} ${dsthost}:${start_dir}${remote_file}
+        echo scp -r${scp_dstport} ${local_file} ${dstip}:${start_dir}${remote_file}
+        scp -r${scp_dstport} ${local_file} ${dstip}:${start_dir}${remote_file}
     else
-        echo scp -r${scp_dstport} ${dsthost}:${start_dir}${remote_file} .
-        scp -r${scp_dstport} ${dsthost}:${start_dir}${remote_file} .
+        echo scp -r${scp_dstport} ${dstip}:${start_dir}${remote_file} .
+        scp -r${scp_dstport} ${dstip}:${start_dir}${remote_file} .
     fi
 elif [ "${local_file}" != "" ]; then
-    echo scp -r${scp_dstport} ${local_file} ${dsthost}:/home/david/
-    scp -r${scp_dstport} ${local_file} ${dsthost}:/home/david/
+    echo scp -r${scp_dstport} ${local_file} ${dstip}:/home/david/
+    scp -r${scp_dstport} ${local_file} ${dstip}:/home/david/
 else
-    echo ssh${ssh_dstport} ${dsthost} ${cmd}
-    ssh${ssh_dstport} ${dsthost} ${cmd}
+    echo ssh${ssh_dstport} ${dstip} ${cmd}
+    ssh${ssh_dstport} ${dstip} ${cmd}
 fi

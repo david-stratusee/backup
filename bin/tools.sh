@@ -211,4 +211,20 @@ function title_echo()
     fi
 }
 
+function get_dnsip()
+{
+    domain=$1
+    dns_server="208.67.220.220"
+    if [ $# -gt 1 ]; then
+        dns_server=$2
+    fi
+    dstip=`grep ${domain} /etc/hosts | awk '{print $1}'`
+    if [ "$dstip" == "" ]; then
+        dstip=`dig +noquestion +nocomment +tcp @${dns_server} ${domain} | grep "\bA\b" | awk '{print $5}'`
+        if [ "$dstip" == "" ]; then
+            echo $domain
+        fi
+    fi
 
+    echo $dstip
+}
