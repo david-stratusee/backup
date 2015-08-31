@@ -223,8 +223,10 @@ function get_dnsip()
         dstip=`dig +noquestion +nocomment +tcp @${dns_server} ${domain} | grep "\bA\b" | awk '{print $5}'`
         if [ "$dstip" == "" ]; then
             echo $domain
+            return 0
         fi
     fi
 
     echo $dstip
+    return 0
 }

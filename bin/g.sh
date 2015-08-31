@@ -17,6 +17,7 @@ function gohelp()
 }
 
 dsthost=""
+username="david"
 dstip=""
 ssh_dstport=""
 scp_dstport=""
@@ -48,9 +49,11 @@ while getopts 'm:f:r:c:elh' opt; do
                     ;;
                 "b")
                     dsthost="aie.box"
+                    username="stratusee"
                     ;;
                 "r")
                     dsthost="python-crazyman.rhcloud.com"
+                    username="55dff01689f5cf34c30000e0"
                     ;;
                 *)
                     dsthost="dev-${OPTARG}.stratusee.com"
@@ -80,13 +83,13 @@ fi
 dstip=`get_dnsip ${dsthost}`
 
 if [ ${do_exit} -ne 0 ]; then
-    ssh -O stop ${dstip}${ssh_dstport}
+    ssh -O stop ${username}@${dstip}${ssh_dstport}
     ps_count=`ps -ef | grep -v grep | grep -c ${dstip}`
     if [ ${ps_count} -gt 0 ]; then
         sleep 1
         ps_count=`ps -ef | grep -v grep | grep -c ${dstip}`
         if [ ${ps_count} -gt 0 ]; then
-            ssh -O exit ${dstip}${ssh_dstport}
+            ssh -O exit ${username}@${dstip}${ssh_dstport}
         fi
     fi
     exit 0
@@ -99,16 +102,16 @@ if [ "${remote_file}" != "" ]; then
     fi
 
     if [ "${local_file}" != "" ]; then
-        echo scp -r${scp_dstport} ${local_file} ${dstip}:${start_dir}${remote_file}
-        scp -r${scp_dstport} ${local_file} ${dstip}:${start_dir}${remote_file}
+        echo scp -r${scp_dstport} ${local_file} ${username}@${dstip}:${start_dir}${remote_file}
+        scp -r${scp_dstport} ${local_file} ${username}@${dstip}:${start_dir}${remote_file}
     else
-        echo scp -r${scp_dstport} ${dstip}:${start_dir}${remote_file} .
-        scp -r${scp_dstport} ${dstip}:${start_dir}${remote_file} .
+        echo scp -r${scp_dstport} ${username}@${dstip}:${start_dir}${remote_file} .
+        scp -r${scp_dstport} ${username}@${dstip}:${start_dir}${remote_file} .
     fi
 elif [ "${local_file}" != "" ]; then
-    echo scp -r${scp_dstport} ${local_file} ${dstip}:/home/david/
-    scp -r${scp_dstport} ${local_file} ${dstip}:/home/david/
+    echo scp -r${scp_dstport} ${local_file} ${username}@${dstip}:/home/david/
+    scp -r${scp_dstport} ${local_file} ${username}@${dstip}:/home/david/
 else
-    echo ssh${ssh_dstport} ${dstip} ${cmd}
-    ssh${ssh_dstport} ${dstip} ${cmd}
+    echo ssh${ssh_dstport} ${username}@${dstip} ${cmd}
+    ssh${ssh_dstport} ${username}@${dstip} ${cmd}
 fi
