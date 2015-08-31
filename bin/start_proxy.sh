@@ -15,6 +15,7 @@ available_host_port=("david:dev-aie.stratusee.com:22" "david:dev-aie2.stratusee.
 host_port=${available_host_port[3]}
 
 aliveinterval=0
+check_memory=0
 
 function show_proxy_stat()
 {
@@ -112,13 +113,14 @@ function start_proxy_help()
     echo "-a NUM         : set ServerAliveInterval for sshtunnel, default 0, recommand 7200"
     echo "-c             : for clear socks proxy"
     echo "-l             : for query socks proxy"
+    echo "-m             : check memory leak"
     echo "-p NUM|IP:PORT : set socks proxy's host_port"
     print_avail_host
     echo "no args for set proxy"
     echo "------------------------------------"
 }
 
-while getopts 'a:p:hcl' opt; do
+while getopts 'a:p:hclm' opt; do
     case $opt in
         a)
             aliveinterval=$OPTARG
@@ -130,6 +132,9 @@ while getopts 'a:p:hcl' opt; do
         l)
             show_proxy_stat
             exit 0
+            ;;
+        m)
+            check_memory=1
             ;;
         p)
             isdigit=`echo $OPTARG | grep -c "^[0-9]$"`
@@ -182,9 +187,12 @@ kill_sslsplit
 sudo mv -f /tmp/sslsplit.log /tmp/sslsplit.log.bak
 #sudo mv -f /tmp/memtm_ssl.heap /tmp/memtm_ssl.heap.bak
 sleep 1
-tcmalloc_path=`whereis libtcmalloc.so | awk '{for (i=1;i<=NF;i++) print $i}' | grep libtcmalloc.so`
-#script_prefix="LD_PRELOAD=${tcmalloc_path} HEAPCHECK=normal HEAPPROFILE=/tmp/memtm_ssl.heap PPROF_PATH=/usr/bin/pprof HEAP_CHECK_TEST_POINTER_ALIGNMENT=1 HEAP_CHECK_MAX_LEAKS=100"
-script_prefix="LD_PRELOAD=${tcmalloc_path} HEAPCHECK=normal PPROF_PATH=/usr/bin/pprof HEAP_CHECK_TEST_POINTER_ALIGNMENT=1 HEAP_CHECK_MAX_LEAKS=100"
+script_prefix=
+if [ $check_memory -ne 0 ]; then
+    tcmalloc_path=`whereis libtcmalloc.so | awk '{for (i=1;i<=NF;i++) print $i}' | grep libtcmalloc.so`
+    #script_prefix="LD_PRELOAD=${tcmalloc_path} HEAPCHECK=normal HEAPPROFILE=/tmp/memtm_ssl.heap PPROF_PATH=/usr/bin/pprof HEAP_CHECK_TEST_POINTER_ALIGNMENT=1 HEAP_CHECK_MAX_LEAKS=100"
+    script_prefix="LD_PRELOAD=${tcmalloc_path} HEAPCHECK=normal PPROF_PATH=/usr/bin/pprof HEAP_CHECK_TEST_POINTER_ALIGNMENT=1 HEAP_CHECK_MAX_LEAKS=100"
+fi
 sudo ${script_prefix} /usr/bin/proxychains4 /usr/local/holonet/bin/sslsplit ssl 0.0.0.0 8443 tcp 0.0.0.0 8081 autossl 0.0.0.0 8082 1>/tmp/sslsplit.log 2>&1 &
 sleep 1
 sudo /usr/local/holonet/bin/aie_watchdog

@@ -15,6 +15,7 @@ def isproxyalive(proxy):
     except Exception, e:
         #sys.stderr.write('proxy %s is not accessible\n' % proxy)
         #sys.stderr.write(str(e)+'\n')
+        s.close()
         return False
     s.close()
     return True
