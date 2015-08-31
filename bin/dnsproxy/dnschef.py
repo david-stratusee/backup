@@ -592,6 +592,8 @@ if __name__ == "__main__":
                     tcpdomain += "|" + line
             tcpdomain += ")"
 
+            print tcpdomain
+
             #print "tcpdomain: ", tcpdomain
             tcpdomain_prog = re.compile(tcpdomain, re.IGNORECASE)
 
