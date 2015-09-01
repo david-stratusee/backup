@@ -81,6 +81,7 @@ if [ "${dsthost}" == "" ]; then
     exit 0
 fi
 dstip=`get_dnsip ${dsthost}`
+echo "${dsthost} - ${dstip}"
 
 if [ ${do_exit} -ne 0 ]; then
     ssh -O stop ${username}@${dstip}${ssh_dstport}
