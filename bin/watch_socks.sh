@@ -36,11 +36,11 @@ while [ 1 -eq 1 ]; do
         echo -e " ["`date +'%H:%M:%S'`"] ssh -D ${socks_port} ${ssh_args} ${username}@${hostname}${port}${aliveinterval}"
         ssh -D ${socks_port} ${ssh_args} ${username}@${hostname}${port}${aliveinterval}
     else
-        #check_proxy=`${HOME}/bin/check_proxy.py "127.0.0.1:${socks_port}"`
-        check_socks 3
-        check_proxy=$?
-        #if [ ${check_proxy} -ne 1 ]; then
-        if [ ${check_proxy} -ne 0 ]; then
+        check_proxy=`${HOME}/bin/check_proxy.py "127.0.0.1:${socks_port}"`
+        #check_socks 3
+        #check_proxy=$?
+        if [ ${check_proxy} -ne 1 ]; then
+        #if [ ${check_proxy} -ne 0 ]; then
             sshpid=`ps -ef | grep "ssh -D" | grep -v grep | awk '{print $2}'`
             echo kill $sshpid
             kill $sshpid
