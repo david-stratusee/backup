@@ -4,6 +4,21 @@ port=""
 aliveinterval=""
 username=$1
 hostname=$2
+
+function check_socks()
+{
+    ctimeout=$1
+    curl --socks5 127.0.0.1:${socks_port} -m ${ctimeout} -I -s -S http://david-stratusee.github.io/params.json
+    sock_result=$?
+
+    if [ ${sock_result} -ne 0 ]; then
+        curl --socks5 127.0.0.1:${socks_port} -m ${ctimeout} -I -s -S http://david-stratusee.github.io/params.json
+        sock_result=$?
+    fi
+
+    return $sock_result
+}
+
 if [ $3 -ne 22 ]; then
     port=" -p $3"
 fi
@@ -21,8 +36,11 @@ while [ 1 -eq 1 ]; do
         echo -e " ["`date +'%H:%M:%S'`"] ssh -D ${socks_port} ${ssh_args} ${username}@${hostname}${port}${aliveinterval}"
         ssh -D ${socks_port} ${ssh_args} ${username}@${hostname}${port}${aliveinterval}
     else
-        check_proxy=`${HOME}/bin/check_proxy.py "127.0.0.1:${socks_port}"`
-        if [ ${check_proxy} -ne 1 ]; then
+        #check_proxy=`${HOME}/bin/check_proxy.py "127.0.0.1:${socks_port}"`
+        check_socks 3
+        check_proxy=$?
+        #if [ ${check_proxy} -ne 1 ]; then
+        if [ ${check_proxy} -ne 0 ]; then
             sshpid=`ps -ef | grep "ssh -D" | grep -v grep | awk '{print $2}'`
             echo kill $sshpid
             kill $sshpid
