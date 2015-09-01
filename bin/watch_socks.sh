@@ -28,7 +28,7 @@ fi
 
 ssh_args="-fqCnN"
 #ssh_args="-fqnN"
-socks_port=8099
+socks_port=15500
 
 while [ 1 -eq 1 ]; do
     pidcount=`ps -ef | grep -v grep | grep -c "ssh -D"`
