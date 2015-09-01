@@ -174,7 +174,7 @@ if [ ${ssh_num} -eq 0 ]; then
     clear_proxy
 
     #rm -f /tmp/proxy.pac
-    #wget --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
+    #wget -nv http://david-stratusee.github.io/proxy.pac -P /tmp/
     #sudo cp -f /tmp/proxy.pac /etc/polipo/proxy.pac
 
     username=`echo ${host_port} | awk -F":" '{print $1}'`

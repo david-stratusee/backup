@@ -31,7 +31,7 @@ function prepare_dns_list()
     if [ -f /tmp/proxy.pac ]; then
         rm -f /tmp/proxy.pac
     fi
-    wget -T 10 --no-check-certificate -nv https://david-stratusee.github.io/proxy.pac -P /tmp/
+    wget -T 10 -nv http://david-stratusee.github.io/proxy.pac -P /tmp/
     grep "1,$" /tmp/proxy.pac | grep -v "\/" | awk -F "\"" '{print $2}' >/tmp/whitelist.log
 
     grep "host.search" /tmp/proxy.pac | grep google | awk -F"/" '{print $2}' >> /tmp/whitelist.log
