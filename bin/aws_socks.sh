@@ -23,6 +23,7 @@ host_port=${available_host_port[3]}
 
 ETH="Wi-Fi"
 aliveinterval=0
+SHADOW_DIR=${HOME}/work/openshift/shadowsocks
 #-------------------------------------------------------------------------------
 # config end
 #-------------------------------------------------------------------------------
@@ -34,24 +35,16 @@ function show_proxy()
     echo "pac_proxy state:"
     networksetup -getautoproxyurl ${ETH}
     echo ===========================
-    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|httpd)"
+    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|httpd)"
     echo ===========================
-    if [ -f /tmp/watch_socks.log ]; then
-        echo "/tmp/watch_socks.log:"
-        grep "ssh -D" /tmp/watch_socks.log
-        echo ===========================
-    fi
 }
 
 function fill_and_run_proxy()
 {
-    username=`echo ${host_port} | awk -F":" '{print $1}'`
-    remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
-    remote_port=`echo ${host_port} | awk -F":" '{print $3}'`
-    remote_ip=`get_dnsip ${remote_host}`
-
-    echo "get host: $remote_host - $remote_ip" >/tmp/watch_socks.log
-    ${HOME}/bin/watch_socks.sh ${username} ${remote_ip} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
+    curdir=`pwd`
+    cd ${SHADOW_DIR}
+    nohup node local.js -s 'wss://shadowsocks-crazyman.rhcloud.com:8443' >/tmp/rhc.log 2>&1 &
+    cd $curdir
 }
 
 function kill_process()
@@ -219,7 +212,7 @@ if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
     remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
     remote_ip=`get_dnsip ${remote_host}`
 
-    kill_process "watch_socks"
+    kill_process "local.js"
     kill_process $remote_host
     kill_process $remote_ip
     kill_process "ssh -D"
