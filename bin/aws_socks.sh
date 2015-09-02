@@ -189,7 +189,7 @@ while getopts 'a:e:p:hcrlfs' opt; do
             ;;
 
         # for PAC
-        e) 
+        e)
             ETH=$OPTARG
             ;;
         f)
