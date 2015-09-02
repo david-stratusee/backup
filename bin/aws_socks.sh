@@ -24,6 +24,7 @@ host_port=${available_host_port[3]}
 ETH="Wi-Fi"
 aliveinterval=0
 SHADOW_DIR=${HOME}/work/openshift/shadowsocks
+USE_SSH=0
 #-------------------------------------------------------------------------------
 # config end
 #-------------------------------------------------------------------------------
@@ -35,16 +36,31 @@ function show_proxy()
     echo "pac_proxy state:"
     networksetup -getautoproxyurl ${ETH}
     echo ===========================
-    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|httpd)"
+    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|httpd|watch_socks)"
     echo ===========================
+    if [ ${USE_SSH} -ne 0 ] && [ -f /tmp/watch_socks.log ]; then
+        echo "/tmp/watch_socks.log:"
+        grep "ssh -D" /tmp/watch_socks.log
+        echo ===========================
+    fi
 }
 
 function fill_and_run_proxy()
 {
-    curdir=`pwd`
-    cd ${SHADOW_DIR}
-    nohup node local.js -s 'wss://shadowsocks-crazyman.rhcloud.com:8443' >/tmp/rhc.log 2>&1 &
-    cd $curdir
+    if [ ${USE_SSH} -eq 0 ]; then
+        curdir=`pwd`
+        cd ${SHADOW_DIR}
+        nohup node local.js -s "wss://shadowsocks-crazyman.rhcloud.com:8443" >/tmp/shadowsocks.log 2>&1 &
+        cd $curdir
+    else
+        username=`echo ${host_port} | awk -F":" '{print $1}'`
+        remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
+        remote_port=`echo ${host_port} | awk -F":" '{print $3}'`
+        remote_ip=`get_dnsip ${remote_host}`
+        
+        echo "get host: $remote_host - $remote_ip" >/tmp/watch_socks.log
+        ${HOME}/bin/watch_socks.sh ${username} ${remote_ip} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
+    fi
 }
 
 function kill_process()
@@ -124,42 +140,32 @@ function aws_socks_help()
 {
     echo "------------------------------------"
     echo "Help Usage     : "
-    echo "-a NUM         : set ServerAliveInterval for sshtunnel, default 0, recommand 7200"
+
+    echo -e "\n### for proxy ###"
+    echo "-l             : for query socks proxy"
     echo "-c             : for clear socks proxy"
     echo "-r             : for reboot socks proxy"
+
+    echo -e "\n### for PAC   ###"
     echo "-e ETH         : for ETH-TYPE, default Wi-Fi, only used by MacOS"
     echo "-f             : for local file for pac, only for Safari"
-    echo "-l             : for query socks proxy"
-    echo "-i IP          : for set socks proxy and http proxy"
+
+    echo -e "\n### for SSH   ###"
+    echo "-s             : ssh mode"
+    echo "-a NUM         : set ServerAliveInterval for sshtunnel, default 0, recommand 7200"
     echo "-p NUM|IP:PORT : set socks proxy's host_port"
     print_avail_host
+
     echo "no args for set socks proxy and DIRECT"
     echo "------------------------------------"
 }
 
-IP=""
 MODE="normal"
 restart=0
 use_local_web=1
-while getopts 'a:e:p:i:hcrlf' opt; do
+while getopts 'a:e:p:hcrlfs' opt; do
     case $opt in
-        a)
-            aliveinterval=$OPTARG
-            ;;
-        e) 
-            ETH=$OPTARG
-            ;;
-        f)
-            use_local_web=0
-            ;;
-        i)  
-            IP=$OPTARG
-            ping -q -c 1 ${IP} >/dev/null
-            if [ $? -ne 0 ]; then
-                echo "${IP} is unreachable"
-                exit 1
-            fi
-            ;;
+        # for proxy
         c|r)
             if [ "${MODE}" == "normal" ]; then
                 MODE="clear"
@@ -180,6 +186,22 @@ while getopts 'a:e:p:i:hcrlf' opt; do
                 aws_socks_help
                 exit 1
             fi
+            ;;
+
+        # for PAC
+        e) 
+            ETH=$OPTARG
+            ;;
+        f)
+            use_local_web=0
+            ;;
+
+        # for ssh
+        s)
+            USE_SSH=1
+            ;;
+        a)
+            aliveinterval=$OPTARG
             ;;
         p)
             isdigit=`echo $OPTARG | grep -c "^[0-9]$"`
@@ -209,14 +231,17 @@ else
 fi
 
 if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
-    remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
-    remote_ip=`get_dnsip ${remote_host}`
+    if [ ${USE_SSH} -eq 0 ]; then
+        kill_process "local.js"
+    else
+        remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
+        remote_ip=`get_dnsip ${remote_host}`
 
-    kill_process "local.js"
-    kill_process $remote_host
-    kill_process $remote_ip
-    kill_process "ssh -D"
-    kill_process `echo $host_port | awk -F":" '{print $2}'`
+        kill_process $remote_ip
+        kill_process $remote_host
+        kill_process "ssh -D"
+        kill_process "watch_socks"
+    fi
 
     stop_apache
     sudo networksetup -setautoproxystate ${ETH} off
@@ -231,35 +256,19 @@ if [ "${MODE}" == "normal" ]; then
     has_wget=$?
 
     sudo networksetup -setautoproxystate ${ETH} off
-    if [ "${IP}" == "" ]; then
-        update_pac $has_wget
-        if [ $? -ne 0 ]; then
-            exit 1
-        fi
+    update_pac $has_wget
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
 
-        if [ ! -f ${local_proxydir}/proxy.pac ]; then
-            sudo networksetup -setautoproxyurl ${ETH} "http://david-stratusee.github.io/proxy.pac"
-        else
-            if [ ${use_local_web} -gt 0 ]; then
-                start_apache
-                sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy.pac"
-            else
-                sudo networksetup -setautoproxyurl ${ETH} "file://localhost${local_proxydir}/proxy.pac"
-            fi
-        fi
+    if [ ! -f ${local_proxydir}/proxy.pac ]; then
+        sudo networksetup -setautoproxyurl ${ETH} "http://david-stratusee.github.io/proxy.pac"
     else
-        update_pac $has_wget
-        if [ $? -ne 0 ]; then
-            exit 1
-        fi
-
-        sudo cp -f ${local_proxydir}/proxy.pac ${local_proxydir}/proxy_aie.pac
-        sudo sed -i "" -e "s/'DIRECT'/'PROXY ${IP}:3128'/g" ${local_proxydir}/proxy_aie.pac
         if [ ${use_local_web} -gt 0 ]; then
             start_apache
-            sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy_aie.pac"
+            sudo networksetup -setautoproxyurl ${ETH} "http://127.0.0.1/proxy.pac"
         else
-            sudo networksetup -setautoproxyurl ${ETH} "file://localhost${local_proxydir}/proxy_aie.pac"
+            sudo networksetup -setautoproxyurl ${ETH} "file://localhost${local_proxydir}/proxy.pac"
         fi
     fi
 
