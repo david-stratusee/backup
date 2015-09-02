@@ -218,6 +218,8 @@ while getopts 'a:e:p:hcrlfs' opt; do
                 fi
             fi
             ;;
+
+        # for help
         h|*)
             aws_socks_help
             exit 0

@@ -18,15 +18,35 @@ host_port=${available_host_port[3]}
 
 aliveinterval=0
 check_memory=0
+SHADOW_DIR=${HOME}/work/openshift/shadowsocks
+USE_SSH=0
 
 function show_proxy_stat()
 {
-    ps auxf | grep -v grep | egrep --color=auto "(ssh -D|CMD|watch_socks|sslsplit|ttdnsd|dnschef)"
+    ps auxf | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|watch_socks|sslsplit|dnschef)"
     echo ===========================
-    if [ -f /tmp/watch_socks.log ]; then
+    if [ ${USE_SSH} -ne 0 ] && [ -f /tmp/watch_socks.log ]; then
         echo "/tmp/watch_socks.log:"
         grep "ssh -D" /tmp/watch_socks.log
         echo ===========================
+    fi
+}
+
+function fill_and_run_proxy()
+{
+    if [ ${USE_SSH} -eq 0 ]; then
+        curdir=`pwd`
+        cd ${SHADOW_DIR}
+        nohup node local.js -s "wss://shadowsocks-crazyman.rhcloud.com:8443" >/tmp/shadowsocks.log 2>&1 &
+        cd $curdir
+    else
+        username=`echo ${host_port} | awk -F":" '{print $1}'`
+        remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
+        remote_port=`echo ${host_port} | awk -F":" '{print $3}'`
+        remote_ip=`get_dnsip ${remote_host}`
+        
+        echo "get host: $remote_host - $remote_ip" >/tmp/watch_socks.log
+        ${HOME}/bin/watch_socks.sh ${username} ${remote_ip} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
     fi
 }
 
@@ -68,21 +88,20 @@ function kill_dnschef()
 
 function clear_proxy()
 {
-    remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
-    remote_ip=`get_dnsip ${remote_host}`
+    if [ ${USE_SSH} -eq 0 ]; then
+        kill_process "local.js"
+    else
+        remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
+        remote_ip=`get_dnsip ${remote_host}`
 
-    kill_process "watch_socks"
-    kill_process $remote_host
-    kill_process $remote_ip
-    kill_process "ssh -D"
+        kill_process $remote_ip
+        kill_process $remote_host
+        kill_process "ssh -D"
+        kill_process "watch_socks"
+    fi
+
     kill_dnschef
     kill_sslsplit
-    #kill_process "ttdnsd"
-
-    #ttdns_nat=`sudo iptables-save | grep 5353`
-    #if [ ${ttdns_nat} -ne 0 ]; then
-    #    sudo iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
-    #fi
 }
 
 function check_host_port()
@@ -116,31 +135,47 @@ function start_proxy_help()
 {
     echo "------------------------------------"
     echo "Help Usage: "
-    echo "-a NUM         : set ServerAliveInterval for sshtunnel, default 0, recommand 7200"
+
+    echo -e "\n### for proxy   ###"
     echo "-c             : for clear socks proxy"
     echo "-l             : for query socks proxy"
+
+    echo -e "\n### for profile ###"
     echo "-m             : check memory leak"
+
+    echo -e "\n### for SSH     ###"
+    echo "-s             : ssh mode"
+    echo "-a NUM         : set ServerAliveInterval for sshtunnel, default 0, recommand 7200"
     echo "-p NUM|IP:PORT : set socks proxy's host_port"
     print_avail_host
+
     echo "no args for set proxy"
     echo "------------------------------------"
 }
 
-clear_mode=0
-while getopts 'a:p:hclm' opt; do
+SET_MODE=0
+SHOW_MODE=1
+CLEAR_MODE=2
+
+op_mode=${SET_MODE}
+while getopts 'a:p:hclms' opt; do
     case $opt in
-        a)
-            aliveinterval=$OPTARG
-            ;;
+        # for proxy
         c)
-            clear_mode=1
+            op_mode=${CLEAR_MODE}
             ;;
         l)
+            op_mode=${SHOW_MODE}
             show_proxy_stat
             exit 0
             ;;
-        m)
-            check_memory=1
+
+        # for ssh
+        s)
+            USE_SSH=1
+            ;;
+        a)
+            aliveinterval=$OPTARG
             ;;
         p)
             isdigit=`echo $OPTARG | grep -c "^[0-9]$"`
@@ -157,6 +192,13 @@ while getopts 'a:p:hclm' opt; do
                 fi
             fi
             ;;
+
+        # for profile
+        m)
+            check_memory=1
+            ;;
+
+        # for help
         h|*)
             start_proxy_help
             exit 0
@@ -164,12 +206,19 @@ while getopts 'a:p:hclm' opt; do
     esac
 done
 
-if [ $clear_mode -ne 0 ]; then
+if [ ${op_mode} -eq ${SHOW_MODE} ]; then
+    show_proxy_stat
+    exit 0
+elif [ ${op_mode} -eq ${CLEAR_MODE} ]; then
     clear_proxy
     exit 0
 fi
 
-ssh_num=`ps -ef | grep -v grep | grep -c "ssh -D"`
+if [ $USE_SSH -ne 0 ]; then
+    ssh_num=`ps -ef | grep -v grep | grep -c "ssh -D"`
+else
+    ssh_num=`ps -ef | grep -v grep | grep -c "local.js"`
+fi
 if [ ${ssh_num} -eq 0 ]; then
     clear_proxy
 
@@ -177,19 +226,8 @@ if [ ${ssh_num} -eq 0 ]; then
     #wget -nv http://david-stratusee.github.io/proxy.pac -P /tmp/
     #sudo cp -f /tmp/proxy.pac /etc/polipo/proxy.pac
 
-    username=`echo ${host_port} | awk -F":" '{print $1}'`
-    remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
-    remote_port=`echo ${host_port} | awk -F":" '{print $3}'`
-    remote_ip=`get_dnsip ${remote_host}`
-    echo "get host: $remote_host - $remote_ip" >/tmp/watch_socks.log
-    ${HOME}/bin/watch_socks.sh ${username} ${remote_ip} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
+    fill_and_run_proxy
     #sudo /usr/local/bin/polipo logLevel=0xFF
-
-    #ttdns_nat=`sudo iptables-save | grep 5353`
-    #if [ ${ttdns_nat} -eq 0 ]; then
-    #    sudo iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 5353
-    #fi
-    #sudo TSOCKS_CONF_FILE=tsocks.conf ttdnsd -b 127.0.0.1 -p 5353 -P /var/lib/ttdnsd/pid -f /etc/ttdnsd.conf
 
     dnschef.sh
 fi
