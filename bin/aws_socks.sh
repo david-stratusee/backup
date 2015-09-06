@@ -42,6 +42,9 @@ function show_proxy()
         echo "/tmp/watch_socks.log:"
         grep "ssh -D" /tmp/watch_socks.log
         echo ===========================
+    elif [ ${USE_SSH} -eq 0 ]; then
+        sudo netstat -anb | grep 15500 | grep LISTEN
+        echo ===========================
     fi
 }
 
