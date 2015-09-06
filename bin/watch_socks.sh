@@ -8,11 +8,13 @@ hostname=$2
 function check_socks()
 {
     ctimeout=$1
-    curl --socks5 127.0.0.1:${socks_port} -m ${ctimeout} -I -s -S http://david-stratusee.github.io/params.json
+    curl --socks5 127.0.0.1:${socks_port} -m ${ctimeout} -I -s -S http://david-stratusee.github.io/params.json >/dev/null
     sock_result=$?
 
     if [ ${sock_result} -ne 0 ]; then
-        curl --socks5 127.0.0.1:${socks_port} -m ${ctimeout} -I -s -S http://david-stratusee.github.io/params.json
+        sleep 10
+
+        curl --socks5 127.0.0.1:${socks_port} -m ${ctimeout} -I -s -S http://david-stratusee.github.io/params.json >/dev/null
         sock_result=$?
     fi
 
@@ -42,7 +44,7 @@ while [ 1 -eq 1 ]; do
         if [ ${check_proxy} -ne 1 ]; then
         #if [ ${check_proxy} -ne 0 ]; then
             sshpid=`ps -ef | grep "ssh -D" | grep -v grep | awk '{print $2}'`
-            echo kill $sshpid
+            echo kill $sshpid, result $check_proxy
             kill $sshpid
         fi
     fi
