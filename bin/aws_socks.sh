@@ -43,7 +43,7 @@ function show_proxy()
         grep "ssh -D" /tmp/watch_socks.log
         echo ===========================
     elif [ ${USE_SSH} -eq 0 ]; then
-        sudo netstat -anb | grep 15500 | grep LISTEN
+        netstat -anb | grep 15500 | grep LISTEN
         echo ===========================
     fi
 }
@@ -257,10 +257,13 @@ if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
 fi
 
 if [ "${MODE}" == "normal" ]; then
+    fill_and_run_proxy
+
     which wget >/dev/null
     has_wget=$?
 
     sudo networksetup -setautoproxystate ${ETH} off
+
     update_pac $has_wget
     if [ $? -ne 0 ]; then
         exit 1
@@ -277,7 +280,6 @@ if [ "${MODE}" == "normal" ]; then
         fi
     fi
 
-    fill_and_run_proxy
     sudo networksetup -setautoproxystate ${ETH} on
 fi
 show_proxy
