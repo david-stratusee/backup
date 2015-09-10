@@ -23,6 +23,8 @@ USE_SSH=0
 
 function show_proxy_stat()
 {
+    echo ===========================
+    echo "PROCESS INFO:"
     ps auxf | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|watch_socks|sslsplit|dnschef)"
     echo ===========================
     if [ ${USE_SSH} -ne 0 ] && [ -f /tmp/watch_socks.log ]; then
@@ -30,7 +32,11 @@ function show_proxy_stat()
         grep "ssh -D" /tmp/watch_socks.log
         echo ===========================
     elif [ ${USE_SSH} -eq 0 ]; then
+        echo "LISTEN INFO:"
         sudo netstat -anp | grep node
+        echo ===========================
+        echo "/tmp/shadowsocks.log:"
+        cat /tmp/shadowsocks.log
         echo ===========================
     fi
 }
