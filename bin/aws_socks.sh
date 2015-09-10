@@ -33,9 +33,10 @@ function show_proxy()
 {
     echo ===========================
     echo proxy.pac: ${local_proxydir}
-    echo "pac_proxy state:"
+    echo "PAC_PROXY STATE:"
     networksetup -getautoproxyurl ${ETH}
     echo ===========================
+    echo "PROCESS INFO:"
     ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|httpd|watch_socks)"
     echo ===========================
     if [ ${USE_SSH} -ne 0 ] && [ -f /tmp/watch_socks.log ]; then
@@ -43,7 +44,11 @@ function show_proxy()
         grep "ssh -D" /tmp/watch_socks.log
         echo ===========================
     elif [ ${USE_SSH} -eq 0 ]; then
+        echo "LISTEN INFO:"
         netstat -anb | grep 15500 | grep LISTEN
+        echo ===========================
+        echo "/tmp/shadowsocks.log:"
+        cat /tmp/shadowsocks.log
         echo ===========================
     fi
 }
