@@ -46,6 +46,8 @@ while getopts 'm:f:r:c:elh' opt; do
                     ;;
                 "g")
                     dsthost="github.com"
+                    dstip="github.com"
+                    username="git"
                     ;;
                 "b")
                     dsthost="aie.box"
@@ -84,8 +86,11 @@ if [ "${dsthost}" == "" ]; then
     gohelp
     exit 0
 fi
-dstip=`get_dnsip ${dsthost}`
-echo "${dsthost} - ${dstip}"
+
+if [ "${dstip}" == "" ]; then
+    dstip=`get_dnsip ${dsthost}`
+    echo "${dsthost} - ${dstip}"
+fi
 
 if [ ${do_exit} -ne 0 ]; then
     ssh -O stop ${username}@${dstip}${ssh_dstport}
