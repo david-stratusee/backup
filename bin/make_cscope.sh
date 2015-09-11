@@ -33,7 +33,8 @@ clear_tag_files
 execute_hint vcollect_files.sh ${except_name}$include_dir
 execute_hint ctags -I __THROW -R --c++-kinds=+p --fields=+liaS --extra=+q -L cscope.files
 cp -af tags cppcomplete.tags 2>/dev/null
-execute_hint cscope -Rbq
+#execute_hint cscope -Rbq
+execute_hint cscope -bq
 execute_hint parse_tags.py
 
 echo -n [`date +%H:%M:%S`]

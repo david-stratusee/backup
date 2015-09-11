@@ -67,12 +67,11 @@ Bundle 'yaml.vim'
 " Color
 Bundle 'desert256.vim'
 Bundle 'Impact'
-Bundle 'matrix.vim'
 Bundle 'vibrantink'
-Bundle 'vividchalk.vim'
-Bundle 'Solarized'
 Bundle '29decibel/codeschool-vim-theme'
-Bundle 'tomasr/molokai'
+Bundle 'github-theme'
+Bundle 'tomorrow'
+Bundle 'zenorocha/dracula-theme'
 
 " Indent
 Bundle 'IndentAnything'
@@ -283,7 +282,7 @@ let c_comment_strings=1
 "不要闪烁
 "set novisualbell
 
-set path+=include,common_lib,aie/include
+set path+=include,common_lib,aie/common/include
 
 "-----------------------------------------------------------------------------------
 " 设置VIM状态栏
@@ -395,6 +394,9 @@ set complete-=k complete+=k
 "-----------------------------------------------------------------------------------
 "配色（更多的配色见colors目录和http://www.cs.cmu.edu/~maverick/VimColorSchemeTest/index-c.html）
 "colorscheme desertEx
+"colorscheme Tomorrow-Night-Eighties
+colorscheme developer
+"colorscheme evening256
 
 "设置字体
 "if has("gui")
