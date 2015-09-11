@@ -83,9 +83,17 @@ function! s:HLUDColor()
 		exec 'syn keyword cTodo    contained ' . s:HLUDType[3]
 	endif
 
-    exec 'hi cUserTypes ctermfg=DarkCyan guifg=DarkCyan'
-    exec 'hi cUserFunctions ctermfg=Blue guifg=Blue'
-    exec 'hi cUserDefines ctermfg=Brown guifg=Brown'
+    "exec 'hi cUserTypes ctermfg=DarkCyan guifg=DarkCyan'
+    "exec 'hi cUserFunctions ctermfg=Blue guifg=Blue'
+    "exec 'hi cUserDefines ctermfg=Brown guifg=Brown'
+    "
+    "exec 'hi cUserTypes ctermfg=Cyan guifg=DarkCyan'
+    "exec 'hi cUserFunctions ctermfg=Green guifg=Blue'
+    "exec 'hi cUserDefines ctermfg=LightCyan guifg=Brown'
+    "
+    exec 'hi link cUserTypes cType'
+    exec 'hi link cUserFunctions LineNr'
+    exec 'hi link cUserDefines cDefine'
 
 endfunction
 

@@ -395,8 +395,8 @@ set complete-=k complete+=k
 "配色（更多的配色见colors目录和http://www.cs.cmu.edu/~maverick/VimColorSchemeTest/index-c.html）
 "colorscheme desertEx
 "colorscheme Tomorrow-Night-Eighties
-colorscheme developer
-"colorscheme evening256
+"colorscheme developer
+colorscheme evening256
 
 "设置字体
 "if has("gui")

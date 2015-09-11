@@ -11,7 +11,7 @@ if exists("syntax_on")
   syntax reset
 endif
 
-let colors_name = "evening"
+let colors_name = "evening256"
 
 hi Normal ctermbg=DarkGrey ctermfg=White guifg=White guibg=grey20
 
@@ -46,7 +46,7 @@ hi CursorColumn term=reverse ctermbg=Black guibg=grey40
 hi CursorLine term=underline cterm=underline guibg=grey40
 
 " Groups for syntax highlighting
-hi Constant term=underline ctermfg=Magenta guifg=#ffa0a0 guibg=grey5
+hi Constant term=underline ctermfg=LightRed guifg=#ffa0a0 guibg=grey5
 hi Special term=bold ctermfg=LightRed guifg=Orange guibg=grey5
 if &t_Co > 8
   hi Statement term=bold cterm=bold ctermfg=Yellow guifg=#ffff60 gui=bold
