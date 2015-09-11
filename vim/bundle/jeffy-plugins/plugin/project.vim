@@ -92,7 +92,7 @@ function! s:HLUDColor()
     "exec 'hi cUserDefines ctermfg=LightCyan guifg=Brown'
     "
     exec 'hi link cUserTypes cType'
-    exec 'hi link cUserFunctions LineNr'
+    exec 'hi link cUserFunctions Identifier'
     exec 'hi link cUserDefines cDefine'
 
 endfunction
