@@ -129,7 +129,6 @@ Bundle 'junegunn/vim-easy-align'
 " javascript
 Bundle 'pangloss/vim-javascript'
 Bundle 'jimmyhchan/dustjs.vim'
-Bundle 'juvenn/mustache.vim'
 Bundle 'kchmck/vim-coffee-script'
 
 filetype plugin indent on     " required!
