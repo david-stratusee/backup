@@ -46,7 +46,7 @@ hi CursorColumn term=reverse ctermbg=Black guibg=grey40
 hi CursorLine term=underline cterm=underline guibg=grey40
 
 " Groups for syntax highlighting
-hi Constant term=underline ctermfg=LightRed guifg=#ffa0a0 guibg=grey5
+hi Constant term=underline ctermfg=193 guifg=#ffa0a0 guibg=grey5
 hi Special term=bold ctermfg=LightRed guifg=Orange guibg=grey5
 if &t_Co > 8
   hi Statement term=bold cterm=bold ctermfg=Yellow guifg=#ffff60 gui=bold

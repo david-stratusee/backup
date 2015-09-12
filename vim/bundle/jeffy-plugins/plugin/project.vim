@@ -91,9 +91,9 @@ function! s:HLUDColor()
     "exec 'hi cUserFunctions ctermfg=Green guifg=Blue'
     "exec 'hi cUserDefines ctermfg=LightCyan guifg=Brown'
     "
-    exec 'hi link cUserTypes cType'
+    exec 'hi link cUserTypes Type'
     exec 'hi link cUserFunctions Identifier'
-    exec 'hi link cUserDefines cDefine'
+    exec 'hi link cUserDefines Constant'
 
 endfunction
 
