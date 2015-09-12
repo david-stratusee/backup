@@ -15,3 +15,4 @@ for file in $list; do
     echo cp -f $file ~/.$file
     cp -f $file ~/.$file
 done
+cp -f dir_colors ~/.dir_colors
