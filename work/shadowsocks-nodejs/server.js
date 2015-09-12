@@ -142,7 +142,7 @@
       if (stage === 5) {
         //console.log("[2]send " + data.length + " data to " + remote.remoteAddress + ":" + remote.remotePort + ", stage = 5");
         if (!remote.write(data)) {
-          console.log("pause ws");
+          //console.log("pause ws");
           ws._socket.pause();
         }
         return;
@@ -188,7 +188,7 @@
                     binary: true
                 });
               if (ws.bufferedAmount > 0) {
-                console.log("pause remote");
+                //console.log("pause remote");
                 remote.pause();
               }
             }
@@ -199,7 +199,7 @@
             return;
           });
           remote.on("drain", function() {
-            console.log("resume ws");
+            //console.log("resume ws");
             return ws._socket.resume();
           });
           remote.on("error", function(e) {
@@ -237,7 +237,7 @@
     });
     ws._socket.on("drain", function() {
       if (stage === 5) {
-        console.log("resume remote");
+        //console.log("resume remote");
         return remote.resume();
       }
     });
