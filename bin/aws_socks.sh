@@ -58,7 +58,7 @@ function fill_and_run_proxy()
     if [ ${USE_SSH} -eq 0 ]; then
         curdir=`pwd`
         cd ${SHADOW_DIR}
-        nohup node local.js -s "wss://shadowsocks-crazyman.rhcloud.com:8443" >/tmp/shadowsocks.log 2>&1 &
+        nohup node local.js -s "wss://shadowsocks-crazyman.rhcloud.com:8443" 1>/dev/null 2>/tmp/shadowsocks-error.log &
         cd $curdir
     else
         username=`echo ${host_port} | awk -F":" '{print $1}'`
