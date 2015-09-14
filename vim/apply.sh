@@ -20,6 +20,9 @@ cp -r bundle ~/.vim/
 
 curdir=`pwd`
 while read line; do
+    echo ===================================
+    echo apply $line
+
     cd ~/.vim/bundle/
     url=`echo $line | awk '{print $2}'`
     name=`echo $line | awk '{print $1}'`
@@ -28,6 +31,8 @@ while read line; do
 
     ls ./git_save/${name} 1>/dev/null 2>/dev/null
     if [ $? -eq 0 ]; then
+        echo ------------- update local files
         cp -r ./git_save/${name}/* ~/.vim/bundle/${name}
     fi
+    echo ===================================
 done <./bundle.list
