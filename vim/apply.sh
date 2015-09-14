@@ -10,6 +10,20 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-cp vimrc ~/.vimrc
-mkdir ~/.vim
+#cp vimrc ~/.vimrc
+#mkdir ~/.vim
 cp -r bundle ~/.vim/
+
+curdir=`pwd`
+while read line; do
+    cd ~/.vim/bundle/
+    url=`echo $line | awk '{print $2}'`
+    name=`echo $line | awk '{print $1}'`
+    git clone ${url} --depth 1
+    cd ${curdir}
+
+    ls ./git_save/${name} 1>/dev/null 2>/dev/null
+    if [ $? -eq 0 ]; then
+        cp -r ./git_save/${name}/* ~/.vim/bundle/${name}
+    fi
+done <./bundle.log

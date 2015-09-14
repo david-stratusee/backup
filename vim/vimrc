@@ -94,8 +94,6 @@ Bundle 'TagHighlight'
 Bundle 'CCTree'
 Bundle 'Colour-Sampler-Pack'
 Bundle 'bufexplorer.zip'
-Bundle 'Trinity'
-Bundle 'SrcExpl'
 Bundle 'bash-support.vim'
 Bundle 'genutils'
 Bundle 'EasyGrep'
@@ -755,45 +753,46 @@ au BufReadPost *.nfo call RestoreFileEncodings()
 autocmd BufRead,BufWrite *.c if ! &bin | silent! %s/\s\+$//ge | endif
 autocmd BufRead,BufWrite *.cpp if ! &bin | silent! %s/\s\+$//ge | endif
 "Remove indenting on empty line
-map <F4> :w<CR>:call CleanupBuffer(1)<CR>:noh<CR>
-function! CleanupBuffer(keep)
-    " Skip binary files
-    if (&bin > 0)
-        return
-    endif
-    " Remove spaces and tabs from end of every line, if possible
-    silent! %s/\s\+$//ge
-    " Save current line number
-    let lnum = line(".")
-    " number of last line
-    let lastline = line("$")
-    let n        = lastline
-    " while loop
-    while (1)
-        " content of last line
-        let line = getline(n)
-        " remove spaces and tab
-        if (!empty(line))
-            break
-        endif
-        let n = n - 1
-    endwhile
-    " Delete all empty lines at the end of file
-    let start = n+1+a:keep
-    if (start < lastline)
-        execute n+1+a:keep . "," . lastline . "d"
-    endif
-    " after clean spaces and tabs, jump back
-    exec "normal " . lnum . "G"
-endfunction
+"map <F10> :w<CR>:call CleanupBuffer(1)<CR>:noh<CR>
+"function! CleanupBuffer(keep)
+"    " Skip binary files
+"    if (&bin > 0)
+"        return
+"    endif
+"    " Remove spaces and tabs from end of every line, if possible
+"    silent! %s/\s\+$//ge
+"    " Save current line number
+"    let lnum = line(".")
+"    " number of last line
+"    let lastline = line("$")
+"    let n        = lastline
+"    " while loop
+"    while (1)
+"        " content of last line
+"        let line = getline(n)
+"        " remove spaces and tab
+"        if (!empty(line))
+"            break
+"        endif
+"        let n = n - 1
+"    endwhile
+"    " Delete all empty lines at the end of file
+"    let start = n+1+a:keep
+"    if (start < lastline)
+"        execute n+1+a:keep . "," . lastline . "d"
+"    endif
+"    " after clean spaces and tabs, jump back
+"    exec "normal " . lnum . "G"
+"endfunction
 
 "快速查找（插件grep插件，需要grep软件）
-nnoremap <silent> <F7> :Rgrep<CR>
+nnoremap <silent> <F9> :Rgrep<CR>
 
 "F11查看打开的文件列表（bufexplorer插件）
 let g:bufExplorerDefaultHelp = 1
 let g:bufExplorerDetailedHelp = 0
-nmap <C-F5> :BufExplorer <CR>
+let g:bufExplorerShowRelativePath = 1
+nmap <F10> :BufExplorer <CR>
 
 "F12生成/更新tags文件
 function! UpdateTagsFile()
@@ -810,38 +809,31 @@ function! DeleteTagsFile()
 endfunction
 "nmap <S-F12> :call DeleteTagsFile()<CR>
 
+command! -nargs=1 Silent
+            \ | execute ':silent !'.<q-args>.">/dev/null"
+            \ | execute ':redraw!'
+function UpdateCStags()
+    let curdir=getcwd()
+    if filereadable("./cscope.out")
+        execute ":cscope kill -1"
+    endif
+    Silent make_cscope.sh
+    if filereadable("./cscope.out")
+        execute ":cscope add cscope.out"
+    endif
+    if filereadable("./udtags")
+        execute ":ColorLoad"
+    endif
+endfunction
+
 if has("Win32")
 else
-    nmap <F2> :!make_cscope.sh<CR>
+    nmap <F2> :call UpdateCStags()<CR>
     nmap <F3> :!vbuild.sh -q<CR>
 endif
 nmap <F5> :copen<CR>
 nmap <F6> :cclose<CR>
-nmap <F7> :TrinityToggleTagList<CR>
-
-" Open and close all the three plugins on the same time
-nmap <F9>  :TrinityToggleAll<CR>
-
-" Open and close the Taglist separately
-nmap <F10> :TagbarToggle<CR>
-
-" Open and close the NERD Tree separately
-nmap <F11> :TrinityToggleNERDTree<CR>
-
-" Open and close the Source Explorer separately
-nmap <F12> :TrinityToggleSourceExplorer<CR>
-
-"inoremap <silent> <Bar>   <Bar><Esc>:call <SID>align()<CR>a
-function! s:align()
-  let p = '^\s*|\s.*\s|\s*$'
-  if exists(':Tabularize') && getline('.') =~# '^\s*|' && (getline(line('.')-1) =~# p || getline(line('.')+1) =~# p)
-    let column   = strlen(substitute(getline('.')[0:col('.')],'[^|]','','g'))
-    let position = strlen(matchstr(getline('.')[0:col('.')],'.*|\s*\zs.*'))
-    Tabularize/|/l1
-    normal! 0
-    call search(repeat('[^|]*|',column).'\s\{-\}'.repeat('.',position),'ce',line('.'))
-  endif
-endfunction
+nmap <F4> :Tlist<CR>
 
 " 常规模式下输入 cS 清除行尾空格
 nmap cS :%s/\s\+$//g<cr>:noh<cr>

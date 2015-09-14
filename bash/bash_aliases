@@ -1,3 +1,13 @@
+#
+# Some shortcuts for different directory listings
+alias ls='ls -hF --color=auto --show-control-chars --group-directories-first' # classify files in colour
+alias dir='ls --format=vertical'
+alias vdir='ls --format=long'
+alias ll='ls -l'                                    # long list
+alias la='ls -A'                                    # all but . and ..
+alias l='ls -CF'                                    #
+alias wch='which -a'
+
 alias diff='colordiff -E -b -w -B -u -p'
 alias diffy='colordiff -y -E -b -w -W 200'
 alias hexdump='hexdump -C'
@@ -27,15 +37,6 @@ alias nfgrep='fgrep -n --color=auto --text' # show differences in colour
 alias fgrep='fgrep --color=auto --text' # show differences in colour
 alias route='route -nee'
 alias yum_inst='yum -y install'
-#
-# Some shortcuts for different directory listings
-alias ls='ls -hF --color=auto --show-control-chars' # classify files in colour
-alias dir='ls --format=vertical'
-alias vdir='ls --format=long'
-alias ll='ls -l'                                    # long list
-alias la='ls -A'                                    # all but . and ..
-alias l='ls -CF'                                    #
-alias wch='which -a'
 
 function diffl
 {
