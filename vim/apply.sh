@@ -21,7 +21,7 @@ cp -r bundle ~/.vim/
 curdir=`pwd`
 while read line; do
     echo ===================================
-    echo apply $line
+    echo apply -- $line
 
     cd ~/.vim/bundle/
     url=`echo $line | awk '{print $2}'`
