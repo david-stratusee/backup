@@ -10,8 +10,12 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-#cp vimrc ~/.vimrc
-#mkdir ~/.vim
+cp vimrc ~/.vimrc
+
+if [ -d ~/.vim ]; then
+    mv ~/.vim ~/vim_bak
+fi
+mkdir ~/.vim
 cp -r bundle ~/.vim/
 
 curdir=`pwd`
@@ -26,4 +30,4 @@ while read line; do
     if [ $? -eq 0 ]; then
         cp -r ./git_save/${name}/* ~/.vim/bundle/${name}
     fi
-done <./bundle.log
+done <./bundle.list
