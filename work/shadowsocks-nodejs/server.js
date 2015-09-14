@@ -24,12 +24,12 @@
   wstream = fs.createWriteStream('/tmp/shadowsocks.log', {flags : 'w'});
   //var log_stdout = process.stdout;
   console.log = function(d) {
-      wstream.write("[" + moment().format() + "] " + util.format(d) + '\n');
+      wstream.write("[" + moment().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
       //log_stdout.write(util.format(d) + '\n');
   };
 
   console.warn = function(d) {
-      wstream.write("[WARN][" + moment().format() + "] " + util.format(d) + '\n');
+      wstream.write("[WARN][" + moment().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
       //log_stdout.write("[WARN]" + util.format(d) + '\n');
   };
 
