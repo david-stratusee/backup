@@ -26,6 +26,7 @@ while read line; do
     cd ~/.vim/bundle/
     url=`echo $line | awk '{print $2}'`
     name=`echo $line | awk '{print $1}'`
+    rm -rf $name
     git clone ${url} --depth 1
     cd ${curdir}
 
