@@ -45,14 +45,17 @@
     return result;
   };
 
-  substitute = function(table, buf) {
-//    var i;
-//    i = 0;
-//    while (i < buf.length) {
-//      buf[i] = table[buf[i]];
-//      i++;
-//    }
-    return buf;
+  substitute = function(table, method, buf) {
+      if (method === "table") {
+          var i;
+          i = 0;
+          while (i < buf.length) {
+              buf[i] = table[buf[i]];
+              i++;
+          }
+      }
+
+      return buf;
   };
 
   bytes_to_key_results = {};
@@ -120,26 +123,24 @@
       this.key = key;
       this.method = method;
       this.iv_sent = false;
-      if (this.method === 'table') {
-        this.method = null;
-      }
-      if (this.method != null) {
+      //if (this.method === 'table') {
+      //  this.method = null;
+      //}
+      if (this.method != null && this.method != "table") {
         this.cipher = this.get_cipher(this.key, this.method, 1, crypto.randomBytes(32));
-      } else {
+      } else if (this.method === "table") {
         _ref = getTable(this.key), this.encryptTable = _ref[0], this.decryptTable = _ref[1];
       }
     }
 
     Encryptor.prototype.get_cipher_len = function(method) {
       var m;
-      method = method.toLowerCase();
       m = method_supported[method];
       return m;
     };
 
     Encryptor.prototype.get_cipher = function(password, method, op, iv) {
       var iv_, key, m, _ref;
-      method = method.toLowerCase();
       password = new Buffer(password, 'binary');
       m = this.get_cipher_len(method);
       if (m != null) {
@@ -165,7 +166,7 @@
 
     Encryptor.prototype.encrypt = function(buf) {
       var result;
-      if (this.method != null) {
+      if (this.method != null && this.method != "table") {
         result = this.cipher.update(buf);
         if (this.iv_sent) {
           return result;
@@ -174,13 +175,13 @@
           return Buffer.concat([this.cipher_iv, result]);
         }
       } else {
-        return substitute(this.encryptTable, buf);
+        return substitute(this.encryptTable, this.method, buf);
       }
     };
 
     Encryptor.prototype.decrypt = function(buf) {
       var decipher_iv, decipher_iv_len, result;
-      if (this.method != null) {
+      if (this.method != null && this.method != "table") {
         if (this.decipher == null) {
           decipher_iv_len = this.get_cipher_len(this.method)[1];
           decipher_iv = buf.slice(0, decipher_iv_len);
@@ -192,7 +193,7 @@
           return result;
         }
       } else {
-        return substitute(this.decryptTable, buf);
+        return substitute(this.decryptTable, this.method, buf);
       }
     };
 

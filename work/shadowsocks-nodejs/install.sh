@@ -22,8 +22,12 @@ show_name rm -rf shadowsocks
 show_name rhc app create ${name} nodejs-0.10 --from-code https://github.com/mrluanma/shadowsocks-heroku.git
 show_name rhc show-app ${name}
 
-show_name cp -f ./config.json $name
-show_name cp -f ./local.js $name
-show_name cp -f ./server.js $name
+filelist=`ls | grep -v install.sh`
+
+show_name cp -f $filelist $name
+
+cd $name
+npm install
+cd ..
 
 show_name rhc app restart -a $name

@@ -18,6 +18,22 @@
 
   Encryptor = require("./encrypt").Encryptor;
 
+  moment = require("moment");
+
+  util = require("util");
+
+  wstream = fs.createWriteStream('/tmp/shadowsocks.log', {flags : 'w'});
+  //var log_stdout = process.stdout;
+  console.log = function(d) {
+      wstream.write("[" + moment().format() + "] " + util.format(d) + '\n');
+      //log_stdout.write(util.format(d) + '\n');
+  };
+
+  console.warn = function(d) {
+      wstream.write("[WARN][" + moment().format() + "] " + util.format(d) + '\n');
+      //log_stdout.write("[WARN]" + util.format(d) + '\n');
+  };
+
   options = {
     alias: {
       'b': 'local_address',
@@ -61,13 +77,13 @@
 
   KEY = config.password;
 
-  METHOD = config.method;
+  METHOD = config.method.toLowerCase();
 
   timeout = Math.floor(config.timeout * 1000);
 
-  console.log("get method: %s, key: %s", METHOD, KEY);
+  console.log("get method: " + METHOD + ", key: " + KEY);
 
-  if ((_ref = METHOD.toLowerCase()) === "" || _ref === "null" || _ref === "table") {
+  if (METHOD === "" || METHOD === "null") {
     METHOD = null;
   }
 
@@ -120,7 +136,7 @@
     var aServer, addrLen, addrToSend, cachedPieces, encryptor, headerLength, ping, remoteAddr, remotePort, stage, ws;
     //console.log("local connected");
     //server.getConnections(function(err, count) {
-    //  console.log("concurrent connections:", count);
+    //  console.log("concurrent connections:" + count);
     //});
     encryptor = new Encryptor(KEY, METHOD);
     stage = 0;
@@ -312,7 +328,7 @@
   server.listen(PORT, LOCAL_ADDRESS, function() {
     var address;
     address = server.address();
-    return console.log("server listening at", address);
+    return console.log("server listening at #" + address.address + ":" + address.port + "#");
   });
 
   server.on("error", function(e) {
