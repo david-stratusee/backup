@@ -52,4 +52,3 @@ vim-space        https://github.com/spiiph/vim-space.git
 vundle        https://github.com/gmarik/vundle.git
 xml.vim        https://github.com/othree/xml.vim.git
 yaml.vim        https://github.com/vim-scripts/yaml.vim.git
-YouCompleteMe        https://github.com/Valloric/YouCompleteMe.git https://github.com/kennethreitz/requests https://github.com/ross/requests-futures https://github.com/Valloric/ycmd
