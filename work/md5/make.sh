@@ -8,4 +8,5 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-gcc -o ~/bin/mymd5 test.c md5.c md5.h
+gcc test.c md5.c md5.h
+mv a.out ~/bin/mymd5 
