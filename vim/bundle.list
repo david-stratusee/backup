@@ -33,7 +33,6 @@ neocomplcache.vim        https://github.com/Shougo/neocomplcache.vim.git
 OmniCppComplete        https://github.com/vim-scripts/OmniCppComplete.git
 Python-2.x-Standard-Library-Reference        https://github.com/vim-scripts/Python-2.x-Standard-Library-Reference.git
 pythoncomplete        https://github.com/vim-scripts/pythoncomplete.git
-python.vim        https://github.com/gg/python.vim.git
 python.vim--Vasiliev        https://github.com/vim-scripts/python.vim--Vasiliev.git
 restart.vim        https://github.com/vim-scripts/restart.vim.git
 ruby-macros.vim        https://github.com/vim-scripts/ruby-macros.vim.git
