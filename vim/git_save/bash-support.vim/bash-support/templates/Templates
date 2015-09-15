@@ -3,8 +3,8 @@
 § =============================================================
 
 SetMacro( 'AUTHOR',      'dengwei' )
-SetMacro( 'AUTHORREF',   '' )
-SetMacro( 'COMPANY',     'stratusee' )
+SetMacro( 'AUTHORREF',   'david' )
+SetMacro( 'COMPANY',     'holonetsecurity' )
 SetMacro( 'COPYRIGHT',   'Copyright (c) |YEAR|, |AUTHOR|' )
 SetMacro( 'EMAIL',       'david@stratusee.com' )
 SetMacro( 'LICENSE',     'No License' )
