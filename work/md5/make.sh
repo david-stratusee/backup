@@ -10,3 +10,4 @@ set -o nounset                              # Treat unset variables as an error
 
 gcc test.c md5.c md5.h
 mv a.out ~/bin/mymd5 
+rm -f *.gch
