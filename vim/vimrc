@@ -77,7 +77,6 @@ Bundle 'zenorocha/dracula-theme'
 Bundle 'IndentAnything'
 Bundle 'Javascript-Indentation'
 Bundle 'mako.vim--Torborg'
-Bundle 'gg/python.vim'
 Bundle 'file-line'
 
 " Plugin
@@ -324,6 +323,8 @@ filetype plugin on
 set ofu=syntaxcomplete#Complete
 autocmd FileType python set omnifunc=pythoncomplete#Complete
 autocmd FileType python runtime! autoload/pythoncomplete.vim
+
+let python_highlight_all=1
 
 "缺省不产生备份文件
 set nobackup
