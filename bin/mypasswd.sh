@@ -1,7 +1,7 @@
 #!/bin/bash -
 #===============================================================================
-#          FILE: create_passwd.sh
-#         USAGE: ./create_passwd.sh
+#          FILE: mypasswd.sh
+#         USAGE: ./mypasswd.sh
 #        AUTHOR: dengwei (), david@stratusee.com
 #  ORGANIZATION: 
 #       CREATED: 2015/09/15 10:15
@@ -10,11 +10,16 @@
 
 set -o nounset                              # Treat unset variables as an error
 
+if [ $# -lt 1 ]; then
+    echo "`basename $0` domain"
+    exit 1
+fi
+
 domain=$1
-passwd=$2
+password="dengwei-chen"
 domlen=${#domain}
 
-all_str=${domain}.${passwd}.${domlen}
+all_str=${domain}.${password}.${domlen}
 
 #echo $all_str
 md5_ret=`md5 -q -s $all_str`
