@@ -48,7 +48,7 @@ def main(argv=argv):
     if arg_idx < argc and argv[arg_idx] == 'error':
         show_error = True
 
-    text = colored(show_str, color) 
+    text = colored(show_str, color)
 
     if not show_error:
         stdout.write(text)
