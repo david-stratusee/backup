@@ -41,7 +41,7 @@ if [ ! -f ${apnic_file} ]; then
     fi
 fi
 
-grep -i cn delegated-apnic-latest | grep apnic | grep ipv4 >/tmp/apnic_file
+grep -i "|cn|" delegated-apnic-latest | grep apnic | grep ipv4 >/tmp/apnic_file
 
 last_sip=0
 last_sip_str=""
@@ -77,3 +77,6 @@ if [ $last_sip_dest -ne 0 ]; then
     echo "localnet "$last_sip_str/`mask2str $last_smask`
     #$last_sip $last_smask $last_sip_dest
 fi
+
+rm -f /tmp/apnic_file 
+echo rm -f delegated-apnic-latest
