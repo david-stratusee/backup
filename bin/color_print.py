@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from sys import argv, stdout
+from sys import argv, stdout, stderr
 from termcolor import colored, cprint
 
 def color_print_usage(proc_name):
@@ -12,6 +12,7 @@ def color_print_usage(proc_name):
 def main(argv=argv):
     # argv[1]: color -- red, blue, cyan, green, yellow, magenta, white
     # argv[2]: print string
+    # argv[3]: stdout or stderr
 
     # colored(text, color)
     # cprint(text, color)
@@ -43,11 +44,22 @@ def main(argv=argv):
     show_str = argv[arg_idx]
     arg_idx += 1
 
+    show_error = False
+    if arg_idx < argc and argv[arg_idx] == 'error':
+        show_error = True
+
     text = colored(show_str, color) 
-    stdout.write(text)
-    if newline:
-        stdout.write('\n')
-    stdout.flush()
+
+    if not show_error:
+        stdout.write(text)
+        if newline:
+            stdout.write('\n')
+        stdout.flush()
+    else:
+        stderr.write(text)
+        if newline:
+            stderr.write('\n')
+        stderr.flush()
 
 if __name__ == "__main__":
     exit(main())

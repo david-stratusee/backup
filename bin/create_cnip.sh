@@ -8,6 +8,8 @@
 
 set -o nounset                              # Treat unset variables as an error
 
+. ~/bin/tools.sh
+
 function ip2num()
 {
     IP_ADDR=$1 
@@ -79,4 +81,4 @@ if [ $last_sip_dest -ne 0 ]; then
 fi
 
 rm -f /tmp/apnic_file 
-echo rm -f delegated-apnic-latest
+error_echo "rm -f delegated-apnic-latest"

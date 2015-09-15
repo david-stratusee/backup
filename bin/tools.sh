@@ -44,6 +44,11 @@ function colornecho()
 #	echo -ne "$color$@${NC}"
 }
 
+function error_echo()
+{
+    >&2 color_print.py red "$@"
+}
+
 #-------------------------------------------------------------------------------
 #   Check if $pid (could be plural) are running
 #-------------------------------------------------------------------------------
