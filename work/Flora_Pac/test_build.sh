@@ -9,7 +9,9 @@ fi
 ./flora_pac -x "SOCKS5 127.0.0.1:15500; DIRECT" -c delegated-apnic-latest
 rm -f delegated-apnic-latest
 
+dest_path="../../../david-stratusee.github.io/proxy.pac"
 if [ $# -gt 0 ]; then
-    echo cp ./flora_pac.pac $1
-    cp ./flora_pac.pac $1
+    dest_path=$1
 fi
+echo cp ./flora_pac.pac ${dest_path}
+cp ./flora_pac.pac ${dest_path}
