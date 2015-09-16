@@ -9,9 +9,16 @@ fi
 ./flora_pac -x "SOCKS5 127.0.0.1:15500; DIRECT" -c delegated-apnic-latest
 rm -f delegated-apnic-latest
 
-dest_path="../../../david-stratusee.github.io/proxy.pac"
+dest_path="../../../david-stratusee.github.io"
 if [ $# -gt 0 ]; then
     dest_path=$1
 fi
-echo cp ./flora_pac.pac ${dest_path}
-cp ./flora_pac.pac ${dest_path}
+echo cp ./flora_pac.pac ${dest_path}/proxy.pac
+cp ./flora_pac.pac ${dest_path}/proxy.pac
+
+cd $dest_path
+pwd
+echo git_commit.sh -a add -m "fix" proxy.pac
+git_commit.sh -a add -m "fix" proxy.pac
+echo git push
+git push
