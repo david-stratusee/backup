@@ -15,6 +15,10 @@ if [ $# -gt 0 ]; then
 fi
 echo cp ./flora_pac.pac ${dest_path}/proxy.pac
 cp ./flora_pac.pac ${dest_path}/proxy.pac
+if [ -f /Library/WebServer/Documents/proxy.pac ]; then
+    cp -f flora_pac.pac /Library/WebServer/Documents/proxy.pac
+fi
+rm -f flora_pac.pac
 
 cd $dest_path
 pwd
