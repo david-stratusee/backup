@@ -13,8 +13,10 @@ dest_path="../../../david-stratusee.github.io"
 if [ $# -gt 0 ]; then
     dest_path=$1
 fi
-echo cp ./flora_pac.pac ${dest_path}/proxy.pac
-cp ./flora_pac.pac ${dest_path}/proxy.pac
+if [ -d $dest_path ]; then
+    echo cp ./flora_pac.pac ${dest_path}/proxy.pac
+    cp ./flora_pac.pac ${dest_path}/proxy.pac
+fi
 if [ -f /Library/WebServer/Documents/proxy.pac ]; then
     cp -f flora_pac.pac /Library/WebServer/Documents/proxy.pac
 fi
