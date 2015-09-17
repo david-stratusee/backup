@@ -12,29 +12,32 @@ set -o nounset                              # Treat unset variables as an error
 
 function Usage()
 {
-    echo "Usage: `basename $1` -a [add|rm] -f [-m msg] files..."
-    echo "   or: `basename $1` -a [add|rm] -f [-m msg] -l file_list"
+    echo "Usage: `basename $1` -a [add|rm] -F [-m msg] files..."
+    echo "   or: `basename $1` -a [add|rm] -F [-m msg] -f file_list"
 }
 
 force=""
 action=""
+msg_action=""
 msg=""
 file_list=""
-while getopts 'm:l:a:fh' opt; do
+while getopts 'm:f:a:Fh' opt; do
     case $opt in
         m)
-            if [ -f $OPTARG ]; then
-                msg="-F \"$OPTARG\""
+            if [ -f "$OPTARG" ]; then
+                msg_action="-F"
+                msg=$OPTARG
             else
-                msg="-m \"$OPTARG\""
+                msg_action="-m"
+                msg=$OPTARG
             fi
             ;;
-        l)
+        f)
             if [ -f $OPTARG ]; then
                 file_list=`cat "$OPTARG"`
             fi
             ;;
-        f)
+        F)
             force=" -f"
             ;;
         a)
@@ -82,5 +85,5 @@ fi
 
 echo git $action$force $file_list
 git $action$force $file_list
-echo git commit ${msg} $file_list
-git commit ${msg} $file_list
+echo git commit ${msg_action} \"${msg}\" $file_list
+git commit ${msg_action} "${msg}" $file_list
