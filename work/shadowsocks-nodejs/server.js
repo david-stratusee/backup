@@ -21,7 +21,7 @@
   util = require('util');
   moment = require("moment");
   
-  wstream = fs.createWriteStream('/tmp/shadowsocks.log', {flags : 'w'});
+  wstream = fs.createWriteStream('/tmp/shadowsocks.log', {flags : 'a'});
   //var log_stdout = process.stdout;
   console.log = function(d) {
       wstream.write("[" + moment().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
@@ -34,7 +34,7 @@
   };
 
   //console.log(process.env.OPENSHIFT_REPO_DIR + 'shadowsocks.log');
-  console.log('/tmp/shadowsocks.log');
+  //console.log('/tmp/shadowsocks.log');
 
   options = {
     alias: {

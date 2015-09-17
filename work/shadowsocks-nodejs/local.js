@@ -301,13 +301,14 @@
       return;
     });
     connection.on("error", function(e) {
-      console.log("[21]local error: " + e + ", stage: " + stage);
+      //console.log("[21]local error: " + e + ", stage: " + stage);
       if (ws) {
         ws.terminate();
       }
-      return server.getConnections(function(err, count) {
-        console.log("concurrent connections:" + count + ", stage: " + stage);
-      });
+      return;
+      //return server.getConnections(function(err, count) {
+        //console.log("concurrent connections:" + count + ", stage: " + stage);
+      //});
     });
     connection.on("drain", function() {
       if (ws && ws._socket) {
@@ -317,7 +318,7 @@
       }
     });
     return connection.setTimeout(timeout, function() {
-      console.log("[22]local timeout" + ", stage: " + stage);
+      //console.log("[22]local timeout" + ", stage: " + stage);
       connection.destroy();
       if (ws) {
         return ws.terminate();
