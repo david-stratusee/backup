@@ -112,11 +112,16 @@ function check_host_port()
 
 function update_pac()
 {
-    has_wget=$1
-    if [ $has_wget -eq 0 ]; then
+    has_curl=$1
+    if [ $has_curl -ne 0 ]; then
         rm -f /tmp/proxy.pac
-        echo wget -T 10 -nv http://david-stratusee.github.io/proxy.pac -P /tmp/
-        wget -T 10 -nv http://david-stratusee.github.io/proxy.pac -P /tmp/
+        echo -n curl --connect-timeout 30 -s http://david-stratusee.github.io/proxy.pac -o /tmp/proxy.pac
+        curl --connect-timeout 30 -s http://david-stratusee.github.io/proxy.pac -o /tmp/proxy.pac
+
+        echo " -- [$?]"
+
+        #echo wget -T 10 -nv http://david-stratusee.github.io/proxy.pac -P /tmp/
+        #wget -T 10 -nv http://david-stratusee.github.io/proxy.pac -P /tmp/
         if [ $? -eq 0 ]; then
             sudo mv /tmp/proxy.pac ${local_proxydir}/
         elif [ ! -f ${local_proxydir}/proxy.pac ]; then
@@ -264,12 +269,17 @@ fi
 if [ "${MODE}" == "normal" ]; then
     fill_and_run_proxy
 
-    which wget >/dev/null
-    has_wget=$?
+    which curl >/dev/null
+    t_res=$?
+    if [ $t_res -eq 0 ]; then
+        has_curl=1
+    else
+        has_curl=0
+    fi
 
     sudo networksetup -setautoproxystate ${ETH} off
 
-    update_pac $has_wget
+    update_pac $has_curl
     if [ $? -ne 0 ]; then
         exit 1
     fi
