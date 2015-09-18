@@ -25,13 +25,13 @@
   wstream = fs.createWriteStream('/tmp/shadowsocks.log', {flags : 'w'});
   //var log_stdout = process.stdout;
   console.log = function(d) {
-      wstream.write("[" + moment().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
-      //log_stdout.write(util.format(d) + '\n');
+      wstream.write("[" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
+      //log_stdout.write("[" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
   };
 
   console.warn = function(d) {
-      wstream.write("[WARN][" + moment().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
-      //log_stdout.write("[WARN]" + util.format(d) + '\n');
+      wstream.write("[WARN][" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
+      //log_stdout.write("[WARN][" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
   };
 
   options = {
@@ -181,7 +181,7 @@
           cmd = data[1];
           addrtype = data[3];
           if (cmd !== 1) {
-            console.log("[4]unsupported cmd:" + cmd + ", stage: " + stage);
+            console.warn("[4]unsupported cmd:" + cmd + ", stage: " + stage);
             reply = new Buffer("\u0005\u0007\u0000\u0001", "binary");
             connection.end(reply);
             return;
@@ -189,7 +189,7 @@
           if (addrtype === 3) {
             addrLen = data[4];
           } else if (addrtype !== 1) {
-            console.log("[5]unsupported addrtype:" + addrtype + ", stage: " + stage);
+            console.warn("[5]unsupported addrtype:" + addrtype + ", stage: " + stage);
             connection.end();
             return;
           }
@@ -217,7 +217,7 @@
           ws.on("open", function() {
             var addrToSendBuf, i, piece;
             ws._socket.on("error", function(e) {
-              console.log("[7]remote " + remoteAddr + ":" + remotePort + " " + e + ", stage: " + stage);
+              console.warn("[7]remote " + remoteAddr + ":" + remotePort + " " + e + ", stage: " + stage);
               connection.destroy();
               return server.getConnections(function(err, count) {
                 console.log("[8]concurrent connections:" + count + ", stage: " + stage);
@@ -266,7 +266,7 @@
             return connection.destroy();
           });
           ws.on("error", function(e) {
-            console.log("[16]remote " + remoteAddr + ":" + remotePort + " error: " + e + ", stage: " + stage);
+            console.warn("[16]remote " + remoteAddr + ":" + remotePort + " error: " + e + ", stage: " + stage);
             connection.destroy();
             return server.getConnections(function(err, count) {
               console.log("[17]concurrent connections:" + count + ", stage: " + stage);
@@ -281,7 +281,7 @@
           return stage = 4;
         } catch (_error) {
           e = _error;
-          console.log("[18]" + e + ", stage: " + stage);
+          console.warn("[18]" + e + ", stage: " + stage);
           return connection.destroy();
         }
       } else {
@@ -334,7 +334,7 @@
 
   server.on("error", function(e) {
     if (e.code === "EADDRINUSE") {
-      console.log("address in use, aborting");
+      console.warn("address in use, aborting");
     }
     return process.exit(1);
   });

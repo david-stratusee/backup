@@ -24,13 +24,13 @@
   wstream = fs.createWriteStream('/tmp/shadowsocks.log', {flags : 'a'});
   //var log_stdout = process.stdout;
   console.log = function(d) {
-      wstream.write("[" + moment().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
-      //log_stdout.write(util.format(d) + '\n');
+      wstream.write("[" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
+      //log_stdout.write("[" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
   };
 
   console.warn = function(d) {
-      wstream.write("[WARN][" + moment().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
-      //log_stdout.write("[WARN]" + util.format(d) + '\n');
+      wstream.write("[WARN][" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
+      //log_stdout.write("[WARN][" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
   };
 
   //console.log(process.env.OPENSHIFT_REPO_DIR + 'shadowsocks.log');
@@ -203,10 +203,10 @@
           });
           remote.on("error", function(e) {
             ws.terminate();
-            return console.log("[9]remote: " + e + ", stage: " + stage);
+            return console.warn("[9]remote: " + e + ", stage: " + stage);
           });
           remote.setTimeout(timeout, function() {
-            console.log("[10]remote timeout" + ", stage: " + stage);
+            console.warn("[10]remote timeout" + ", stage: " + stage);
             remote.destroy();
             return ws.close();
           });
@@ -264,9 +264,8 @@
 
   server.on("error", function(e) {
     if (e.code === "EADDRINUSE") {
-      console.log("address in use, aborting");
+      console.warn("address in use, aborting");
     }
     return process.exit(1);
   });
-
 }).call(this);
