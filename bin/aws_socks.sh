@@ -259,6 +259,7 @@ if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
 
     stop_apache
     sudo networksetup -setautoproxystate ${ETH} off
+    rm -f /tmp/shadowsocks*
 
     if [ ${restart} -gt 0 ]; then
         MODE="normal"
