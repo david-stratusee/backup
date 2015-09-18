@@ -539,6 +539,20 @@ let g:neocomplcache_enable_smart_case = 1
 let g:neocomplcache_min_syntax_length = 3
 let g:neocomplcache_lock_buffer_name_pattern = '\*ku\*'
 
+"------------------------ taglist ----------------------------
+let Tlist_Use_Right_Window = 1
+let Tlist_WinWidth = 35
+let Tlist_Auto_Open = 1
+
+" Close all open buffers on entering a window if the only
+" buffer that's left is the NERDTree buffer
+function! CloseIfOnlyTlistLeft()
+    if winnr("$") == 1 && bufwinnr("__Tag_List__") != -1
+        q
+    endif
+endfunction
+autocmd WinEnter * call CloseIfOnlyTlistLeft()
+
 " Enable heavy features.
 " Use camel case completion.
 "let g:neocomplcache_enable_camel_case_completion = 1
@@ -705,38 +719,6 @@ function! OpenUrl()
 endfunction
 nmap <C-LeftMouse> :call OpenUrl()<CR>
 
-"放大字体
-function <SID>FontSize_Enlarge()
-    if GetSystem() == "linux"
-        let pattern = '\<\d\+$'
-    elseif GetSystem() == "windows"
-        let pattern = ':h\zs\d\+\ze:'
-    endif
-    let fontsize = matchstr(&gfn, pattern)
-    let cmd      = substitute(&gfn, pattern, string(fontsize + 1), 'g')
-    let &gfn     = cmd
-    let fontsize = matchstr(&gfw, pattern)
-    let cmd      = substitute(&gfw, pattern, string(fontsize + 1), 'g')
-    let &gfw     = cmd
-endfunction
-nnoremap <A-+> :call <SID>FontSize_Enlarge()<CR>
-
-"缩小字体
-function <SID>FontSize_Reduce()
-    if GetSystem() == "linux"
-        let pattern = '\<\d\+$'
-    elseif GetSystem() == "windows"
-        let pattern = ':h\zs\d\+\ze:'
-    endif
-    let fontsize = matchstr(&gfn, pattern)
-    let cmd      = substitute(&gfn, pattern, string(fontsize - 1), 'g')
-    let &gfn     = cmd
-    let fontsize = matchstr(&gfw, pattern)
-    let cmd      = substitute(&gfw, pattern, string(fontsize - 1), 'g')
-    let &gfw     = cmd
-endfunction
-nnoremap <A--> :call <SID>FontSize_Reduce()<CR>
-
 "能够漂亮的显示.NFO文件
 function! SetFileEncodings(encodings)
     let b:myfileencodingsbak=&fileencodings
@@ -795,25 +777,10 @@ let g:bufExplorerDetailedHelp = 0
 let g:bufExplorerShowRelativePath = 1
 nmap <F10> :BufExplorer <CR>
 
-"F12生成/更新tags文件
-function! UpdateTagsFile()
-    silent !ctags -R --fields=+ianS --extra=+q
-endfunction
-"nmap <F12> :call UpdateTagsFile()<CR>
-
-"Ctrl + F12删除tags文件
-function! DeleteTagsFile()
-    "Linux下的删除方法
-    "silent !rm tags
-    "Windows下的删除方法
-    silent !del /F /Q tags
-endfunction
-"nmap <S-F12> :call DeleteTagsFile()<CR>
-
 command! -nargs=1 Silent
             \ | execute ':silent !'.<q-args>.">/dev/null"
             \ | execute ':redraw!'
-function UpdateCStags()
+function! UpdateCscope()
     let curdir=getcwd()
     if filereadable("./cscope.out")
         execute ":cscope kill -1"
@@ -826,15 +793,14 @@ function UpdateCStags()
         execute ":ColorLoad"
     endif
 endfunction
-
 if has("Win32")
 else
-    nmap <F2> :call UpdateCStags()<CR>
+    nmap <F2> :call UpdateCscope()<CR>
     nmap <F3> :!vbuild.sh -q<CR>
 endif
 nmap <F5> :copen<CR>
 nmap <F6> :cclose<CR>
-nmap <F4> :Tlist<CR>
+nmap <F4> :TlistToggle<CR>
 
 " 常规模式下输入 cS 清除行尾空格
 nmap cS :%s/\s\+$//g<cr>:noh<cr>
