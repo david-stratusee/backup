@@ -23,7 +23,6 @@ host_port=${available_host_port[3]}
 
 ETH="Wi-Fi"
 aliveinterval=0
-SHADOW_DIR=${HOME}/work/openshift/shadowsocks
 USE_SSH=0
 #-------------------------------------------------------------------------------
 # config end
@@ -37,7 +36,7 @@ function show_proxy()
     networksetup -getautoproxyurl ${ETH}
     echo ===========================
     echo "PROCESS INFO:"
-    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|httpd|watch_socks)"
+    ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|httpd|watch_socks|watch_sso)"
     echo ===========================
     if [ ${USE_SSH} -ne 0 ] && [ -f /tmp/watch_socks.log ]; then
         echo "/tmp/watch_socks.log:"
@@ -47,8 +46,10 @@ function show_proxy()
         echo "LISTEN INFO:"
         netstat -anb | grep 15500 | grep LISTEN
         echo ===========================
-        echo "/tmp/shadowsocks.log:"
-        cat /tmp/shadowsocks.log
+        if [ -f /tmp/shadowsocks.log ]; then
+            echo "/tmp/shadowsocks.log:"
+            cat /tmp/shadowsocks.log
+        fi
         echo ===========================
     fi
 }
@@ -56,18 +57,15 @@ function show_proxy()
 function fill_and_run_proxy()
 {
     if [ ${USE_SSH} -eq 0 ]; then
-        curdir=`pwd`
-        cd ${SHADOW_DIR}
-        nohup node local.js -s "wss://shadowsocks-crazyman.rhcloud.com:8443" 1>/dev/null 2>/tmp/shadowsocks-error.log &
-        cd $curdir
+        watch_sso.sh &
     else
         username=`echo ${host_port} | awk -F":" '{print $1}'`
         remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
         remote_port=`echo ${host_port} | awk -F":" '{print $3}'`
         remote_ip=`get_dnsip ${remote_host}`
-        
+
         echo "get host: $remote_host - $remote_ip" >/tmp/watch_socks.log
-        ${HOME}/bin/watch_socks.sh ${username} ${remote_ip} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
+        watch_socks.sh ${username} ${remote_ip} ${remote_port} ${aliveinterval} >>/tmp/watch_socks.log 2>&1 &
     fi
 }
 
@@ -248,6 +246,7 @@ fi
 if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
     if [ ${USE_SSH} -eq 0 ]; then
         kill_process "local.js"
+        kill_process "watch_sso"
     else
         remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
         remote_ip=`get_dnsip ${remote_host}`

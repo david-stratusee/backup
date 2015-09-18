@@ -32,7 +32,8 @@ ssh_args="-fqCnN"
 #ssh_args="-fqnN"
 socks_port=15500
 
-while [ 1 -eq 1 ]; do
+while :
+do
     pidcount=`ps -ef | grep -v grep | grep -c "ssh -D"`
     if [ $pidcount -eq 0 ]; then
         echo -e " ["`date +'%H:%M:%S'`"] ssh -D ${socks_port} ${ssh_args} ${username}@${hostname}${port}${aliveinterval}"
