@@ -30,8 +30,8 @@
   };
 
   console.warn = function(d) {
-      wstream.write("[WARN][" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
-      //log_stdout.write("[WARN][" + moment().utc().format("YYYY-MM-DDTHH:mm") + "] " + util.format(d) + '\n');
+      wstream.write("[" + moment().utc().format("YYYY-MM-DDTHH:mm") + "][WARN] " + util.format(d) + '\n');
+      //log_stdout.write("[" + moment().utc().format("YYYY-MM-DDTHH:mm") + "][WARN] " + util.format(d) + '\n');
   };
 
   options = {
