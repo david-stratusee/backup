@@ -22,7 +22,7 @@ class myThread (threading.Thread):
         self.result = result
 
     def run(self):
-        digcmd="dig +noquestion +noqr +nocomment +time=10 " + self.domain
+        digcmd="dig +noquestion +noqr +nocomment +time=30 " + self.domain
         status, msg = commands.getstatusoutput(digcmd)
         self.result[self.threadID] = (self.threadID, self.domain, status, msg)
         #print digcmd, status
