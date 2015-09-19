@@ -33,7 +33,8 @@ function show_proxy_stat()
         echo ===========================
     elif [ ${USE_SSH} -eq 0 ]; then
         echo "LISTEN INFO:"
-        sudo netstat -anp | grep node
+        #sudo netstat -anp | grep node
+        sudo netstat -anp | grep 15500 | egrep --color=auto -i "(listen|established)"
         echo ===========================
         if [ -f /tmp/shadowsocks.log ]; then
             echo "/tmp/shadowsocks.log:"
