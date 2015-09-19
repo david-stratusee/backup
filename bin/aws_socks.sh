@@ -44,7 +44,7 @@ function show_proxy()
         echo ===========================
     elif [ ${USE_SSH} -eq 0 ]; then
         echo "LISTEN INFO:"
-        netstat -anb | grep 15500 | grep LISTEN
+        netstat -anb | grep 15500 | egrep --color=auto -i "(listen|established)"
         echo ===========================
         if [ -f /tmp/shadowsocks.log ]; then
             echo "/tmp/shadowsocks.log:"
