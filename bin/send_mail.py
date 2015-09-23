@@ -25,14 +25,13 @@ def main(argv=sys.argv):
     msg.attach(att1)
 
     msg['to'] = 'crazyman80@kindle.cn'
-    #msg['to'] = 'david@holonetsecurity.com'
     msg['from'] = 'dengwei98406@163.com'
     if subfix == ".mobi":
         msg['subject'] = 'send file %s' % argv[1]
     else:
-        msg['subject'] = "Convert"
+        msg['subject'] = 'Convert'
+    print msg['subject']
 
-    os.path.type
     try:
         server = smtplib.SMTP('smtp.163.com')
         #server.ehlo()
