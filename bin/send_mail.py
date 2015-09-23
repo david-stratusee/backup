@@ -5,10 +5,11 @@ from email.mime.multipart import MIMEMultipart
 import smtplib, sys, os
 
 def main(argv=sys.argv):
-    if len(argv) <= 1:
+    if len(argv) <= 1 or not os.path.isfile(argv[1]):
         print "need one filename as attachment"
         return 1
 
+    subfix=os.path.splitext(argv[1])[-1]
     msg = MIMEMultipart()
 
     try:
@@ -26,7 +27,12 @@ def main(argv=sys.argv):
     msg['to'] = 'crazyman80@kindle.cn'
     #msg['to'] = 'david@holonetsecurity.com'
     msg['from'] = 'dengwei98406@163.com'
-    msg['subject'] = 'send file %s' % argv[1]
+    if subfix == ".mobi":
+        msg['subject'] = 'send file %s' % argv[1]
+    else:
+        msg['subject'] = "Convert"
+
+    os.path.type
     try:
         server = smtplib.SMTP('smtp.163.com')
         #server.ehlo()
