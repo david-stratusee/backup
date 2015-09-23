@@ -13,14 +13,17 @@ dest_path="../../../david-stratusee.github.io"
 if [ $# -gt 0 ]; then
     dest_path=$1
 fi
-if [ -d $dest_path ]; then
-    echo cp ./flora_pac.pac ${dest_path}/proxy.pac
-    cp ./flora_pac.pac ${dest_path}/proxy.pac
-fi
 if [ -f /Library/WebServer/Documents/proxy.pac ]; then
     cp -f flora_pac.pac /Library/WebServer/Documents/proxy.pac
 fi
-rm -f flora_pac.pac
+if [ -d $dest_path ]; then
+    echo cp ./flora_pac.pac ${dest_path}/proxy.pac
+    mv -f ./flora_pac.pac ${dest_path}/proxy.pac
+else
+    echo "argument must be one directory path"
+    rm -f flora_pac.pac
+    exit 0
+fi
 
 cd $dest_path
 pwd
