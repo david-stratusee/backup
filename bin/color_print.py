@@ -35,7 +35,7 @@ def main(argv=argv):
         newline = True
         if argc < 4:
             color_print_usage(argv[0])
-            return
+            return 1
         arg_idx += 1
 
     color = argv[arg_idx]
@@ -60,6 +60,7 @@ def main(argv=argv):
         if newline:
             stderr.write('\n')
         stderr.flush()
+    return 0
 
 if __name__ == "__main__":
     exit(main())
