@@ -5,17 +5,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib, sys, os, urllib
 
-def containsnonasciicharacters(str):
-    return not all(ord(c) < 128 for c in str)
-
-def addheader(message, headername, headervalue):
-    if containsnonasciicharacters(headervalue):
-        h = Header(headervalue, 'utf-8')
-        message[headername] = h
-    else:
-        message[headername] = headervalue
-    return message
-
 def main(argv=sys.argv):
     if len(argv) <= 1 or not os.path.isfile(argv[1]):
         print "need one filename as attachment"
@@ -46,7 +35,7 @@ def main(argv=sys.argv):
         subject = 'send file <%s>' % urllib.quote(basefile)
     else:
         subject = 'Convert'
-    msg = addheader(msg, 'subject', subject)
+    msg['subject'] = subject
 
     print "subject: %s, filename: %s" % (msg['subject'], os.path.basename(argv[1]))
 
