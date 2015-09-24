@@ -13,15 +13,17 @@ def send_func(fullpath, local_convert):
         print "call convert %s, at %s" % (fullpath, time.asctime(time.localtime(time.time())))
         new_path = fullpath.replace(subfix, '.mobi')
         conv_command='/Applications/calibre.app/Contents/MacOS/ebook-convert \"%s\" \"%s\"' % (fullpath, new_path)
-        conv_command += ' --mobi-file-type new --mobi-keep-original-images'
+        conv_command += ' --mobi-file-type new --mobi-keep-original-images --max-toc-links 500'
+
         try:
+            if os.path.isfile(new_path):
+                os.remove(new_path)
             status,result= commands.getstatusoutput(conv_command)
             print "finish %s, at %s" % (conv_command, time.asctime(time.localtime(time.time())))
         except Exception, e:
             print 'error when execute command: ' + str(e)
             print "finish %s, at %s" % (conv_command, time.asctime(time.localtime(time.time())))
             return 1
-
         if status != 0:
             print result
             return 1
