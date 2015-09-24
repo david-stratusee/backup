@@ -5,11 +5,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib, sys, os, urllib, commands, time
 
-def send_func(fullpath, add_convert):
+def send_func(fullpath, need_convert):
     subfix=os.path.splitext(fullpath)[-1]
     need_delete = False
 
-    if subfix != ".mobi" and not add_convert:
+    if subfix == '.epub' or subfix != ".mobi" and need_convert:
         print "call convert %s, at %s" % (fullpath, time.asctime(time.localtime(time.time())))
         new_path = fullpath.replace(subfix, '.mobi')
         status,result= commands.getstatusoutput('/Applications/calibre.app/Contents/MacOS/ebook-convert \"%s\" \"%s\"' % (fullpath, new_path))
@@ -38,17 +38,19 @@ def send_func(fullpath, add_convert):
         return 1
 
     att1["Content-Type"] = 'application/octet-stream'
-    att1["Content-Disposition"] = 'attachment; filename=\"%s\"' % urllib.quote(basefile)
+    att1["Content-Disposition"] = 'attachment; filename=\"%s\"' % urllib.quote(basefile, ' \t')
     msg.attach(att1)
+
+    print att1["Content-Disposition"]
 
     msg["Accept-Language"]="zh-CN"
     msg["Accept-Charset"]="ISO-8859-1,utf-8"
     msg['to'] = 'crazyman80@kindle.cn'
     msg['from'] = 'dengwei98406@163.com'
     if subfix == ".mobi":
-        msg['subject'] = "send %s" % urllib.quote(basefile)
+        msg['subject'] = "send %s" % urllib.quote(basefile, ' \t')
     else:
-        msg['subject'] = "Convert"
+        msg['subject'] = "convert"
 
     print "from %s to %s" % (msg['from'], msg['to'])
     print "subject: %s, filename: %s" % (msg['subject'], basefile)
@@ -70,7 +72,7 @@ def send_func(fullpath, add_convert):
         print 'error when send file: ' + str(e)
         return 1
 
-def send_dir_func(fullpath, add_convert):
+def send_dir_func(fullpath, need_convert):
     status,result= commands.getstatusoutput('ls %s' % fullpath)
     if status != 0:
         print 'list directory error, %s' % fullpath
@@ -79,23 +81,23 @@ def send_dir_func(fullpath, add_convert):
     for f in result.split('\n'):
         fpath = fullpath + '/' + f
         if os.path.isfile(fpath):
-            deal_ret = send_func(fpath, add_convert)
+            deal_ret = send_func(fpath, need_convert)
             print "deal with %s return %d" % (fpath, deal_ret)
 
     return 0
 
 
 def main(argv=sys.argv):
-    add_convert = False
+    need_convert = False
     argc = len(argv)
 
     if len(argv) <= 1:
-        print "need one filename as attachment, -c for add Convert to subject"
+        print "need one filename as attachment, -c for convert at local"
         return 0
 
     arg_index = 1
     if argv[arg_index] == '-c':
-        add_convert = True
+        need_convert = True
         arg_index += 1;
 
     if argc == arg_index:
@@ -104,10 +106,10 @@ def main(argv=sys.argv):
 
     while arg_index < argc:
         if os.path.isfile(argv[arg_index]):
-            deal_ret = send_func(argv[arg_index], add_convert)
+            deal_ret = send_func(argv[arg_index], need_convert)
             print "deal with %s return %d" % (argv[arg_index], deal_ret)
         elif os.path.isdir(argv[arg_index]):
-            deal_ret = send_dir_func(argv[arg_index], add_convert)
+            deal_ret = send_dir_func(argv[arg_index], need_convert)
         else:
             print '%s is error path' % argv[arg_index]
 
