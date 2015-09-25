@@ -10,20 +10,18 @@ def send_func(fullpath, local_convert):
     need_delete = False
 
     if subfix == '.epub' or subfix != ".mobi" and local_convert:
-        print "call convert %s, at %s" % (fullpath, time.asctime(time.localtime(time.time())))
+        print "[%s]call convert %s" % (time.asctime(time.localtime(time.time())), fullpath)
         new_path = fullpath.replace(subfix, '.mobi')
         conv_command='/Applications/calibre.app/Contents/MacOS/ebook-convert \"%s\" \"%s\"' % (fullpath, new_path)
         conv_command += ' --mobi-file-type new --mobi-keep-original-images --max-toc-links 500'
-
         try:
-            if os.path.isfile(new_path):
-                os.remove(new_path)
             status,result= commands.getstatusoutput(conv_command)
-            print "finish %s, at %s" % (conv_command, time.asctime(time.localtime(time.time())))
+            print "[%s]finish %s" % (time.asctime(time.localtime(time.time())), conv_command)
         except Exception, e:
             print 'error when execute command: ' + str(e)
-            print "finish %s, at %s" % (conv_command, time.asctime(time.localtime(time.time())))
+            print "[%s]finish %s" % (time.asctime(time.localtime(time.time())), conv_command)
             return 1
+
         if status != 0:
             print result
             return 1
@@ -64,7 +62,7 @@ def send_func(fullpath, local_convert):
 
     print "from %s to %s" % (msg['from'], msg['to'])
     print "subject: %s, filename: %s" % (msg['subject'], basefile)
-    print "begin to send file %s, at %s" % (fullpath, time.asctime(time.localtime(time.time())))
+    print "[%s]begin to send file %s" % (time.asctime(time.localtime(time.time())), fullpath)
 
     try:
         server = smtplib.SMTP('smtp.163.com')
@@ -75,7 +73,7 @@ def send_func(fullpath, local_convert):
         server.sendmail(msg['from'], msg['to'], msg.as_string())
         #server.quit()
         server.close()
-        print "OK, at %s" % time.asctime(time.localtime(time.time()))
+        print "[%s]OK" % time.asctime(time.localtime(time.time()))
 
         return 0
     except Exception, e:
