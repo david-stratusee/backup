@@ -10,23 +10,27 @@ def send_func(fullpath, local_convert):
     need_delete = False
 
     if subfix == '.epub' or subfix != ".mobi" and local_convert:
-        print "[%s]call convert %s" % (time.asctime(time.localtime(time.time())), fullpath)
-        new_path = fullpath.replace(subfix, '.mobi')
-        conv_command='/Applications/calibre.app/Contents/MacOS/ebook-convert \"%s\" \"%s\"' % (fullpath, new_path)
-        conv_command += ' --mobi-file-type new --mobi-keep-original-images --max-toc-links 500'
+        conv_command='/Applications/calibre.app/Contents/MacOS/ebook-convert \"%s\" \".mobi\"' % fullpath
+        conv_command += ' --output-profile kindle_pw3 --mobi-keep-original-images --max-toc-links 500'
+        #conv_command += ' -v'
+        print "[%s] start: %s" % (time.asctime(time.localtime(time.time())), conv_command)
         try:
-            status,result= commands.getstatusoutput(conv_command)
-            print "[%s]finish %s" % (time.asctime(time.localtime(time.time())), conv_command)
+            status,result = commands.getstatusoutput(conv_command)
+            print "[%s] finish: %s" % (time.asctime(time.localtime(time.time())), conv_command)
+
+            if status != 0:
+                print result
+                return 1
+        except KeyboardInterrupt, e1:
+            print '\nbreak when execute command: ' + str(e1)
+            print "[%s] finish: %s" % (time.asctime(time.localtime(time.time())), conv_command)
+            return 1
         except Exception, e:
             print 'error when execute command: ' + str(e)
-            print "[%s]finish %s" % (time.asctime(time.localtime(time.time())), conv_command)
+            print "[%s] finish: %s" % (time.asctime(time.localtime(time.time())), conv_command)
             return 1
 
-        if status != 0:
-            print result
-            return 1
-
-        fullpath = new_path
+        fullpath = fullpath.replace(subfix, '.mobi')
         subfix = '.mobi'
         need_delete = True
 
@@ -62,7 +66,7 @@ def send_func(fullpath, local_convert):
 
     print "from %s to %s" % (msg['from'], msg['to'])
     print "subject: %s, filename: %s" % (msg['subject'], basefile)
-    print "[%s]begin to send file %s" % (time.asctime(time.localtime(time.time())), fullpath)
+    print "[%s] begin to send file %s" % (time.asctime(time.localtime(time.time())), fullpath)
 
     try:
         server = smtplib.SMTP('smtp.163.com')
@@ -73,7 +77,7 @@ def send_func(fullpath, local_convert):
         server.sendmail(msg['from'], msg['to'], msg.as_string())
         #server.quit()
         server.close()
-        print "[%s]OK" % time.asctime(time.localtime(time.time()))
+        print "[%s] OK" % time.asctime(time.localtime(time.time()))
 
         return 0
     except Exception, e:
