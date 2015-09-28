@@ -33,7 +33,7 @@ clear_tag_files
 execute_hint vcollect_files.sh ${except_name}$include_dir
 grep -r -H -E -n "__attribute__" `cat cscope.files` | awk -F ":" '{print $3}' | egrep -o "define.*" | awk '{if ($3 ~ /__attribute__/ && $1 ~ /define/) print $2}' | awk -F"(" '{print $1}' >/tmp/tags_ignore
 echo __THROW >>/tmp/tags_ignore
-execute_hint ctags --sort=foldcase --c-kinds=+xp --fields=+liaS --extra=+q -I/tmp/tags_ignore -L cscope.files
+execute_hint ctags --sort=foldcase --c-kinds=+xp --c++-kinds=+xp --fields=+liaS --extra=+q -I/tmp/tags_ignore -L cscope.files
 rm -f /tmp/tags_ignore
 cp -af tags cppcomplete.tags 2>/dev/null
 #execute_hint cscope -Rbq
