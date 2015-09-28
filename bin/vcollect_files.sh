@@ -31,9 +31,11 @@ if [ "$include_dir" != "" ]; then
     fill_cscope_file ${include_dir} "cscope.files"
 fi
 
-~/bin/cgrep.sh -o "#include <(.*)>" | sort -u | grep -v "\-\-" | sed -e 's/#include </\/usr\/include\//g' | sed -e 's/>//g' >/tmp/csfile.list
-~/bin/cgrep.sh -o "#include <(.*)>" | sort -u | grep -v "\-\-" | sed -e 's/#include </\/usr\/local\/include\//g' | sed -e 's/>//g' >>/tmp/csfile.list
-find /usr/include/glib-2.0/ -type f -name "*.h" | grep -v "\/gio\/" >>/tmp/csfile.list
+cgrep.sh -o "#include <(.*)>" | sort -u | grep -v "\-\-" | sed -e 's/#include </\/usr\/include\//g' | sed -e 's/>//g' >/tmp/csfile.list
+cgrep.sh -o "#include <(.*)>" | sort -u | grep -v "\-\-" | sed -e 's/#include </\/usr\/local\/include\//g' | sed -e 's/>//g' >>/tmp/csfile.list
+if [ -d /usr/include/glib-2.0/ ]; then
+    find /usr/include/glib-2.0/ -type f -name "*.h" | grep -v "\/gio\/" >>/tmp/csfile.list
+fi
 while read line; do
     if [ -f $line ] && [ ! -h $line ]; then
         echo $line >>cscope.files
