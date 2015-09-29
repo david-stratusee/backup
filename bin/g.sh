@@ -13,7 +13,7 @@ set -o nounset                              # Treat unset variables as an error
 
 function gohelp()
 {
-    echo -e "Usage: \n\t-m for module(b|c|u|g|r|s|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit\n\e-l show session"
+    echo -e "Usage: \n\t-m for module(b|c|u|g|s|aie|l2tp|...)\n\t-f for local file\n\t-r for remote_file\n\t-c for command\n\t-e for exit\n\e-l show session"
 }
 
 dsthost=""
@@ -52,10 +52,6 @@ while getopts 'm:f:r:c:elh' opt; do
                 "b")
                     dsthost="aie.box"
                     username="stratusee"
-                    ;;
-                "r")
-                    dsthost="python-crazyman.rhcloud.com"
-                    username="55dff01689f5cf34c30000e0"
                     ;;
                 "s")
                     dsthost="shadowsocks-crazyman.rhcloud.com"
