@@ -7,7 +7,7 @@ import re
 import socket
 
 def valid_ip(address):
-    try: 
+    try:
         socket.inet_aton(address)
         return True
     except:
@@ -62,7 +62,7 @@ if __name__ == '__main__':
         threadID += 1
         globalid += 1
 
-        if threadID == 300:
+        if threadID == 200:
             for t in thread_hdl:
                 t.start()
 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                         ipset.add(dstip)
                     print ip + ": " + str(m)
                 else:
-                    print ip,msg
+                    #print ip,msg
                     noresultip.add(ip)
 
     if len(ipset) > 0:
@@ -122,20 +122,29 @@ if __name__ == '__main__':
     print "-------------"
     if len(failedip) > 0:
         print "FAILED DNS:[%d]" % len(failedip)
-#        for ip in failedip:
-#            print ip
-#
+        fp = open("fail_dns.txt", "w")
+        for ip in failedip:
+            fp.write(ip + "\n")
+            #print ip
+        fp.close()
+
     print "-------------"
     if len(noresultip) > 0:
         print "NO RESULT DNS:[%d]" % len(noresultip)
-#        for ip in noresultip:
-#            print ip
-#
+        fp = open("noresult_dns.txt", "w")
+        for ip in noresultip:
+            fp.write(ip + "\n")
+            #print ip
+        fp.close()
+
     print "-------------"
     if len(usefulip) > 0:
         print "VALID DNS:[%d]" % len(usefulip)
-#        for ip in usefulip:
-#            print ip
+        fp = open("valid_dns.txt", "w")
+        for ip in usefulip:
+            fp.write(ip + "\n")
+            #print ip
+        fp.close()
 
     print "-------------"
 
