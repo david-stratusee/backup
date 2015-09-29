@@ -100,12 +100,12 @@ if __name__ == '__main__':
                 print ip,status
                 failedip.add(ip)
             else:
-                usefulip.add(ip)
                 m = re_hdl.findall(msg)
                 if m is not None and len(m) > 0:
                     for dstip in m:
                         ipset.add(dstip)
                     print ip + ": " + str(m)
+                    usefulip.add(ip)
                 else:
                     #print ip,msg
                     noresultip.add(ip)
