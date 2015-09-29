@@ -419,17 +419,9 @@ function FindProxyForURL(url, host) {
         'github.io'                    : 1,
         'apnic.net'                    : 1,
         'www.gutenberg.org'            : 1,
-
-        // apple
-        //'mzstatic.com'                 : 1,
-        //'apple.com'                    : 1,
-        //'icloud.com'                   : 1,
-        //'itunes-apple.com.akadns.net'  : 1,
-        //'apple.com.akadns.net'         : 1,
     };
 
     var dangerDomains = {
-     // 'apple.com'     : 1,
         'yyets.com'     : 1,
         'yahoo.com'     : 1,
         'youtube.com'   : 1,
@@ -603,11 +595,12 @@ function FindProxyForURL(url, host) {
         return 'DIRECT';
     }
 
-    if (host.search(/apple|icloud|mzstatic/i) >= 0 || testDomain(host, safeDomains, true)) {
+    if (testDomain(host, safeDomains, true)) {
         return 'DIRECT';
     }
 
-    if (host.search(/google|facebook|dropbox|twitter|rubygems/i) >= 0 || testDomain(host, dangerDomains)) {
+    if (host.search(/google|facebook|dropbox|twitter|rubygems|apple|icloud|mzstatic/i) >= 0
+            || testDomain(host, dangerDomains)) {
         return proxy;
     }
 
