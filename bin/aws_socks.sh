@@ -18,8 +18,8 @@ set -o nounset                              # Treat unset variables as an error
 #-------------------------------------------------------------------------------
 username=david
 
-available_host_port=("david:dev-aie.stratusee.com:22" "david:dev-aie2.stratusee.com:22" "david:us.stratusee.com:2226", "55dff01689f5cf34c30000e0:python-crazyman.rhcloud.com:22")
-host_port=${available_host_port[3]}
+available_host_port=([0]="david:us.stratusee.com:2226" [1]="55e6658f0c1e66d617000070:shadowsocks-crazyman.rhcloud.com:22")
+host_port=${available_host_port[1]}
 
 ETH="Wi-Fi"
 aliveinterval=0
@@ -44,7 +44,6 @@ function show_proxy()
         echo ===========================
     elif [ ${USE_SSH} -eq 0 ]; then
         echo "LISTEN INFO:"
-        #netstat -anb | grep 15500 | grep LISTEN
         netstat -anb | grep 15500 | egrep --color=auto -i "(listen|established)"
         echo ===========================
         if [ -f /tmp/shadowsocks.log ]; then
