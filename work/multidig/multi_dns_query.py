@@ -47,7 +47,7 @@ if __name__ == '__main__':
         exit(0)
 
     host=sys.argv[1]
-    print host
+    #print host
 
     threadID = 1
     globalid = 0
@@ -104,7 +104,7 @@ if __name__ == '__main__':
                 if m is not None and len(m) > 0:
                     for dstip in m:
                         ipset.add(dstip)
-                    print ip + ": " + str(m)
+                    #print ip + ": " + str(m)
                     usefulip.add(ip)
                 else:
                     #print ip,msg

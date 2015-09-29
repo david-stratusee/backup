@@ -9,7 +9,7 @@
 set -o nounset                              # Treat unset variables as an error
 
 while read line; do
-    arr=`ping -t 3 $line | grep icmp_seq | awk '{print $7}' | awk -F= '{print $2}'`
+    arr=`ping -t 2 $line | grep icmp_seq | awk '{print $7}' | awk -F= '{print $2}'`
     echo -n $line
     echo $arr | awk '                  \
         BEGIN {sum = 0.0}              \
