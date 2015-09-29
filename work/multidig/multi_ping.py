@@ -22,13 +22,15 @@ class myThread (threading.Thread):
         self.result = result
 
     def run(self):
-        digcmd="ping -t 2 %s | grep icmp_seq | awk '{print $7}' | awk -F= '{print $2}'" % self.ip
-        status, msg = commands.getstatusoutput(digcmd)
+        digcmd="ping -t 2 %s" % self.ip
+        status,msg = commands.getstatusoutput(digcmd)
         value = 0.0
         num = 0
-        for data in msg.split():
-            value += float(data)
-            num += 1
+        for line in msg.split('\n'):
+            if line.find("time=") >= 0:
+                arr = line.split()
+                value += float(arr[6][5:])
+                num += 1
         if num != 0:
             value /= num
         self.result[self.threadID] = (self.threadID, self.ip, status, value)
