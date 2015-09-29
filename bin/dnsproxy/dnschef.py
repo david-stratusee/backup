@@ -311,7 +311,7 @@ class DNSHandler():
                     sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
                 else:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                
+
                 sock.settimeout(5.0)
 
                 sock.sendto(request, (host, int(port)))
