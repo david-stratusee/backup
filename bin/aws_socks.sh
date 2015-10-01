@@ -35,7 +35,7 @@ function show_proxy()
     echo "PAC_PROXY STATE:"
     networksetup -getautoproxyurl ${ETH}
     echo ===========================
-    echo "PROCESS INFO:"
+    echo "PROCESS INFO:[${USE_SSH}]"
     ps -ef | grep -v grep | egrep --color=auto "(ssh -D|CMD|local.js|httpd|watch_socks|watch_sso)"
     echo ===========================
     if [ ${USE_SSH} -ne 0 ] && [ -f /tmp/watch_socks.log ]; then
@@ -244,10 +244,10 @@ else
 fi
 
 if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
-    if [ ${USE_SSH} -eq 0 ]; then
+    #if [ ${USE_SSH} -eq 0 ]; then
         kill_process "local.js"
         kill_process "watch_sso"
-    else
+    #else
         remote_host=`echo ${host_port} | awk -F":" '{print $2}'`
         remote_ip=`get_dnsip ${remote_host}`
 
@@ -255,7 +255,7 @@ if [ "${MODE}" == "clear" ] || [ "${MODE}" == "normal" ]; then
         kill_process $remote_host
         kill_process "ssh -D"
         kill_process "watch_socks"
-    fi
+    #fi
 
     stop_apache
     sudo networksetup -setautoproxystate ${ETH} off
