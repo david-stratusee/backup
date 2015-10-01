@@ -22,7 +22,7 @@ class myThread (threading.Thread):
         self.result = result
 
     def run(self):
-        digcmd="ping -t 2 %s" % self.ip
+        digcmd="ping -t 3 %s" % self.ip
         status,msg = commands.getstatusoutput(digcmd)
         value = 0.0
         num = 0
